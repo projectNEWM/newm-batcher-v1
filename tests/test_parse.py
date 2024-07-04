@@ -1,6 +1,7 @@
 import pytest
 
 from src.parse import asset_list_to_dict
+from src.value import Value
 
 
 @pytest.fixture
@@ -34,7 +35,7 @@ def test_asset_list_to_dict(generate_test_data):
     }
 
     result = asset_list_to_dict(assets)
-    assert result == expected_result
+    assert result == Value(expected_result)
 
 
 def test_empty_asset_list_to_dict():
@@ -42,4 +43,4 @@ def test_empty_asset_list_to_dict():
     expected_result = {}
 
     result = asset_list_to_dict([])
-    assert result == expected_result
+    assert result == Value(expected_result)

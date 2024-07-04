@@ -1,4 +1,7 @@
-def asset_list_to_dict(assets: list) -> dict:
+from src.value import Value
+
+
+def asset_list_to_dict(assets: list) -> Value:
     """
     Convert the Oura asset list inside a tx output into a value dictionary.
 
@@ -6,10 +9,10 @@ def asset_list_to_dict(assets: list) -> dict:
         assets (list): The oura list of assets from a tx_output variant
 
     Returns:
-        dict: A value dictionary of the assets.
+        Value: A value dictionary of the assets.
     """
     values = {}
     for asset in assets:
         values[asset['policy']] = {}
         values[asset['policy']][asset['asset']] = asset['amount']
-    return values
+    return Value(values)
