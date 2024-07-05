@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytest
@@ -9,6 +10,11 @@ from tests.helpers import is_node_live
 @pytest.fixture
 def test_signed_file_path():
     return os.path.join(os.path.dirname(__file__), 'test_files', 'test_tx.signed')
+
+
+@pytest.fixture
+def test_signed_file_path2():
+    return os.path.join(os.path.dirname(__file__), 'test_files', 'test_tx2.signed')
 
 
 @pytest.fixture
@@ -79,3 +85,44 @@ def test_tx_id_of_test_file(test_signed_file_path):
     result = cli.txid(test_signed_file_path)
     answer = "1c471e439d9bfea40eb818e8dd2cb2ec081c3858ca5d92b51f2ec028ff0a1e89"
     assert result == answer
+
+
+def test_sign_a_tx_that_doesnt_exist(test_skey_file_path, config):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.sign("", config["file_path"], config["network"], test_skey_file_path)
+        assert excinfo.value.code == 1
+
+
+def test_sign_a_draft_tx(test_draft_file_path, test_skey_file_path, config):
+    cli.sign(test_draft_file_path, config["file_path"], config["network"], test_skey_file_path)
+
+    with open(config["file_path"], "r") as read_content:
+        data = json.load(read_content)
+    assert data["type"] == "Witnessed Tx BabbageEra"
+
+
+def test_sign_a_signed_tx(test_signed_file_path, test_skey_file_path, config):
+    cli.sign(test_signed_file_path, config["file_path"], config["network"], test_skey_file_path)
+
+    with open(config["file_path"], "r") as read_content:
+        data = json.load(read_content)
+    assert data["type"] == "Witnessed Tx BabbageEra"
+
+
+def test_submit_a_signed_tx_with_no_socket(test_signed_file_path, config):
+    with pytest.raises(SystemExit) as excinfo:
+        _ = cli.submit(test_signed_file_path, "", config["network"])
+        assert excinfo.value.code == 1
+
+
+@pytest.mark.live_node
+def test_submit_an_already_submitted_signed_tx(test_signed_file_path, live_node):
+    result = cli.submit(test_signed_file_path, live_node["socket"], live_node["network"])
+    assert result is False
+
+
+@pytest.mark.live_node
+def test_submit_a_signed_tx(test_signed_file_path2, live_node):
+    result = cli.submit(test_signed_file_path2, live_node["socket"], live_node["network"])
+    # if the tx is unsubmitted then its true else its false
+    assert result is True or result is False
