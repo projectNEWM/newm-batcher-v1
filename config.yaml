@@ -36,6 +36,9 @@ queue_ref_utxo: "a9e7656a8b7a320917792013b720f8de3a1e9cb57bd382096d6f615fdb634ea
 # The newm pointer policy id
 pointer_policy: "f24259627b32d494cd851d93a128410f2edeb1b3f407e935a0400da7"
 
+# The newm batcher policy id
+batcher_policy: "20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9"
+
 # starting block information
 starting_block_number: 2320000
 starting_timestamp: 61810538
