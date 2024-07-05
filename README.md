@@ -15,7 +15,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Run the batcher with `python3 batcher.py`.
+Run the batcher with `python3 batcher.py`. Run the tests with `pytest`. Some tests require access to a full node.
 
 ## External Requirements
 
