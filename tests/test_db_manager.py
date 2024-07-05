@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from src.db_manager import DatabaseManager
+from src.db_manager import DBManager
 from src.value import Value
 
 
@@ -24,7 +24,7 @@ def config():
 
 @pytest.fixture
 def db_manager(cleanup):
-    manager = DatabaseManager(db_file='test_batcher.db')
+    manager = DBManager(db_file='test_batcher.db')
     yield manager
     manager.cleanup()
 

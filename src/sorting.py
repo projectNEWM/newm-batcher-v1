@@ -1,7 +1,7 @@
 
 
 from src.datums import get_incentive_amount, queue_validity
-from src.db_manager import DatabaseManager
+from src.db_manager import DBManager
 
 
 class Sorting:
@@ -32,7 +32,7 @@ class Sorting:
         return sorted_dict
 
     @staticmethod
-    def fifo(db: DatabaseManager) -> dict:
+    def fifo(db: DBManager) -> dict:
         # query all the sale pointer tokens of valid sales
         sales = db.read_all_sale_tkns()
 
