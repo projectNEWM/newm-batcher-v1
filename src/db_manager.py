@@ -196,7 +196,7 @@ class DatabaseManager:
     # CRUD for Sale
     ###########################################################################
 
-    def create_sale_record(self, tkn, txid, datum, value):
+    def create_sale(self, tkn, txid, datum, value):
         conn = self.get_connection()
         try:
             datum_json = self.dict_to_json(datum)
@@ -209,7 +209,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def read_sale_record(self, tkn):
+    def read_sale(self, tkn):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -259,7 +259,7 @@ class DatabaseManager:
     # CRUD for Queue
     ###########################################################################
 
-    def create_queue_record(self, tag, txid, tkn, datum, value, timestamp, tx_idx):
+    def create_queue(self, tag, txid, tkn, datum, value, timestamp, tx_idx):
         conn = self.get_connection()
         try:
             datum_json = self.dict_to_json(datum)
@@ -272,7 +272,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def read_queue_record(self, tag):
+    def read_queue(self, tag):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -287,7 +287,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def read_all_queue_records(self, pointer: str):
+    def read_all_queue(self, pointer: str):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -305,7 +305,7 @@ class DatabaseManager:
 
     # get all queue records by tkn
 
-    def delete_queue_record_by_tag(self, tag):
+    def delete_queue_by_tag(self, tag):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -326,7 +326,7 @@ class DatabaseManager:
     # CRUD for seen
     ###########################################################################
 
-    def create_seen_record(self, id: str):
+    def create_seen(self, id: str):
         conn = self.get_connection()
         try:
             conn.execute('INSERT OR REPLACE INTO seen (id, tag) VALUES (?, ?)', (id, id))
@@ -334,7 +334,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def read_seen_record(self, id: str) -> bool:
+    def read_seen(self, id: str) -> bool:
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
