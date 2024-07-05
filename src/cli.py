@@ -31,7 +31,7 @@ def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> N
     _, errors = p.communicate()
 
     # exit application if node is not live
-    if "cardano-cli" in errors.decode():
+    if "Connection refused" in errors.decode():
         sys.exit(1)
 
 
@@ -79,7 +79,7 @@ def query_tip(socket: str, file_path: str, network: str) -> None:
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _, errors = p.communicate()
 
-    if "cardano-cli" in errors.decode():
+    if "Connection refused" in errors.decode():
         sys.exit(1)
 
 
@@ -131,7 +131,7 @@ def txid(file_path: str) -> str:
     return output.decode('utf-8').rstrip()
 
 
-def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str):
+def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str) -> None:
     """Sign a transaction with a list of payment keys.
     """
     func = [
@@ -148,10 +148,12 @@ def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: s
     func += network.split(" ")
 
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output, errors = p.communicate()
+    _, errors = p.communicate()
+    if "Command failed" in errors.decode():
+        sys.exit(1)
 
 
-def submit(signed_file_path, socket_path, network):
+def submit(signed_file_path: str, socket_path: str, network: str) -> bool:
     """Submit the transaction to the blockchain.
     """
     func = [
@@ -164,9 +166,13 @@ def submit(signed_file_path, socket_path, network):
     ]
     func += network.split(" ")
 
-    result = subprocess.run(func, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, text=True)
-    if result.stderr != "":
-        return False, result.stderr
-    else:
-        return True, result.stdout
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+    if "Connection refused" in errors.decode():
+        sys.exit(1)
+    if "Command failed" in errors.decode():
+        return False
+    if "Transaction successfully submitted" in output.decode():
+        return True
+    # if it didnt fail nicely or didnt submit then fail it
+    return False
