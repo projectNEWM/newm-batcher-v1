@@ -54,20 +54,32 @@ def test_update_status_and_read(db_manager, config):
     assert record['timestamp'] == timestamp
 
 
-def test_create_batcher():
-    pass
+def test_create_batcher(db_manager, sample_value):
+    tag = "acab"
+    txid = "test_txid"
+    db_manager.create_batcher(tag, txid, sample_value)
+    pid = "acab"
+
+    record = db_manager.read_batcher(pid)
+    assert record['tag'] == tag
+    assert record['txid'] == txid
+    assert record['value'] == sample_value
+
+    records = db_manager.read_all_batcher()
+    assert len(records) == 1
+    assert records[0] == record
 
 
-def test_delete_batcher():
-    pass
+def test_delete_batcher(db_manager, sample_value):
+    tag = "acab"
+    txid = "test_txid"
+    db_manager.create_batcher(tag, txid, sample_value)
+    pid = "acab"
 
-
-def test_read_batcher():
-    pass
-
-
-def test_read_all_batcher():
-    pass
+    delete_flag = db_manager.delete_batcher(tag)
+    record = db_manager.read_batcher(pid)
+    assert record is None
+    assert delete_flag is True
 
 
 def test_create_sale_record(db_manager, sample_value):
@@ -81,3 +93,43 @@ def test_create_sale_record(db_manager, sample_value):
     assert record['txid'] == txid
     assert record['datum'] == datum
     assert record['value'] == sample_value
+
+    records = db_manager.read_all_sale_tkns()
+    assert len(records) == 1
+    assert records[0] == tkn
+
+
+def test_delete_sale(db_manager, sample_value):
+    tkn = "test_tkn"
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.create_sale_record(tkn, txid, datum, sample_value)
+
+    delete_flag = db_manager.delete_sale_by_txid(txid)
+    record = db_manager.read_sale_record(tkn)
+    assert record is None
+    assert delete_flag is True
+
+
+def test_create_queue():
+    pass
+
+
+def test_delete_queue():
+    pass
+
+
+def test_read_queue():
+    pass
+
+
+def test_read_all_queue():
+    pass
+
+
+def test_create_seend():
+    pass
+
+
+def test_read_seen():
+    pass
