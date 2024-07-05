@@ -1,5 +1,6 @@
 
 
+from src.datums import get_incentive_amount, queue_validity
 from src.db_manager import DatabaseManager
 
 
@@ -60,20 +61,17 @@ class Sorting:
                 order_hash = order[0]
                 # all the order data for this queue entry
                 order_data = order[1]
-                # try to validate the datum else continue to the next order
-                try:
-                    # check if wallet type is correct and the incetive type is correct
-                    _ = order_data['datum']['fields'][0]['fields']
-                    incentive_data = order_data['datum']['fields'][2]['fields']
-                    incentive_amt = incentive_data[2]['int']
 
-                    # Sort by incentive amount (descending), then by timestamp and tx_idx
-                    #
-                    # (order hash, timestamp, tx idx, incentive)
-                    sale_to_order_dict[sale].append((order_hash, order_data['timestamp'], order_data['tx_idx'], incentive_amt))
-                except KeyError:
-                    # bad incentive data here
+                # try to validate the datum else continue to the next order
+                if queue_validity(order_data['datum']) is False:
                     continue
+
+                # get the incentive amount
+                incentive_amt = get_incentive_amount(order_data['datum'])
+                # Sort by incentive amount (descending), then by timestamp and tx_idx
+                #
+                # (order hash, timestamp, tx idx, incentive)
+                sale_to_order_dict[sale].append((order_hash, order_data['timestamp'], order_data['tx_idx'], incentive_amt))
 
         # fifo the queue list per each sale
         return Sorting.fifo_sort(sale_to_order_dict)
