@@ -3,7 +3,16 @@ import subprocess
 import sys
 
 
-def query_tx_mempool(socket, tx_id, file_path, network):
+def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> None:
+    """
+    Query the tx mempool and check if a specific transaction exists inside of it.
+
+    Args:
+        socket (str): The node socket path
+        tx_id (str): The transaction id
+        file_path (str): The output file path
+        network (str): The network flag
+    """
     func = [
         'cardano-cli',
         'query',
@@ -21,13 +30,23 @@ def query_tx_mempool(socket, tx_id, file_path, network):
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _, errors = p.communicate()
 
+    # exit application if node is not live
     if "cardano-cli" in errors.decode():
         sys.exit(1)
 
 
-def does_tx_exists_in_mempool(socket, tx_id, file_path, network):
+def does_tx_exists_in_mempool(socket: str, tx_id: str, file_path: str, network: str) -> bool:
     """
-    Check if a tx exists in the nodes local mempool.
+    Query the tx mempool and check if a specific transaction exists inside of it.
+
+    Args:
+        socket (str): The node socket path
+        tx_id (str): The transaction id
+        file_path (str): The output file path
+        network (str): The network flag
+
+    Returns:
+        bool: If the transaction exists then true else false
     """
     # check the mempool
     query_tx_mempool(socket, tx_id, file_path, network)
@@ -35,3 +54,119 @@ def does_tx_exists_in_mempool(socket, tx_id, file_path, network):
     with open(file_path, "r") as read_content:
         data = json.load(read_content)
     return data['exists']
+
+
+def query_tip(socket: str, file_path: str, network: str) -> None:
+    """
+    Query the tip of the blockchain then save to a file.
+
+    Args:
+        socket (str): The socket path to the node
+        file_path (str): The output file path
+        network (str): The network flag
+    """
+    func = [
+        'cardano-cli',
+        'query',
+        'tip',
+        '--socket-path',
+        socket,
+        '--out-file',
+        file_path
+    ]
+    func += network.split(" ")
+
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, errors = p.communicate()
+
+    if "cardano-cli" in errors.decode():
+        sys.exit(1)
+
+
+def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
+    """
+    Query the tip of the blockchain and returns the latest block number.
+
+    Args:
+        socket (str): The socket path to the node
+        file_path (str): The output file path
+        network (str): The network flag
+
+    Returns:
+        int: The latest block number
+    """
+    # get current tip
+    query_tip(socket, file_path, network)
+
+    # get the block data
+    with open(file_path, "r") as read_content:
+        data = json.load(read_content)
+
+    return int(data['block'])
+
+
+def txid(file_path: str) -> str:
+    """
+    Get the tx id of a signed transactions.
+
+    Args:
+        file_path (str): The transaction file path.
+
+    Returns:
+        str: The transaction id
+    """
+    func = [
+        'cardano-cli',
+        'transaction',
+        'txid',
+        '--tx-file',
+        file_path
+    ]
+
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+
+    if "Command failed" in errors.decode():
+        sys.exit(1)
+    return output.decode('utf-8').rstrip()
+
+
+def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str):
+    """Sign a transaction with a list of payment keys.
+    """
+    func = [
+        'cardano-cli',
+        'transaction',
+        'sign',
+        '--tx-body-file',
+        draft_file_path,
+        '--tx-file',
+        signed_file_path,
+        '--signing-key-file',
+        skey_path,
+    ]
+    func += network.split(" ")
+
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+
+
+def submit(signed_file_path, socket_path, network):
+    """Submit the transaction to the blockchain.
+    """
+    func = [
+        'cardano-cli',
+        'transaction',
+        'submit',
+        '--socket-path', socket_path,
+        '--tx-file',
+        signed_file_path
+    ]
+    func += network.split(" ")
+
+    result = subprocess.run(func, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True)
+    if result.stderr != "":
+        return False, result.stderr
+    else:
+        return True, result.stdout
