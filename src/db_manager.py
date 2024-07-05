@@ -160,7 +160,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def read_all_batcher_records(self):
+    def read_all_batcher(self):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -175,7 +175,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def delete_batcher_record(self, tag):
+    def delete_batcher(self, tag):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -232,13 +232,13 @@ class DatabaseManager:
             records = cursor.fetchall()
             sale_records = []
             for record in records:
-                tkn = record
+                tkn = record[0]  # only tkn is there (tkn, )
                 sale_records.append(tkn)
             return sale_records
         finally:
             conn.close()
 
-    def delete_sale_record_by_txid(self, txid):
+    def delete_sale_by_txid(self, txid):
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
