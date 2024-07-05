@@ -36,9 +36,15 @@ class Value:
         return Value(self.inner)
 
     def dump(self) -> str:
+        """
+        Do a json dumps of the self.
+        """
         return json.dumps(self.inner)
 
     def exists(self, policy) -> bool:
+        """
+        Checks if a policy exists in self.
+        """
         if not isinstance(policy, str):
             return NotImplemented
         return policy in self.inner
