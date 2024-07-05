@@ -26,7 +26,7 @@ class Sorting:
         # each sale needs to be ordered
         for key, value_list in input_dict.items():
             # sort by incentive amt then timestamp then by the tx_idx
-            sorted_list = sorted(value_list, key=lambda x: (-x[3], x[1], x[2]))
+            sorted_list = sorted(value_list, key=lambda x: (x[4], -x[3], x[1], x[2]))
             sorted_dict[key] = sorted_list
 
         return sorted_dict
@@ -67,11 +67,11 @@ class Sorting:
                     continue
 
                 # get the incentive amount
-                incentive_amt = get_incentive_amount(order_data['datum'])
+                incentive_amt, priority = get_incentive_amount(order_data['datum'])
                 # Sort by incentive amount (descending), then by timestamp and tx_idx
                 #
                 # (order hash, timestamp, tx idx, incentive)
-                sale_to_order_dict[sale].append((order_hash, order_data['timestamp'], order_data['tx_idx'], incentive_amt))
+                sale_to_order_dict[sale].append((order_hash, order_data['timestamp'], order_data['tx_idx'], incentive_amt, priority))
 
         # fifo the queue list per each sale
         return Sorting.fifo_sort(sale_to_order_dict)

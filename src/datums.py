@@ -1,4 +1,4 @@
-from src.allowlist import asset_names, policy_ids
+from src.allowlist import asset_names, policy_ids, priority
 
 
 def queue_validity(datum: dict) -> bool:
@@ -50,8 +50,8 @@ def queue_validity(datum: dict) -> bool:
         return False
 
 
-def get_incentive_amount(datum: dict) -> int:
+def get_incentive_amount(datum: dict) -> tuple[int, int]:
     try:
-        return datum['fields'][2]['fields'][2]['int']
+        return datum['fields'][2]['fields'][2]['int'], priority[datum['fields'][2]['fields'][0]['bytes']]
     except KeyError:
         return None

@@ -89,8 +89,9 @@ def test_is_good_queue_datum_valid(good_datum):
 
 
 def test_can_get_incentive(good_datum):
-    result = get_incentive_amount(good_datum)
-    assert result == 1000000
+    amt, priority = get_incentive_amount(good_datum)
+    assert amt == 1000000
+    assert priority == 0
 
 
 def test_is_bad_queue_datum_invalid(bad_datum):
