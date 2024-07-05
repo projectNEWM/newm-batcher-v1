@@ -86,9 +86,9 @@ def test_create_sale_record(db_manager, sample_value):
     tkn = "test_tkn"
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.create_sale_record(tkn, txid, datum, sample_value)
+    db_manager.create_sale(tkn, txid, datum, sample_value)
 
-    record = db_manager.read_sale_record(tkn)
+    record = db_manager.read_sale(tkn)
     assert record is not None
     assert record['txid'] == txid
     assert record['datum'] == datum
@@ -103,33 +103,52 @@ def test_delete_sale(db_manager, sample_value):
     tkn = "test_tkn"
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.create_sale_record(tkn, txid, datum, sample_value)
+    db_manager.create_sale(tkn, txid, datum, sample_value)
 
     delete_flag = db_manager.delete_sale_by_txid(txid)
-    record = db_manager.read_sale_record(tkn)
+    record = db_manager.read_sale(tkn)
     assert record is None
     assert delete_flag is True
 
 
-def test_create_queue():
-    pass
+def test_create_queue(db_manager, sample_value):
+    tag = "acab"
+    tkn = "test_tkn"
+    txid = "test_txid"
+    datum = {"key": "value"}
+    timestamp = 1
+    tx_idx = 0
+    db_manager.create_queue(tag, txid, tkn, datum, sample_value, timestamp, tx_idx)
+
+    record = db_manager.read_queue(tag)
+    assert record is not None
+    assert record['txid'] == txid
+    assert record['datum'] == datum
+    assert record['value'] == sample_value
+
+    records = db_manager.read_all_queue(tkn)
+    assert len(records) == 1
+    assert records[0][0] == tag
 
 
-def test_delete_queue():
-    pass
+def test_delete_queue(db_manager, sample_value):
+    tag = "acab"
+    tkn = "test_tkn"
+    txid = "test_txid"
+    datum = {"key": "value"}
+    timestamp = 1
+    tx_idx = 0
+    db_manager.create_queue(tag, txid, tkn, datum, sample_value, timestamp, tx_idx)
+
+    delete_flag = db_manager.delete_queue_by_tag(tag)
+    record = db_manager.read_queue(tag)
+    assert record is None
+    assert delete_flag is True
 
 
-def test_read_queue():
-    pass
+def test_create_seen(db_manager, sample_value):
+    tag = "acab"
+    db_manager.create_seen(tag)
 
-
-def test_read_all_queue():
-    pass
-
-
-def test_create_seend():
-    pass
-
-
-def test_read_seen():
-    pass
+    record = db_manager.read_seen(tag)
+    assert record is True
