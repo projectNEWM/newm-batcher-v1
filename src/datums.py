@@ -3,7 +3,7 @@ from src.allowlist import asset_names, policy_ids, priority
 
 def queue_validity(datum: dict) -> bool:
     """
-    Validate that teh queue datum is in the correct form for an order to be fulfilled.
+    Validate that the queue datum is in the correct form for an order to be fulfilled.
 
     Args:
         datum (dict): The queue datum
@@ -12,7 +12,7 @@ def queue_validity(datum: dict) -> bool:
         bool: True if valid else False
     """
     try:
-        # there are four fields in the queue datum
+        # there are four fields in the datum
         if len(datum['fields']) != 4:
             return False
 
@@ -55,3 +55,49 @@ def get_incentive_amount(datum: dict) -> tuple[int, int]:
         return datum['fields'][2]['fields'][2]['int'], priority[datum['fields'][2]['fields'][0]['bytes']]
     except KeyError:
         return None
+
+
+def sale_validity(datum: dict) -> bool:
+    """
+    Validate that the sale datum is in the correct form for an order to be fulfilled.
+
+    Args:
+        datum (dict): The sale datum
+
+    Returns:
+        bool: True if valid else False
+    """
+    try:
+        # there are four fields in the datum
+        if len(datum['fields']) != 4:
+            return False
+
+        # wallet check
+        if len(datum['fields'][0]['fields']) != 2:
+            return False
+        if len(datum['fields'][0]['fields'][0]['bytes']) != 56:
+            return False
+        if len(datum['fields'][0]['fields'][1]['bytes']) not in [0, 56]:
+            return False
+
+        # bundle check
+        if len(datum['fields'][2]['fields']) != 3:
+            return False
+        if datum['fields'][2]['fields'][2]['int'] <= 0:
+            return False
+
+        # cost check
+        if len(datum['fields'][2]['fields']) != 3:
+            return False
+        if datum['fields'][2]['fields'][2]['int'] <= 0:
+            return False
+
+        # bundle size check
+        if datum['fields'][3]['int'] <= 0:
+            return False
+
+        # every thing seems good
+        return True
+
+    except KeyError:
+        return False
