@@ -5,6 +5,7 @@ from flask import Flask
 from loguru import logger
 
 from src import yaml_file
+from src.utility import create_folder_if_not_exists, parent_directory_path
 
 ###############################################################################
 # Top level constants required for the batcher to run
@@ -29,6 +30,10 @@ app = Flask(__name__)
 # Disable Flask's default logger
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+
+# create the tmp directory if it doesn't exist already
+tmp_folder = os.path.join(parent_directory_path(), "tmp")
+create_folder_if_not_exists(tmp_folder)
 
 if __name__ == '__main__':
     pass
