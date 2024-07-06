@@ -3,6 +3,10 @@ import subprocess
 import sys
 
 
+def query_protocol_parameters():
+    pass
+
+
 def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> None:
     """
     Query the tx mempool and check if a specific transaction exists inside of it.

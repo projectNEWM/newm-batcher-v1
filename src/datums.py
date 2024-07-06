@@ -1,4 +1,5 @@
 from src.allowlist import asset_names, policy_ids, priority
+from src.value import Value
 
 
 def queue_validity(datum: dict) -> bool:
@@ -49,6 +50,8 @@ def queue_validity(datum: dict) -> bool:
         # some field doesnt exist
         return False
 
+def incentive_to_value(datum: dict) -> Value:
+    pass
 
 def get_incentive_amount(datum: dict) -> tuple[int, int]:
     try:
