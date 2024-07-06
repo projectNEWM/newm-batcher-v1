@@ -77,3 +77,16 @@ def test_value_dump():
     v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
     v1_dump = json.dumps(v1.inner)
     assert v1.dump() == v1_dump
+
+
+def test_add_lovelace():
+    result = Value({})
+    answer = Value({"lovelace": 1})
+    result.add_lovelace(1)
+    assert result == answer
+
+
+def test_get_token():
+    v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    tkn = v1.get_token("acab")
+    assert tkn == "beef"

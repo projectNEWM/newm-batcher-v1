@@ -35,6 +35,12 @@ class Value:
         self._remove_zero_entries
         return Value(self.inner)
 
+    def add_lovelace(self, quantity: int):
+        self.inner["lovelace"] = quantity
+
+    def get_token(self, policy):
+        return list(self.inner[policy].keys())[0]
+
     def dump(self) -> str:
         """
         Do a json dumps of the self.
