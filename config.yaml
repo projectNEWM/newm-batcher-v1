@@ -48,4 +48,4 @@ delay_depth: 2
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
-logging_level: "ERROR"
+logging_level: "SUCCESS"
