@@ -51,6 +51,21 @@ def live_node(config):
     return config
 
 
+def test_query_protocol_parameters_with_no_socket(config):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.query_protocol_parameters("", config["file_path"], config["network"])
+        assert excinfo.value.code == 1
+
+
+@pytest.mark.live_node
+def test_query_protocol_parameters(live_node):
+    cli.query_protocol_parameters(live_node["socket"], live_node["file_path"], live_node["network"])
+
+    with open(live_node["file_path"], "r") as read_content:
+        data = json.load(read_content)
+    assert data["maxTxSize"] == 16384
+
+
 def test_query_mempool_with_no_socket(config):
     with pytest.raises(SystemExit) as excinfo:
         cli.query_tx_mempool("", config["tx_id"], config["file_path"], config["network"])

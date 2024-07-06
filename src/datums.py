@@ -50,12 +50,26 @@ def queue_validity(datum: dict) -> bool:
         # some field doesnt exist
         return False
 
+
 def incentive_to_value(datum: dict) -> Value:
-    pass
+    incentive = {
+        datum['fields'][2]['fields'][0]['bytes']: {
+            datum['fields'][2]['fields'][1]['bytes']: datum['fields'][2]['fields'][2]['int']
+        }
+    }
+    return Value(incentive)
+
 
 def get_incentive_amount(datum: dict) -> tuple[int, int]:
     try:
         return datum['fields'][2]['fields'][2]['int'], priority[datum['fields'][2]['fields'][0]['bytes']]
+    except KeyError:
+        return None
+
+
+def get_bundle_amount(datum: dict) -> int:
+    try:
+        return datum['fields'][1]['int']
     except KeyError:
         return None
 
@@ -84,9 +98,9 @@ def sale_validity(datum: dict) -> bool:
             return False
 
         # bundle check
-        if len(datum['fields'][2]['fields']) != 3:
+        if len(datum['fields'][1]['fields']) != 3:
             return False
-        if datum['fields'][2]['fields'][2]['int'] <= 0:
+        if datum['fields'][1]['fields'][2]['int'] <= 0:
             return False
 
         # cost check
@@ -104,3 +118,31 @@ def sale_validity(datum: dict) -> bool:
 
     except KeyError:
         return False
+
+
+def bundle_to_value(datum: dict) -> Value:
+    bundle = {
+        datum['fields'][1]['fields'][0]['bytes']: {
+            datum['fields'][1]['fields'][1]['bytes']: datum['fields'][1]['fields'][2]['int']
+        }
+    }
+    return Value(bundle)
+
+
+def cost_to_value(datum: dict) -> Value:
+    cost = {
+        datum['fields'][2]['fields'][0]['bytes']: {
+            datum['fields'][2]['fields'][1]['bytes']: datum['fields'][2]['fields'][2]['int']
+        }
+    }
+    return Value(cost)
+
+
+def get_number_of_bundles(queue_datum: dict, sale_datum: dict, sale_value: Value) -> int:
+    wanted_bundle_size = queue_datum['fields'][1]['int']
+    current_bundle_amt = sale_value.get_quantity(sale_datum['fields'][1]['fields'][0]['bytes'], sale_datum['fields'][1]['fields'][1]['bytes'])
+    bundle_amt = sale_datum['fields'][1]['fields'][2]['int']
+    if current_bundle_amt // bundle_amt < wanted_bundle_size:
+        return current_bundle_amt // bundle_amt
+    else:
+        return wanted_bundle_size
