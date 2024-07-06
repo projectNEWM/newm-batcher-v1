@@ -35,11 +35,57 @@ class Value:
         self._remove_zero_entries
         return Value(self.inner)
 
-    def add_lovelace(self, quantity: int):
+    def __mul__(self, scale):
+        if not isinstance(scale, int):
+            return NotImplemented
+        for policy, assets in self.inner.items():
+            if isinstance(assets, dict):
+                for asset, quantity in assets.items():
+                    self.inner[policy][asset] = quantity * scale
+            else:
+                self.inner[policy] = assets * scale
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def to_output(self, address):
+        if not isinstance(address, str):
+            return NotImplemented
+
+        lovelace_value = str(self.inner['lovelace'])
+
+        # Get the values of the nested dictionary and combine them into a string
+        nested_dict_values = []
+        for policy, assets in self.inner.items():
+            if policy != 'lovelace':
+                for asset, quantity in assets.items():
+                    nested_dict_values.append(f"{quantity} {policy}.{asset}")
+
+        # just add in the lovelace else do the assets too
+        if len(nested_dict_values) == 0:
+            # combine the address with the lovelace amount
+            return address + " + " + lovelace_value
+        else:
+            nested_dict_values = " + ".join(nested_dict_values)
+            # Combine the address with the lovelace and the dictionary values
+            return address + " + " + lovelace_value + " + " + nested_dict_values
+
+    def add_lovelace(self, quantity):
+        if not isinstance(quantity, int):
+            return NotImplemented
         self.inner["lovelace"] = quantity
 
     def get_token(self, policy):
+        if not isinstance(policy, str):
+            return NotImplemented
         return list(self.inner[policy].keys())[0]
+
+    def get_quantity(self, policy, asset):
+        if not isinstance(policy, str):
+            return NotImplemented
+        if not isinstance(asset, str):
+            return NotImplemented
+        return self.inner[policy][asset]
 
     def dump(self) -> str:
         """

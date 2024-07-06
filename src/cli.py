@@ -3,8 +3,32 @@ import subprocess
 import sys
 
 
-def query_protocol_parameters():
-    pass
+def query_protocol_parameters(socket: str, file_path: str, network: str) -> None:
+    """Query the protocol parameters for a given network.
+
+    Args:
+        socket (str): The node socket path
+        file_path (str): The output file path
+        network (str): The network flag
+    """
+    func = [
+        'cardano-cli',
+        'query',
+        'protocol-parameters',
+        '--socket-path',
+        socket,
+        '--out-file',
+        file_path
+    ]
+    func += network.split(" ")
+
+    # this saves to out file
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, errors = p.communicate()
+
+    # exit application if node is not live
+    if "Connection refused" in errors.decode():
+        sys.exit(1)
 
 
 def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> None:

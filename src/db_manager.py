@@ -228,7 +228,8 @@ class DbManager:
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
-            cursor.execute('SELECT tkn FROM sale')
+            # lexicographical ordering for sales.
+            cursor.execute('SELECT tkn FROM sale ORDER BY tkn')
             records = cursor.fetchall()
             sale_records = []
             for record in records:

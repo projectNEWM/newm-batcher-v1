@@ -90,3 +90,17 @@ def test_get_token():
     v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
     tkn = v1.get_token("acab")
     assert tkn == "beef"
+
+
+def test_to_output_only_lovelace():
+    addr = "addr"
+    v1 = Value({"lovelace": 3})
+    answer = "addr + 3"
+    assert v1.to_output(addr) == answer
+
+
+def test_to_output():
+    addr = "addr"
+    v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    answer = "addr + 3 + 2 acab.beef + 1 cafe.fade"
+    assert v1.to_output(addr) == answer
