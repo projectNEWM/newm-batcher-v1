@@ -25,3 +25,13 @@ def create_folder_if_not_exists(folder_path: str) -> None:
     """
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+
+
+def parent_directory_path() -> str:
+    """
+    Return the parent directory path
+
+    Returns:
+        str: The parent path
+    """
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

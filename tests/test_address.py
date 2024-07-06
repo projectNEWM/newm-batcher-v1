@@ -1,7 +1,21 @@
 import pytest
 from pycardano import Network
 
-from src.address import from_pkh_sc
+from src.address import from_pkh_sc, pkh_from_address
+
+
+def test_pkh_from_base_address():
+    addr = "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+    pkh = "d9335ba4f8ebc0b8c9361613071cdc9e9fe92de49b8f2a4782023ef4"
+    result = pkh_from_address(addr)
+    assert result == pkh
+
+
+def test_pkh_from_enterprise_address():
+    addr = "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
+    pkh = "e154dbd9ee8685258d7be1d3f374e4c2f1aebeada68707113b1422b0"
+    result = pkh_from_address(addr)
+    assert result == pkh
 
 
 def test_from_pkh_sc_without_staking():
