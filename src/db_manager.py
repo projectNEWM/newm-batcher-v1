@@ -4,7 +4,7 @@ import sqlite3
 from src.value import Value
 
 
-class DBManager:
+class DbManager:
 
     def __init__(self, db_file='batcher.db'):
         self.db_file = db_file
