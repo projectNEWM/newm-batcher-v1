@@ -1,5 +1,5 @@
 """
-A Token that is allowed to be used as an incentive exists in the allowed 
+A Token that is allowed to be used as an incentive exists in the allowed
 dictionary. Each entry has the same form as shown below.
 
 "policy_id": {
