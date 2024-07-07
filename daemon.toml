@@ -1,18 +1,25 @@
 [source]
 type = "N2C"
-address = [ "Unix", "/home/logic/Documents/Work/LogicalMechanism/testnet-node/node/db-testnet/node.socket",]
+address = [ "Unix", "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket",]
 magic = "preprod"
-min_depth = 2
+min_depth = 3
 
 [sink]
 type = "Webhook"
 url = "http://localhost:8008/webhook"
 timeout = 60000
-error_policy = "Exit"
+error_policy = "Continue"
 
 [source.intersect]
 type = "Point"
-value = [ 61949884, "b83110b2ba16d85a20025455245891ffc5b345b42591b1ac1354abcd633942d4",]
+value = [ 62617408, "2fd9fc5c0ec1cdead76b399d49206fd058076a90579c90db2ed82213b5f43767",]
 
 [source.mapper]
+include_block_end_events = true
 include_transaction_details = true
+
+[sink.retry_policy]
+max_retries = 60
+backoff_unit = 20000
+backoff_factor = 2
+max_backoff = 100000

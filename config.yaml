@@ -43,4 +43,4 @@ delay_depth: 3
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
-logging_level: "SUCCESS"
+logging_level: "TRACE"
