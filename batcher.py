@@ -8,11 +8,12 @@ from flask import Flask, request
 from loguru import logger
 
 from src import yaml_file
+from src.aggregate import Aggregate
 from src.cli import get_latest_block_number, query_protocol_parameters
 from src.daemon import create_toml_file
 from src.db_manager import DbManager
 from src.io_manager import IOManager
-# from src.sorting import Sorting
+from src.sorting import Sorting
 from src.utility import create_folder_if_not_exists, parent_directory_path
 
 ###############################################################################
@@ -85,8 +86,9 @@ def webhook():
                 # we are synced, start fulfilling orders
                 logger.debug(f"Block: {block_number}")
                 # sort first
-                # sorted_queue = Sorting.fifo(db)
+                sorted_queue = Sorting.fifo(db)
                 # then batch
+                Aggregate.orders(db, sorted_queue, config, logger)
             else:
                 # we are syncing
                 tip_difference = latest_block_number - int(block_number)
