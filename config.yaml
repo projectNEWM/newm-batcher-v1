@@ -10,6 +10,7 @@
 
 # Batcher Information
 batcher_address: "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
+profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
 
 # Node and network information
 network: "--testnet-magic 1"
@@ -35,9 +36,9 @@ pointer_policy: "f24259627b32d494cd851d93a128410f2edeb1b3f407e935a0400da7"
 batcher_policy: "20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9"
 
 # starting block information
-starting_block_number: 2320000
-starting_timestamp: 61810538
-starting_blockhash: "7dcfeda1f040241c3a7f0c80853d292e2361106a9f90e4d81ed122340f78b290"
+starting_block_number: 2430000
+starting_timestamp: 64348146
+starting_blockhash: "bb3bf69eaf432900fe91a78827454ad1baf982b0c03b8071d60dc0b85a05981e"
 delay_depth: 3
 
 # Logging Parameters
