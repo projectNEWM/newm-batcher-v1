@@ -1,4 +1,4 @@
-from loguru import Logger
+from loguru._logger import Logger
 
 from src.db_manager import DbManager
 from src.parse import asset_list_to_value
@@ -18,6 +18,7 @@ class IOManager:
         # sha3_256 hash of the input utxo
         utxo_base_64 = sha3_256(input_utxo)
         if db.delete_batcher(utxo_base_64):
+            logger.trace(f"INPUT: {data}")
             logger.success(f"Spent Batcher Input @ {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     @staticmethod
@@ -26,6 +27,7 @@ class IOManager:
         input_utxo = data['tx_input']['tx_id'] + '#' + str(data['tx_input']['index'])
 
         if db.delete_sale_by_txid(input_utxo):
+            logger.trace(f"INPUT: {data}")
             logger.success(f"Spent Sale Input @ {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     @staticmethod
@@ -35,6 +37,7 @@ class IOManager:
 
         utxo_base_64 = sha3_256(input_utxo)
         if db.delete_queue_by_tag(utxo_base_64):
+            logger.trace(f"INPUT: {data}")
             logger.success(f"Spent Queue Input: {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     ###########################################################################
@@ -50,6 +53,7 @@ class IOManager:
         utxo_base_64 = sha3_256(output_utxo)
 
         if data['tx_output']['address'] == config['batcher_address']:
+            logger.trace(f"OUTPUT: {data}")
             value_obj = asset_list_to_value(data['tx_output']['assets'])
             value_obj.add_lovelace(data['tx_output']['amount'])
 
@@ -65,6 +69,7 @@ class IOManager:
         output_utxo = context['tx_hash'] + '#' + str(context['output_idx'])
 
         if data['tx_output']['address'] == config['sale_address']:
+            logger.trace(f"OUTPUT: {data}")
 
             # get the datum
             sale_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
@@ -91,6 +96,7 @@ class IOManager:
 
         # check if its the queue contract
         if data['tx_output']['address'] == config['queue_address']:
+            logger.trace(f"OUTPUT: {data}")
             # get the queue datum
             queue_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
 
