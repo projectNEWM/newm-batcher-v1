@@ -5,16 +5,12 @@
 ###############################################################################
 
 ###############################################################################
-# Update these values 
+# Update Values For Your Batcher
 ###############################################################################
 
-# Batcher Wallet Information
+# Batcher Information
 batcher_address: "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
-batcher_pkh: "e154dbd9ee8685258d7be1d3f374e4c2f1aebeada68707113b1422b0"
-
-# Collat Wallet Information
-collat_pkh: "4c1017ed05f703f6cf31c6a743f2c69534dbe4846e0d51ed4cb24b85"
-collat_utxo: "949d496d900345508ed6e0b27b2a79a284fd3c37b7a3b7b01cece027fe1577aa#2"
+profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
 
 # Node and network information
 network: "--testnet-magic 1"
@@ -36,12 +32,17 @@ queue_ref_utxo: "a9e7656a8b7a320917792013b720f8de3a1e9cb57bd382096d6f615fdb634ea
 # The newm pointer policy id
 pointer_policy: "f24259627b32d494cd851d93a128410f2edeb1b3f407e935a0400da7"
 
+# The newm batcher policy id
+batcher_policy: "20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9"
+batcher_asset: "5ca1ab1e000affab1e000ca11ab1e0005e77ab1e"
+
 # starting block information
-starting_block_number: 2320000
-starting_timestamp: 61810538
-starting_blockhash: "7dcfeda1f040241c3a7f0c80853d292e2361106a9f90e4d81ed122340f78b290"
-delay_depth: 2
+starting_block_number: 2430000
+starting_timestamp: 64348146
+starting_blockhash: "bb3bf69eaf432900fe91a78827454ad1baf982b0c03b8071d60dc0b85a05981e"
+delay_depth: 3
 
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
+logging_level: "TRACE"

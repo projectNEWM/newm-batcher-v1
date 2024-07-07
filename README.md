@@ -15,17 +15,24 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Run the batcher with `python3 batcher.py`.
+Run the batcher with `python3 batcher.py`. Run the tests with `pytest`. Some tests require access to a full node.
 
-### External Requirements
+## External Requirements
 
 The batcher will require full node socket access, an on path cardano-cli, an on path [Oura](https://github.com/txpipe/oura), a [Koios](https://koios.rest/) api key, and python3.
 
-
-### Configuration
+### Required CLI Keys
 
 - TODO
 
-### Run NEWM Batcher As A Service
+### Required API Keys
+
+- TODO
+
+## Configuration
+
+- TODO
+
+## Running NEWM Batcher As A Service
 
 - TODO
