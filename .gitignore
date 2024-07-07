@@ -3,3 +3,4 @@ venv/
 batcher.db
 batcher.db-journal
 .pytest_cache/
+reset.sh
