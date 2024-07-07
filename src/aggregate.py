@@ -65,24 +65,20 @@ class Aggregate:
                     # skip this order as its already been seen
                     continue
 
-                # set flags
-                purchase_success_flag = False
-                refund_success_flag = False
-
                 # build the purchase tx
                 new_sale, new_order, new_batcher, purchase_success_flag = Endpoint.purchase(sale, order, batcher, config)
+                # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
 
-                # lets check if this tx was already submitted then
-                intermediate_txid = txid(out_file_path)
-                if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
-                    logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
-                    # skip the sign and submit since it was already submitted
-                    continue
-
                 # if the purchase was successful then sign it and update the info
                 if purchase_success_flag is True:
+                    # lets check if this tx was already submitted to the mempool
+                    intermediate_txid = txid(out_file_path)
+                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
+                        logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
+                        # skip the sign and submit since it was already submitted
+                        continue
                     # sign tx
                     sign(out_file_path, signed_purchase_tx, config['network'], batcher_skey_path)
 
@@ -97,30 +93,40 @@ class Aggregate:
 
                 # assume its good to go and lets chain the refund
                 new_sale, new_order, new_batcher, refund_success_flag = Endpoint.refund(sale, order, batcher, config)
+                # if this fails then do not move forward
                 if refund_success_flag is False:
                     logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
                     # skip the sign and submit as something didn't validate from the order
                     continue
-                # refund was built correctly
-                # lets check if this tx was already submitted then
-                intermediate_txid = txid(out_file_path)
-                if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
-                    logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
-                    # skip the sign and submit since it was already submitted
-                    continue
-                # sign tx
-                sign(out_file_path, signed_refund_tx, config['network'], batcher_skey_path)
+
+                # if the refund build was success then sign and submit
+                if refund_success_flag is True:
+                    # refund was built correctly
+                    # lets check if this tx was already submitted then
+                    intermediate_txid = txid(out_file_path)
+                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
+                        logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
+                        # skip the sign and submit since it was already submitted
+                        continue
+                    # sign tx
+                    sign(out_file_path, signed_refund_tx, config['network'], batcher_skey_path)
+
+                    # if good then attempt to tx chain
+                    sale = new_sale
+                    batcher = new_batcher
+
                 # submit tx
                 purchase_result, _ = submit(signed_purchase_tx, config['socket_path'], config['network'])
                 if purchase_result is True:
                     logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
+                    tag = sha3_256(txid(signed_purchase_tx))
                     db.create_seen(order_hash)
-                else:
-                    continue
+                    db.create_seen(tag)
+
                 # submit tx
                 refund_result, _ = submit(signed_refund_tx, config['socket_path'], config['network'])
                 if refund_result is True:
-                    # update the tag
-                    tag = sha3_256(intermediate_txid)
+                    tag = sha3_256(txid(signed_refund_tx))
                     logger.success(f"Order: {tag} Refund: {refund_result}")
                     db.create_seen(tag)
+        return
