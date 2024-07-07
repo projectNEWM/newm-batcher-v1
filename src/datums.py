@@ -1,3 +1,6 @@
+from pycardano import Network
+
+from src.address import from_pkh_sc
 from src.allowlist import asset_names, policy_ids, priority
 from src.value import Value
 
@@ -146,3 +149,14 @@ def get_number_of_bundles(queue_datum: dict, sale_datum: dict, sale_value: Value
         return current_bundle_amt // bundle_amt
     else:
         return wanted_bundle_size
+
+
+def to_address(datum: dict, network) -> str:
+    try:
+        return from_pkh_sc(
+            datum['fields'][0]['fields'][0]['bytes'],
+            datum['fields'][0]['fields'][1]['bytes'],
+            Network.TESTNET if "testnet" in network else Network.MAINNET
+        )
+    except KeyError:
+        return ''

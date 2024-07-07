@@ -86,6 +86,14 @@ def test_add_lovelace():
     assert result == answer
 
 
+def test_add_lovelace_to_empty():
+    v1 = Value({})
+    v2 = Value({"lovelace": 1})
+    answer = Value({"lovelace": 1})
+    result = v1 + v2
+    assert result == answer
+
+
 def test_get_token():
     v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
     tkn = v1.get_token("acab")
