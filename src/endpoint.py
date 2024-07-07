@@ -269,6 +269,10 @@ class Endpoint:
         """
         profit_success_flag = False
 
+        # empty batcher utxos list
+        if len(batcher_infos) == 0:
+            return None, profit_success_flag
+
         if len(batcher_infos) == 1:
             return batcher_infos[0], profit_success_flag
 
@@ -294,6 +298,8 @@ class Endpoint:
         # there will be many batcher utxos to spend
         tx_in_list = []
         returning_batcher_info = None
+        found_batcher_policy = False
+        found_batcher_profit = False
         for batcher_info in batcher_infos:
             # assume only one utxo has the batcher policy
             if batcher_info['value'].exists(config["batcher_policy"]):
@@ -301,13 +307,21 @@ class Endpoint:
                 if not batcher_info['value'].meets_threshold():
                     return batcher_info, profit_success_flag
                 returning_batcher_info = batcher_info
+                found_batcher_policy = True
             else:
                 # only do the profit if some other utxo contains at least 5 ada
-                if not batcher_info['value'].contains(Value({"lovelace": 5000000})):
-                    return returning_batcher_info, profit_success_flag
+                if batcher_info['value'].contains(Value({"lovelace": 5000000})):
+                    found_batcher_profit = True
             total_batcher_value += batcher_info['value']
             tx_in_list.append("--tx-in")
             tx_in_list.append(batcher_info['txid'])
+        # if the policy was never found then return
+        if found_batcher_policy is False:
+            return returning_batcher_info, profit_success_flag
+        # if the policy was found but the profit payment utxo wasnt then return
+        if found_batcher_policy is True and found_batcher_profit is False:
+            return returning_batcher_info, profit_success_flag
+        # here we have the batcher policy and the profit payment utxo
 
         # the profit is the total value minus the fee and the default batcher value
         batcher_profit_value = total_batcher_value - batcher_out_value - fee_value
