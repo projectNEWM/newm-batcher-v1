@@ -1,6 +1,8 @@
 import json
 from dataclasses import dataclass
 
+from src.allowlist import allowed
+
 
 @dataclass
 class Value:
@@ -47,6 +49,14 @@ class Value:
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def meets_threshold(self):
+        for pid in allowed:
+            for tkn in allowed[pid]:
+                threshold = allowed[pid][tkn]["threshold"]
+                if self.get_quantity(pid, tkn) >= threshold:
+                    return True
+        return False
 
     def to_output(self, address):
         if not isinstance(address, str):

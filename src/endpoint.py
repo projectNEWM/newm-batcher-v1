@@ -269,6 +269,9 @@ class Endpoint:
         """
         profit_success_flag = False
 
+        if len(batcher_infos) == 1:
+            return batcher_infos[0], profit_success_flag
+
         # batcher pkh for signing
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
@@ -282,13 +285,21 @@ class Endpoint:
         fee = 350000
         fee_value = Value({"lovelace": fee})
 
+        # send back 5 ada and the batcher token
         batcher_out_value = Value({"lovelace": 5000000, config["batcher_policy"]: {config["batcher_asset"]: 1}})
+
+        # empty value for summing
         total_batcher_value = Value({})
+
+        # there will be many batcher utxos to spend
         tx_in_list = []
         returning_batcher_info = None
         for batcher_info in batcher_infos:
             # assume only one utxo has the batcher policy
             if batcher_info['value'].exists(config["batcher_policy"]):
+                # if it doesnt meet the threshold then fail
+                if not batcher_info['value'].meets_threshold():
+                    return batcher_info, profit_success_flag
                 returning_batcher_info = batcher_info
             else:
                 # only do the profit if some other utxo contains at least 5 ada
@@ -297,6 +308,8 @@ class Endpoint:
             total_batcher_value += batcher_info['value']
             tx_in_list.append("--tx-in")
             tx_in_list.append(batcher_info['txid'])
+
+        # the profit is the total value minus the fee and the default batcher value
         batcher_profit_value = total_batcher_value - batcher_out_value - fee_value
 
         func = [
