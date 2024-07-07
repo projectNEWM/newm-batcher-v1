@@ -172,3 +172,18 @@ class Endpoint:
         """
         refund_success_flag = False
         return sale_info, queue_info, batcher_info, refund_success_flag
+
+    @staticmethod
+    def profit(batcher_infos: list[dict], config: dict) -> tuple[dict, bool]:
+        """
+        Allows the batcher to auto send out a profit utxo inside of a transaction using extra utxos.
+
+        Args:
+            batcher_infos (list[dict]): All the batcher Utxos
+            config (dict): The batcher configuration
+
+        Returns:
+            tuple[dict, bool]: The UTxO with the batcher token and a success flag
+        """
+        profit_success_flag = False
+        return {}, profit_success_flag
