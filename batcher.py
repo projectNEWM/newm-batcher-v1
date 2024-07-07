@@ -12,6 +12,7 @@ from src.cli import get_latest_block_number, query_protocol_parameters
 from src.daemon import create_toml_file
 from src.db_manager import DbManager
 from src.io_manager import IOManager
+# from src.sorting import Sorting
 from src.utility import create_folder_if_not_exists, parent_directory_path
 
 ###############################################################################
@@ -74,6 +75,27 @@ def webhook():
     # What the db thinks is the current block is
     db_number = sync_status["block_number"]
 
+    # check for a change in the block number
+    if block_number != db_number:
+        # the block number has changed so update the db
+        db.update_status(block_number, block_hash, block_slot)
+        try:
+            # are we still syncing?
+            if int(block_number) > latest_block_number:
+                # we are synced, start fulfilling orders
+                logger.debug(f"Block: {block_number}")
+                # sort first
+                # sorted_queue = Sorting.fifo(db)
+                # then batch
+            else:
+                # we are syncing
+                tip_difference = latest_block_number - int(block_number)
+                logger.debug(f"Blocks til tip: {tip_difference}")
+        except TypeError:
+            # incase block number some how isnt a number
+            pass
+
+    # try to sync inputs and outputs
     try:
         variant = data['variant']
 
@@ -95,25 +117,6 @@ def webhook():
             IOManager.queue_output(db, config, data, logger)
     except Exception:
         pass
-
-    # check for a change in the block number
-    if block_number != db_number:
-        # the block number has changed so update the db
-        db.update_status(block_number, block_hash, block_slot)
-        try:
-            # are we still syncing?
-            if int(block_number) > latest_block_number:
-                # we are synced, start fulfilling orders
-                logger.debug(f"Block: {block_number}")
-                # sort first
-                # then batch
-            else:
-                # we are syncing
-                tip_difference = latest_block_number - int(block_number)
-                logger.debug(f"Blocks til tip: {tip_difference}")
-        except TypeError:
-            # incase block number some how isnt a number
-            pass
 
     # if we are here then everything in the webhook is good
     return 'Webhook Successful'

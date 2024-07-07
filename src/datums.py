@@ -65,7 +65,7 @@ def incentive_to_value(datum: dict) -> Value:
 
 def get_incentive_amount(datum: dict) -> tuple[int, int]:
     try:
-        return datum['fields'][2]['fields'][2]['int'], priority[datum['fields'][2]['fields'][0]['bytes']]
+        return datum['fields'][2]['fields'][2]['int'], priority(datum['fields'][2]['fields'][0]['bytes'])
     except KeyError:
         return None
 
