@@ -21,16 +21,16 @@ socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/
 ###############################################################################
 
 # Sale & Queue Contract Addresses
-sale_address: "addr_test1xrhsnzwtj24r6s496hprla9yucqf5vggr3kapm46fqnudewr6l77ugz28usv6qkcx0ra5g3jzjfdm04wrc6cr0ur6a6qau2un4"
-queue_address: "addr_test1xq07nxps4vzj8mvcwhjpld54qcrkp8d73fextqdckdycefkr6l77ugz28usv6qkcx0ra5g3jzjfdm04wrc6cr0ur6a6qsgurj8"
+sale_address: "addr_test1xzshggcrsfz75g2xtq9ar9py6wz23f70mv3tal8dq6ep0lluad9hsqmxm4qrusxxkuxzw74hcdkwaw9ypyrpx2uh8ueq0g0sy3"
+queue_address: "addr_test1xrtpyj0c6fk3v4nncrw3uy3wv32j57w66pa5lcy653u3aeluad9hsqmxm4qrusxxkuxzw74hcdkwaw9ypyrpx2uh8uequk7nw9"
 
 # Data, Sale, and Queue Contract Script Reference UTxOs
-data_ref_utxo: "79a63e963c9667dd5af80751dd86e5a720e8d47df3b772eb4a3e7c5fc7b6d017#0"
-sale_ref_utxo: "411d8e9dcb895064b48a2257962c5c646dad5b66d3cd80822e0184e642c6695b#1"
-queue_ref_utxo: "a9e7656a8b7a320917792013b720f8de3a1e9cb57bd382096d6f615fdb634eae#1"
+data_ref_utxo: "f01d64a0308e8651c784224e880aa6bf87583666fbc3a738db7457fddfa4d95b#0"
+sale_ref_utxo: "eec86fdd8aad4c22f2b767d80203b384b8c40f69fdaafcee25ad257696319aba#1"
+queue_ref_utxo: "cac2414158d1f23e65b68b69116ed23fa85dd038f1445bfca614bfe6e76e7616#1"
 
 # The newm pointer policy id
-pointer_policy: "f24259627b32d494cd851d93a128410f2edeb1b3f407e935a0400da7"
+pointer_policy: "199b15b437ceb0d95f6a49d8fd68e812116971a068b89614dbfd911c"
 
 # The newm batcher policy id
 batcher_policy: "20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9"
