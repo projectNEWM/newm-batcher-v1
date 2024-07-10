@@ -28,22 +28,17 @@ class Aggregate:
             return
 
         batcher_infos = db.read_all_batcher()
-        logger.debug(batcher_infos)
 
-        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config, logger)
+        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
         if batcher is None:
             logger.debug("Batcher is returning None from profit endpoint")
             return
 
         if profit_success_flag is True:
-            logger.debug("Batcher Profit Tx")
             # sign and submit tx here
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"]):
-                logger.success(f"Batcher Profit: {txid(signed_profit_tx)}")
-                logger.debug(batcher_infos)
-                logger.debug(batcher)
                 # if submit was successful then delete what was spent and add in the new outputs
                 for batcher_info in batcher_infos:
                     tag = sha3_256(batcher_info['txid'])
