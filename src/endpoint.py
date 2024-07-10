@@ -7,7 +7,7 @@ from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
 from src.redeemer import empty
-from src.utility import parent_directory_path
+from src.utility import parent_directory_path, sha3_256
 from src.value import Value
 
 
@@ -256,7 +256,7 @@ class Endpoint:
         return sale_info, queue_info, batcher_info, refund_success_flag
 
     @staticmethod
-    def profit(batcher_infos: list[dict], config: dict, logger) -> tuple[dict, bool]:
+    def profit(batcher_infos: list[dict], config: dict) -> tuple[dict, bool]:
         """
         Allows the batcher to auto send out a profit utxo inside of a transaction using extra utxos.
 
@@ -307,7 +307,7 @@ class Endpoint:
                 if not batcher_info['value'].meets_threshold():
                     return batcher_info, profit_success_flag
 
-                returning_batcher_info = batcher_info
+                returning_batcher_info = batcher_info.copy()
                 found_batcher_policy = True
             else:
                 # only do the profit if some other utxo contains at least 5 ada
@@ -340,19 +340,16 @@ class Endpoint:
             '--required-signer-hash', batcher_pkh,
             '--fee', str(fee)
         ]
-        logger.debug(func)
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
-
-        logger.debug(output)
-        logger.debug(errors)
+        p.communicate()
 
         # check output / errors, if all good assume true here
         profit_success_flag = True
 
         intermediate_txid = txid(out_file_path)
-
+        tag = sha3_256(intermediate_txid + "#0")
+        returning_batcher_info['tag'] = tag
         returning_batcher_info['txid'] = intermediate_txid + "#0"
         returning_batcher_info['value'] = batcher_out_value
 
