@@ -6,7 +6,7 @@ from src.cli import does_tx_exists_in_mempool, sign, submit, txid
 from src.datums import sale_validity
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
-from src.utility import parent_directory_path, sha3_256
+from src.utility import file_exists, parent_directory_path, sha3_256
 
 
 class Aggregate:
@@ -21,19 +21,37 @@ class Aggregate:
         signed_purchase_tx = os.path.join(parent_dir, "tmp/queue-purchase-tx.signed")
         signed_refund_tx = os.path.join(parent_dir, "tmp/queue-refund-tx.signed")
         signed_profit_tx = os.path.join(parent_dir, "tmp/batcher-profit-tx.signed")
-        batcher_skey_path = os.path.join(parent_dir, "key/batcher.skey")
+        batcher_skey_path = os.path.join(parent_dir, "keys/payment.skey")
+
+        if file_exists(batcher_skey_path) is False:
+            logger.critical("Batcher Secret Key Is Missing!")
+            return
 
         batcher_infos = db.read_all_batcher()
-        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
+        logger.debug(batcher_infos)
+        for batcher_info in batcher_infos:
+            tag = sha3_256(batcher_info['txid'])
+            if db.read_seen(tag) is True:
+                logger.info(batcher_info['txid'])
+                logger.info("Batcher UTxOs Are Spent!")
+                return
+
+        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config, logger)
         # no utxos or no batcher token
         if batcher is None:
+            logger.debug("Batcher is returning None from profit endpoint")
             return
 
         if profit_success_flag is True:
+            logger.debug("Batcher Profit Tx")
             # sign and submit tx here
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"]):
                 logger.success(f"Batcher Profit: {txid(signed_profit_tx)}")
+                logger.debug(batcher_infos)
+                for batcher_info in batcher_infos:
+                    tag = sha3_256(batcher_info['txid'])
+                    db.create_seen(tag)
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then

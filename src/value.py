@@ -9,7 +9,7 @@ class Value:
     inner: dict[str, dict[str, int]]
 
     def __str__(self):
-        return f"Value({self.inner}"
+        return f"Value({self.inner})"
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -34,7 +34,28 @@ class Value:
             else:
                 # If the key doesn't exist in the first dictionary, add it to the result
                 self.inner[policy] = assets
-        self._remove_zero_entries
+        self._remove_zero_entries()
+        return Value(self.inner)
+
+    def __sub__(self, other):
+        if not isinstance(other, Value):
+            return NotImplemented
+        for policy, assets in other.inner.items():
+            if policy in self.inner:
+                if isinstance(assets, dict):
+                    # If both values are dictionaries, add their values
+                    for asset, quantity in assets.items():
+                        if asset in self.inner[policy]:
+                            self.inner[policy][asset] -= quantity
+                        else:
+                            self.inner[policy][asset] = quantity
+                else:
+                    # Otherwise its lovelace
+                    self.inner[policy] -= assets
+            else:
+                # If the key doesn't exist in the first dictionary, add it to the result
+                self.inner[policy] = assets
+        self._remove_zero_entries()
         return Value(self.inner)
 
     def __mul__(self, scale):
@@ -52,10 +73,21 @@ class Value:
 
     def meets_threshold(self):
         for pid in allowed:
-            for tkn in allowed[pid]:
-                threshold = allowed[pid][tkn]["threshold"]
-                if self.get_quantity(pid, tkn) >= threshold:
-                    return True
+            if pid == "":
+                threshold = allowed[""][""]["threshold"]
+                try:
+                    if self.inner["lovelace"] >= threshold:
+                        return True
+                except KeyError:
+                    continue
+            else:
+                for tkn in allowed[pid]:
+                    try:
+                        threshold = allowed[pid][tkn]["threshold"]
+                        if self.get_quantity(pid, tkn) >= threshold:
+                            return True
+                    except KeyError:
+                        continue
         return False
 
     def to_output(self, address):
@@ -140,6 +172,8 @@ class Value:
                 assets_to_remove = [asset for asset, amount in assets.items() if amount == 0]
                 for asset in assets_to_remove:
                     del self.inner[policy][asset]
+                if self.inner[policy] == {}:
+                    del self.inner[policy]
             else:
                 # this is lovelace
                 if inner_copy[policy] == 0:
