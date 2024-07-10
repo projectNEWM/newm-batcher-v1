@@ -256,7 +256,7 @@ class Endpoint:
         return sale_info, queue_info, batcher_info, refund_success_flag
 
     @staticmethod
-    def profit(batcher_infos: list[dict], config: dict) -> tuple[dict, bool]:
+    def profit(batcher_infos: list[dict], config: dict, logger) -> tuple[dict, bool]:
         """
         Allows the batcher to auto send out a profit utxo inside of a transaction using extra utxos.
 
@@ -306,6 +306,7 @@ class Endpoint:
                 # if it doesnt meet the threshold then fail
                 if not batcher_info['value'].meets_threshold():
                     return batcher_info, profit_success_flag
+
                 returning_batcher_info = batcher_info
                 found_batcher_policy = True
             else:
@@ -339,13 +340,13 @@ class Endpoint:
             '--required-signer-hash', batcher_pkh,
             '--fee', str(fee)
         ]
-
+        logger.debug(func)
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errors = p.communicate()
-
-        print('output', output)
-        print('errors', errors)
+        
+        logger.debug(output)
+        logger.debug(errors)
 
         # check output / errors, if all good assume true here
         profit_success_flag = True
