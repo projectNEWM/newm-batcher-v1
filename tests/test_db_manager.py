@@ -82,6 +82,17 @@ def test_delete_batcher(db_manager, sample_value):
     assert delete_flag is True
 
 
+def test_delete_batcher_non_existent(db_manager, sample_value):
+    tag = "acab"
+    txid = "test_txid"
+    db_manager.create_batcher(tag, txid, sample_value)
+
+    delete_flag = db_manager.delete_batcher("")
+    record = db_manager.read_batcher("")
+    assert record is None
+    assert delete_flag is False
+
+
 def test_create_sale_record(db_manager, sample_value):
     tkn = "test_tkn"
     txid = "test_txid"

@@ -344,7 +344,7 @@ class Endpoint:
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errors = p.communicate()
-        
+
         logger.debug(output)
         logger.debug(errors)
 
