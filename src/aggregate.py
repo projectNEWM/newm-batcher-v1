@@ -29,12 +29,6 @@ class Aggregate:
 
         batcher_infos = db.read_all_batcher()
         logger.debug(batcher_infos)
-        for batcher_info in batcher_infos:
-            tag = sha3_256(batcher_info['txid'])
-            if db.read_seen(tag) is True:
-                logger.info(batcher_info['txid'])
-                logger.info("Batcher UTxOs Are Spent!")
-                return
 
         batcher, profit_success_flag = Endpoint.profit(batcher_infos, config, logger)
         # no utxos or no batcher token
@@ -49,9 +43,15 @@ class Aggregate:
             if submit(signed_profit_tx, config["socket_path"], config["network"]):
                 logger.success(f"Batcher Profit: {txid(signed_profit_tx)}")
                 logger.debug(batcher_infos)
+                logger.debug(batcher)
+                # if submit was successful then delete what was spent and add in the new outputs
                 for batcher_info in batcher_infos:
                     tag = sha3_256(batcher_info['txid'])
-                    db.create_seen(tag)
+                    if db.delete_batcher(tag):
+                        logger.success(f"Spent Batcher Input @ {tag}")
+                tag = sha3_256(batcher['txid'])
+                db.create_batcher(tag, batcher['txid'], batcher['value'])
+                logger.success(f"Batcher Output @ {batcher['txid']}")
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
