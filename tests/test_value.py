@@ -64,6 +64,12 @@ def test_value_contains_in_value():
     assert v1.contains(v2)
 
 
+def test_value_contains_exact():
+    v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    v2 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    assert v1.contains(v2)
+
+
 def test_value_not_contains_in_value():
     v2 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
     v1 = Value({"lovelace": 1, "acab": {"beef": 1}})
