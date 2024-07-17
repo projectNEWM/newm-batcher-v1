@@ -41,9 +41,9 @@ batcher_policy: "aaf4e8d8ffaf5dc33a4a62ce62ac8876412b512a45c80d3aaa8b1a81"
 batcher_asset: "5ca1ab1e000affab1e000ca11ab1e0005e77ab1e"
 
 # starting block information
-starting_block_number: 2289500
-starting_timestamp: 61118858
-starting_blockhash: "ff7a507a71db47aa0523a44682c584ab61e5e1a9bd448b3d5d0a4536e2806dbb"
+starting_block_number: 2450000
+starting_timestamp: 64813673
+starting_blockhash: "e67252d71007385b42c2459e6e19407ab4dbae3d2d1d0e7709674b9e62be34e9"
 delay_depth: 3
 
 # Logging Parameters
