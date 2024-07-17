@@ -8,9 +8,10 @@ from src.datums import queue_validity, sale_validity
 from src.db_manager import DbManager
 from src.sorting import Sorting
 
+config = yaml_file.read("config.yaml")
+
 
 def status(db: DbManager):
-    config = yaml_file.read("config.yaml")
     latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'])
     db_status = db.read_status()
 
@@ -23,6 +24,7 @@ def status(db: DbManager):
 
 
 def batcher_utxos(db: DbManager):
+    print(f"\n{config['batcher_address']}")
     utxos = db.read_all_batcher()
     if len(utxos) == 0:
         print("No Batcher UTxOs")
