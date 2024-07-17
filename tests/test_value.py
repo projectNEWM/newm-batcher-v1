@@ -150,3 +150,26 @@ def test_sub_lovelace_together():
     answer = Value({})
     v = v1 - v2
     assert v == answer
+
+
+def test_multiply_by_one():
+    v1 = Value({"acab": {"cafe": 1}})
+    assert 1 * v1 == v1
+    assert v1 * 1 == v1
+
+
+def test_multiple_by_two():
+    v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    answer = Value({"lovelace": 6, "acab": {"beef": 4}, "cafe": {"fade": 2}})
+    assert 2 * v1 == answer
+    assert v1 * 2 == answer
+
+
+def test_has_no_negative_values():
+    v1 = Value({"lovelace": 3, "acab": {"beef": 2}, "cafe": {"fade": 1}})
+    assert v1.has_negative_entries() is False
+
+
+def test_has_negative_values():
+    v1 = Value({"lovelace": 3, "acab": {"beef": -2}, "cafe": {"fade": 1}})
+    assert v1.has_negative_entries() is True
