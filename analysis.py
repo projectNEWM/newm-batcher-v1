@@ -54,23 +54,29 @@ def sale_utxos(db: DbManager):
 
 def query_sale(db: DbManager, tkn: str):
     sale = db.read_sale(tkn)
-    print(f"Sale TxId: {sale['txid']}")
-    print(json.dumps(sale['datum'], indent=4))
-    print(f"{sale['value']}")
-    queues = db.read_all_queue(tkn)
-    n_queue_entries = len(queues)
-    print(f"\nThere are {n_queue_entries} Queue Entries For {tkn}:")
-    for queue in queues:
-        data = queue[1]
-        print(f"\n{data['txid']} is valid: {queue_validity(data['datum'])}")
-        print(f"{data['value']}")
+    if sale is None:
+        print("Sale Has Been Removed")
+    else:
+        print(f"Sale TxId: {sale['txid']}")
+        print(json.dumps(sale['datum'], indent=4))
+        print(f"{sale['value']}")
+        queues = db.read_all_queue(tkn)
+        n_queue_entries = len(queues)
+        print(f"\nThere are {n_queue_entries} Queue Entries For {tkn}:")
+        for queue in queues:
+            data = queue[1]
+            print(f"\n{data['txid']} is valid: {queue_validity(data['datum'])}")
+            print(f"{data['value']}")
 
 
 def query_order(db: DbManager, tag: str):
     entry = db.read_queue(tag)
-    print(f"\n{entry['txid']} is valid: {queue_validity(entry['datum'])}")
-    print(json.dumps(entry['datum'], indent=4))
-    print(f"{entry['value']}")
+    if entry is None:
+        print("Queue Entry Has Been Removed")
+    else:
+        print(f"\n{entry['txid']} is valid: {queue_validity(entry['datum'])}")
+        print(json.dumps(entry['datum'], indent=4))
+        print(f"{entry['value']}")
 
 
 def sorted_queue(db: DbManager):
