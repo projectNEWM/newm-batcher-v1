@@ -88,7 +88,7 @@ class Aggregate:
 
                 logger.debug(f"Queue: {order_hash}")
                 # build the purchase tx
-                new_sale, new_order, new_batcher, purchase_success_flag = Endpoint.purchase(copy.deepcopy(sale), copy.deepcopy(order), copy.deepcopy(batcher), config, logger)
+                new_sale, new_order, new_batcher, purchase_success_flag = Endpoint.purchase(copy.deepcopy(sale), copy.deepcopy(order), copy.deepcopy(batcher), config)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
@@ -108,7 +108,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                new_new_sale, new_new_order, new_new_batcher, refund_success_flag = Endpoint.refund(copy.deepcopy(new_sale), copy.deepcopy(new_order), copy.deepcopy(new_batcher), config, logger)
+                new_new_sale, new_new_order, new_new_batcher, refund_success_flag = Endpoint.refund(copy.deepcopy(new_sale), copy.deepcopy(new_order), copy.deepcopy(new_batcher), config)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
                     logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
