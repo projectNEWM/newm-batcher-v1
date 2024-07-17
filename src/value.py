@@ -9,7 +9,7 @@ class Value:
     inner: dict[str, dict[str, int]]
 
     def __str__(self):
-        return f"Value({self.inner})"
+        return json.dumps(self.inner, indent=4)
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -61,12 +61,14 @@ class Value:
     def __mul__(self, scale):
         if not isinstance(scale, int):
             return NotImplemented
+        new_inner = {}
         for policy, assets in self.inner.items():
             if isinstance(assets, dict):
-                for asset, quantity in assets.items():
-                    self.inner[policy][asset] = quantity * scale
+                new_assets = {asset: quantity * scale for asset, quantity in assets.items()}
+                new_inner[policy] = new_assets
             else:
-                self.inner[policy] = assets * scale
+                new_inner[policy] = assets * scale
+        return Value(new_inner)
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -160,6 +162,18 @@ class Value:
                 if self.inner[policy] < assets:
                     return False
         return True
+
+    def has_negative_entries(self):
+        for policy, assets in self.inner.items():
+            if isinstance(assets, dict):
+                # this is for tokens
+                for asset, quantity in assets.items():
+                    if quantity < 0:
+                        return True
+            else:
+                if self.inner[policy] < 0:
+                    return True
+        return False
 
     def _remove_zero_entries(self):
         """

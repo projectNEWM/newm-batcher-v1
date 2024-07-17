@@ -159,7 +159,7 @@ def txid(file_path: str) -> str:
     return output.decode('utf-8').rstrip()
 
 
-def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str) -> None:
+def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str, collat_path: str = None) -> None:
     """Sign a transaction with a list of payment keys.
     """
     func = [
@@ -173,6 +173,11 @@ def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: s
         '--signing-key-file',
         skey_path,
     ]
+    if collat_path is not None:
+        func += [
+            '--signing-key-file',
+            collat_path,
+        ]
     func += network.split(" ")
 
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -181,7 +186,7 @@ def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: s
         sys.exit(1)
 
 
-def submit(signed_file_path: str, socket_path: str, network: str) -> bool:
+def submit(signed_file_path: str, socket_path: str, network: str, logger=None) -> bool:
     """Submit the transaction to the blockchain.
     """
     func = [
@@ -196,6 +201,9 @@ def submit(signed_file_path: str, socket_path: str, network: str) -> bool:
 
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, errors = p.communicate()
+    if logger is not None:
+        logger.debug(output)
+        logger.debug(errors)
     if "Connection refused" in errors.decode():
         sys.exit(1)
     if "Command failed" in errors.decode():

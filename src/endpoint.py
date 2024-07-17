@@ -14,7 +14,7 @@ from src.value import Value
 class Endpoint:
 
     @staticmethod
-    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict) -> tuple[dict, dict, dict, bool]:
+    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
         """
         Purchase endpoint between the sale and the queue entry.
 
@@ -88,20 +88,29 @@ class Endpoint:
         total_bundle_value = number_of_bundles * bundle_value
 
         # if total cost value not in queue then fail
-        if not queue_value.contains(total_cost_value):
+        if queue_value.contains(total_cost_value) is False:
             return sale_info, queue_info, batcher_info, purchase_success_flag
 
         # if incentive not in queue then fail
-        if not queue_value.contains(incentive_value):
+        if queue_value.contains(incentive_value) is False:
+            return sale_info, queue_info, batcher_info, purchase_success_flag
+
+        if queue_value.contains(incentive_value + total_cost_value) is False:
             return sale_info, queue_info, batcher_info, purchase_success_flag
 
         # if bundle not in sale then fail
-        if not sale_value.contains(total_bundle_value):
+        if sale_value.contains(total_bundle_value) is False:
             return sale_info, queue_info, batcher_info, purchase_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         sale_out_value = sale_value + total_cost_value - total_bundle_value
+
+        if sale_out_value.has_negative_entries() is True:
+            return sale_info, queue_info, batcher_info, purchase_success_flag
         queue_out_value = queue_value - total_cost_value + total_bundle_value - incentive_value - fee_value
+
+        if queue_out_value.has_negative_entries() is True:
+            return sale_info, queue_info, batcher_info, purchase_success_flag
         batcher_out_value = batcher_value + incentive_value
 
         func = [
@@ -109,7 +118,7 @@ class Endpoint:
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
-            "--tx-in-collateral", batcher_info['txid'],
+            "--tx-in-collateral", config['collat_utxo'],
             "--read-only-tx-in-reference", data_ref_utxo,
             "--tx-in", batcher_info['txid'],
             "--tx-in", sale_info['txid'],
@@ -130,15 +139,18 @@ class Endpoint:
             "--tx-out", queue_out_value.to_output(config['queue_address']),
             "--tx-out-inline-datum-file", queue_datum_file_path,
             "--required-signer-hash", batcher_pkh,
+            "--required-signer-hash", config['collat_pkh'],
             "--fee", str(fee)
         ]
+        if logger is not None:
+            logger.debug(func)
 
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errors = p.communicate()
 
-        print('output', output)
-        print('errors', errors)
+        if "Command failed" in errors.decode():
+            return sale_info, queue_info, batcher_info, purchase_success_flag
 
         # check output / errors, if all good assume true here
         purchase_success_flag = True
@@ -157,7 +169,7 @@ class Endpoint:
         return sale_info, queue_info, batcher_info, purchase_success_flag
 
     @staticmethod
-    def refund(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict) -> tuple[dict, dict, dict, bool]:
+    def refund(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
         """
         Refund endpoint between the sale and the queue entry.
 
@@ -207,11 +219,13 @@ class Endpoint:
         queue_value = queue_info['value']
 
         # if incentive not in queue then fail
-        if not queue_value.contains(incentive_value):
+        if queue_value.contains(incentive_value) is False:
             return sale_info, queue_info, batcher_info, refund_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         queue_out_value = queue_value - incentive_value - fee_value
+        if queue_out_value.has_negative_entries() is True:
+            return sale_info, queue_info, batcher_info, refund_success_flag
         batcher_out_value = batcher_value + incentive_value
 
         func = [
@@ -219,7 +233,7 @@ class Endpoint:
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
-            "--tx-in-collateral", batcher_info['txid'],
+            "--tx-in-collateral", config['collat_utxo'],
             '--read-only-tx-in-reference', data_ref_utxo,
             '--read-only-tx-in-reference', sale_info['txid'],
             "--tx-in", batcher_info['txid'],
@@ -232,15 +246,17 @@ class Endpoint:
             "--tx-out", batcher_out_value.to_output(config['batcher_address']),
             '--tx-out', queue_out_value.to_output(owner_address),
             '--required-signer-hash', batcher_pkh,
+            "--required-signer-hash", config['collat_pkh'],
             '--fee', str(fee)
         ]
-
+        if logger is not None:
+            logger.debug(func)
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errors = p.communicate()
 
-        print('output', output)
-        print('errors', errors)
+        if "Command failed" in errors.decode():
+            return sale_info, queue_info, batcher_info, refund_success_flag
 
         # do someting
         refund_success_flag = True

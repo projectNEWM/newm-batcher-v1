@@ -75,7 +75,7 @@ class IOManager:
             if value_obj.exists(config['pointer_policy']):
                 # get the token name from the pointer policy
                 tkn = value_obj.get_token(config['pointer_policy'])
-                db.create_sale_record(tkn, output_utxo, sale_datum, value_obj)
+                db.create_sale(tkn, output_utxo, sale_datum, value_obj)
                 logger.success(f"Sale Output @ {output_utxo} @ Timestamp: {context['timestamp']}")
 
     @staticmethod
@@ -99,5 +99,5 @@ class IOManager:
             value_obj = asset_list_to_value(data['tx_output']['assets'])
             value_obj.add_lovelace(data['tx_output']['amount'])
 
-            db.create_queue_record(utxo_base_64, output_utxo, pointer_token, queue_datum, value_obj, timestamp, tx_idx)
+            db.create_queue(utxo_base_64, output_utxo, pointer_token, queue_datum, value_obj, timestamp, tx_idx)
             logger.success(f"Queue Output @ {output_utxo} @ Timestamp: {timestamp}")
