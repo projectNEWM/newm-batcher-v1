@@ -37,6 +37,16 @@ class DbManager:
                 )
             """)
 
+            # Table for vault records
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS vault (
+                    tag TEXT PRIMARY KEY,
+                    txid TEXT,
+                    datum TEXT,
+                    value TEXT
+                )
+            """)
+
             # Table for batcher records
             self.conn.execute("""
                 CREATE TABLE IF NOT EXISTS batcher (
