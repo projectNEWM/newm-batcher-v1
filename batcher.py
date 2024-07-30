@@ -25,7 +25,7 @@ config = yaml_file.read("config.yaml")
 
 # start the sqlite3 database
 db = DbManager()
-db.initialize_status(config)
+db.status.load(config)
 
 # Get the directory of the currently executing script
 parent_dir = parent_directory_path()
