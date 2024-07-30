@@ -8,9 +8,48 @@ class OracleDbManager(BaseDbManager):
             # Table for oracle records
             self.conn.execute("""
                 CREATE TABLE IF NOT EXISTS oracle (
-                    tag TEXT PRIMARY KEY,
+                    id TEXT PRIMARY KEY,
                     txid TEXT,
-                    datum TEXT,
-                    value TEXT
+                    datum TEXT
                 )
             """)
+
+    def create(self, txid, datum):
+        conn = self.get_connection()
+        try:
+            datum_json = self.dict_to_json(datum)
+            conn.execute(
+                'INSERT OR REPLACE INTO oracle (id, txid, datum) VALUES (?, ?, ?)',
+                ("unique_oracle", txid, datum_json)
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def read(self):
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                'SELECT txid, datum FROM oracle WHERE id = ?', ("unique_oracle",))
+            record = cursor.fetchone()  # there is only one
+            if record:
+                txid, datum_json = record
+                datum = self.json_to_dict(datum_json)
+                return {'txid': txid, 'datum': datum}
+            return None
+        finally:
+            conn.close()
+
+    def update(self, txid, datum):
+        # it only gets created once, so the id is always known
+        conn = self.get_connection()
+        try:
+            datum_json = self.dict_to_json(datum)
+            conn.execute(
+                'UPDATE oracle SET txid = ?, datum = ? WHERE id = ?',
+                (txid, datum_json, "unique_status")
+            )
+            conn.commit()
+        finally:
+            conn.close()

@@ -14,3 +14,12 @@ class VaultDbManager(BaseDbManager):
                     value TEXT
                 )
             """)
+
+    def create(self, tag, txid, datum, value):
+        pass
+
+    def read(self, tag):
+        pass
+
+    def delete(self, tag):
+        pass

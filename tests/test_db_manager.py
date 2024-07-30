@@ -158,9 +158,38 @@ def test_delete_queue(db_manager, sample_value):
     assert delete_flag is True
 
 
-def test_create_seen(db_manager, sample_value):
+def test_create_seen(db_manager):
     tag = "acab"
     db_manager.seen.create(tag)
 
     record = db_manager.seen.read(tag)
     assert record is True
+
+
+def test_create_oracle(db_manager):
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.oracle.create(txid, datum)
+
+    record = db_manager.oracle.read()
+    _txid = record['txid']
+    _datum = record['datum']
+    assert txid == _txid
+    assert datum == _datum
+
+
+def test_update_oracle(db_manager):
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.oracle.create(txid, datum)
+
+    txid2 = "test_txid2"
+    datum2 = {"key": "value2"}
+
+    db_manager.oracle.update(txid2, datum2)
+
+    record = db_manager.oracle.read()
+    _txid = record['txid']
+    _datum = record['datum']
+    assert txid == _txid
+    assert datum == _datum
