@@ -34,7 +34,7 @@ class Sorting:
     @staticmethod
     def fifo(db: DbManager) -> dict:
         # query all the sale pointer tokens of valid sales
-        sales = db.read_all_sale_tkns()
+        sales = db.sale.read_all()
 
         # initialize the sale to order dictionary
         sale_to_order_dict = {}

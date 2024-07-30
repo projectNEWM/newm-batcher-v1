@@ -13,7 +13,7 @@ config = yaml_file.read("config.yaml")
 
 def status(db: DbManager):
     latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'])
-    db_status = db.read_status()
+    db_status = db.status.read()
 
     tip_difference = latest_block_number - int(db_status['block_number'])
     if tip_difference - config['delay_depth'] == 0:
@@ -25,7 +25,7 @@ def status(db: DbManager):
 
 def batcher_utxos(db: DbManager):
     print(f"\n{config['batcher_address']}")
-    utxos = db.read_all_batcher()
+    utxos = db.batcher.read_all()
     if len(utxos) == 0:
         print("No Batcher UTxOs")
     for utxo in utxos:
@@ -34,10 +34,10 @@ def batcher_utxos(db: DbManager):
 
 
 def sale_utxos(db: DbManager):
-    tkns = db.read_all_sale_tkns()
+    tkns = db.sale.read_all()
     for tkn in tkns:
-        sale = db.read_sale(tkn)
-        queues = db.read_all_queue(tkn)
+        sale = db.sale.read(tkn)
+        queues = db.queue.read_all(tkn)
         print("\nSale:")
         print(f"{tkn} is valid: {sale_validity(sale['datum'])}")
         print(f"{sale['txid']}")
@@ -53,14 +53,14 @@ def sale_utxos(db: DbManager):
 
 
 def query_sale(db: DbManager, tkn: str):
-    sale = db.read_sale(tkn)
+    sale = db.sale.read(tkn)
     if sale is None:
         print("Sale Has Been Removed")
     else:
         print(f"Sale TxId: {sale['txid']}")
         print(json.dumps(sale['datum'], indent=4))
         print(f"{sale['value']}")
-        queues = db.read_all_queue(tkn)
+        queues = db.queue.read_all(tkn)
         n_queue_entries = len(queues)
         print(f"\nThere are {n_queue_entries} Queue Entries For {tkn}:")
         for queue in queues:
@@ -70,7 +70,7 @@ def query_sale(db: DbManager, tkn: str):
 
 
 def query_order(db: DbManager, tag: str):
-    entry = db.read_queue(tag)
+    entry = db.queue.read(tag)
     if entry is None:
         print("Queue Entry Has Been Removed")
     else:

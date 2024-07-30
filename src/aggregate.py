@@ -29,7 +29,7 @@ class Aggregate:
             logger.critical("Batcher Secret Key Is Missing!")
             return
 
-        batcher_infos = db.read_all_batcher()
+        batcher_infos = db.batcher.read_all()
 
         batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
@@ -42,24 +42,28 @@ class Aggregate:
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"], logger):
                 # if submit was successful then delete what was spent and add in the new outputs
+                #
+                # TODO
+                #
+                # Is deleting here what we want to do?
                 for batcher_info in batcher_infos:
                     tag = sha3_256(batcher_info['txid'])
-                    if db.delete_batcher(tag):
+                    if db.batcher.delete(tag):
                         logger.success(f"Spent Batcher Input @ {tag}")
                 tag = sha3_256(batcher['txid'])
-                db.create_batcher(tag, batcher['txid'], batcher['value'])
+                db.batcher.create(tag, batcher['txid'], batcher['value'])
                 logger.success(f"Batcher Output @ {batcher['txid']}")
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
-                batcher = db.read_batcher(config("batcher_policy"))
+                batcher = db.batcher.read(config("batcher_policy"))
                 if batcher is None:
                     logger.warning("Batcher UTxO can not be found")
                     return
 
         # handle the sales now
         for sale_tkn in sorted_queue:
-            sale = db.read_sale(sale_tkn)
+            sale = db.sale.read(sale_tkn)
             if sale_validity(sale['datum']) is False:
                 logger.warning(f"Sale: {sale_tkn} has failed the validity test")
                 # skip this sale as something is wrong
@@ -72,7 +76,7 @@ class Aggregate:
             logger.debug(f"Sale: {sale_tkn}")
             for order_data in orders:
                 order_hash = order_data[0]
-                order = db.read_queue(order_hash)
+                order = db.queue.read(order_hash)
 
                 # check if the order is in the db
                 if order is None:
@@ -81,7 +85,7 @@ class Aggregate:
                     continue
 
                 # check if the tag has been seen before
-                if db.read_seen(order["tag"]) is True:
+                if db.seen.read(order["tag"]) is True:
                     logger.warning(f"Order: {order_hash} Has Been Seen")
                     # skip this order as its already been seen
                     continue
@@ -133,8 +137,12 @@ class Aggregate:
                     if purchase_result is True:
                         logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
                         tag = sha3_256(txid(signed_purchase_tx))
-                        db.create_seen(order_hash)
-                        db.create_seen(tag)
+                        #
+                        # TODO
+                        #
+                        # Seen may need to be removed
+                        db.seen.create(order_hash)
+                        db.seen.create(tag)
                         sale = copy.deepcopy(new_sale)
                         batcher = copy.deepcopy(new_batcher)
                     else:
@@ -146,7 +154,7 @@ class Aggregate:
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
-                        db.create_seen(tag)
+                        db.seen.create(tag)
                         sale = copy.deepcopy(new_new_sale)
                         batcher = copy.deepcopy(new_new_batcher)
                     else:

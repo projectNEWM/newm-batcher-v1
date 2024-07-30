@@ -17,7 +17,7 @@ class IOManager:
 
         # sha3_256 hash of the input utxo
         utxo_base_64 = sha3_256(input_utxo)
-        if db.delete_batcher(utxo_base_64):
+        if db.batcher.delete(utxo_base_64):
             logger.success(f"Spent Batcher Input @ {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     @staticmethod
@@ -25,7 +25,7 @@ class IOManager:
         # the tx hash of this sale transaction
         input_utxo = data['tx_input']['tx_id'] + '#' + str(data['tx_input']['index'])
 
-        if db.delete_sale_by_txid(input_utxo):
+        if db.sale.delete(input_utxo):
             logger.success(f"Spent Sale Input @ {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     @staticmethod
@@ -34,7 +34,7 @@ class IOManager:
         input_utxo = data['tx_input']['tx_id'] + '#' + str(data['tx_input']['index'])
 
         utxo_base_64 = sha3_256(input_utxo)
-        if db.delete_queue_by_tag(utxo_base_64):
+        if db.queue.delete(utxo_base_64):
             logger.success(f"Spent Queue Input: {input_utxo} @ Timestamp {data['context']['timestamp']}")
 
     ###########################################################################
@@ -53,7 +53,7 @@ class IOManager:
             value_obj = asset_list_to_value(data['tx_output']['assets'])
             value_obj.add_lovelace(data['tx_output']['amount'])
 
-            db.create_batcher(utxo_base_64, output_utxo, value_obj)
+            db.batcher.create(utxo_base_64, output_utxo, value_obj)
             logger.success(f"Batcher Output @ {output_utxo} @ Timestamp: {context['timestamp']}")
 
     @staticmethod
@@ -75,7 +75,7 @@ class IOManager:
             if value_obj.exists(config['pointer_policy']):
                 # get the token name from the pointer policy
                 tkn = value_obj.get_token(config['pointer_policy'])
-                db.create_sale(tkn, output_utxo, sale_datum, value_obj)
+                db.sale.create(tkn, output_utxo, sale_datum, value_obj)
                 logger.success(f"Sale Output @ {output_utxo} @ Timestamp: {context['timestamp']}")
 
     @staticmethod
@@ -99,5 +99,5 @@ class IOManager:
             value_obj = asset_list_to_value(data['tx_output']['assets'])
             value_obj.add_lovelace(data['tx_output']['amount'])
 
-            db.create_queue(utxo_base_64, output_utxo, pointer_token, queue_datum, value_obj, timestamp, tx_idx)
+            db.queue.create(utxo_base_64, output_utxo, pointer_token, queue_datum, value_obj, timestamp, tx_idx)
             logger.success(f"Queue Output @ {output_utxo} @ Timestamp: {timestamp}")
