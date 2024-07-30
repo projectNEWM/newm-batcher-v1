@@ -108,6 +108,12 @@ def test_sign_a_tx_that_doesnt_exist(test_skey_file_path, config):
         assert excinfo.value.code == 1
 
 
+def test_sign_a_tx_without_a_key(config):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.sign("", config["file_path"], config["network"], "")
+        assert excinfo.value.code == 1
+
+
 def test_sign_a_draft_tx(test_draft_file_path, test_skey_file_path, config):
     cli.sign(test_draft_file_path, config["file_path"], config["network"], test_skey_file_path)
 

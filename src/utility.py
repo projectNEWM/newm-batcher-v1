@@ -35,3 +35,16 @@ def parent_directory_path() -> str:
         str: The parent path
     """
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def file_exists(file_path):
+    """
+    Check if a file exists at the given file_path.
+
+    Args:
+    - file_path (str): The path to the file to check.
+
+    Returns:
+    - bool: True if the file exists, False otherwise.
+    """
+    return os.path.exists(file_path)

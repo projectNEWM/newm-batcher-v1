@@ -9,7 +9,7 @@ class Value:
     inner: dict[str, dict[str, int]]
 
     def __str__(self):
-        return f"Value({self.inner}"
+        return json.dumps(self.inner, indent=4)
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -34,28 +34,62 @@ class Value:
             else:
                 # If the key doesn't exist in the first dictionary, add it to the result
                 self.inner[policy] = assets
-        self._remove_zero_entries
+        self._remove_zero_entries()
+        return Value(self.inner)
+
+    def __sub__(self, other):
+        if not isinstance(other, Value):
+            return NotImplemented
+        for policy, assets in other.inner.items():
+            if policy in self.inner:
+                if isinstance(assets, dict):
+                    # If both values are dictionaries, add their values
+                    for asset, quantity in assets.items():
+                        if asset in self.inner[policy]:
+                            self.inner[policy][asset] -= quantity
+                        else:
+                            self.inner[policy][asset] = quantity
+                else:
+                    # Otherwise its lovelace
+                    self.inner[policy] -= assets
+            else:
+                # If the key doesn't exist in the first dictionary, add it to the result
+                self.inner[policy] = assets
+        self._remove_zero_entries()
         return Value(self.inner)
 
     def __mul__(self, scale):
         if not isinstance(scale, int):
             return NotImplemented
+        new_inner = {}
         for policy, assets in self.inner.items():
             if isinstance(assets, dict):
-                for asset, quantity in assets.items():
-                    self.inner[policy][asset] = quantity * scale
+                new_assets = {asset: quantity * scale for asset, quantity in assets.items()}
+                new_inner[policy] = new_assets
             else:
-                self.inner[policy] = assets * scale
+                new_inner[policy] = assets * scale
+        return Value(new_inner)
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def meets_threshold(self):
         for pid in allowed:
-            for tkn in allowed[pid]:
-                threshold = allowed[pid][tkn]["threshold"]
-                if self.get_quantity(pid, tkn) >= threshold:
-                    return True
+            if pid == "":
+                threshold = allowed[""][""]["threshold"]
+                try:
+                    if self.inner["lovelace"] >= threshold:
+                        return True
+                except KeyError:
+                    continue
+            else:
+                for tkn in allowed[pid]:
+                    try:
+                        threshold = allowed[pid][tkn]["threshold"]
+                        if self.get_quantity(pid, tkn) >= threshold:
+                            return True
+                    except KeyError:
+                        continue
         return False
 
     def to_output(self, address):
@@ -129,6 +163,18 @@ class Value:
                     return False
         return True
 
+    def has_negative_entries(self):
+        for policy, assets in self.inner.items():
+            if isinstance(assets, dict):
+                # this is for tokens
+                for asset, quantity in assets.items():
+                    if quantity < 0:
+                        return True
+            else:
+                if self.inner[policy] < 0:
+                    return True
+        return False
+
     def _remove_zero_entries(self):
         """
         Removes zero entries from self.
@@ -140,6 +186,8 @@ class Value:
                 assets_to_remove = [asset for asset, amount in assets.items() if amount == 0]
                 for asset in assets_to_remove:
                     del self.inner[policy][asset]
+                if self.inner[policy] == {}:
+                    del self.inner[policy]
             else:
                 # this is lovelace
                 if inner_copy[policy] == 0:
