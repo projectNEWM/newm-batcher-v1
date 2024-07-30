@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from src.new_db_manager import DbManager
+from src.db_manager import DbManager
 from src.value import Value
 
 
@@ -185,14 +185,13 @@ def test_update_oracle(db_manager):
 
     txid2 = "test_txid2"
     datum2 = {"key": "value2"}
-
     db_manager.oracle.update(txid2, datum2)
 
     record = db_manager.oracle.read()
     _txid = record['txid']
     _datum = record['datum']
-    assert txid == _txid
-    assert datum == _datum
+    assert txid2 == _txid
+    assert datum2 == _datum
 
 
 def test_create_vault(db_manager, sample_value):

@@ -160,3 +160,59 @@ def to_address(datum: dict, network) -> str:
         )
     except KeyError:
         return ''
+
+
+def vault_validity(datum: dict) -> bool:
+    """
+    Validate that the vault datum is in the correct form for an order to be fulfilled.
+
+    Args:
+        datum (dict): The vault datum
+
+    Returns:
+        bool: True if valid else False
+    """
+    try:
+        # there is a single field in the datum
+        if len(datum['fields']) != 2:
+            return False
+
+        # wallet check
+        if len(datum['fields'][0]['bytes']) != 56:
+            return False
+        if len(datum['fields'][1]['bytes']) not in [0, 56]:
+            return False
+
+        # every thing seems good
+        return True
+
+    except KeyError:
+        return False
+
+
+def oracle_validity(datum: dict) -> bool:
+    """
+    Validate that the oracle datum is in the correct form for an order to be fulfilled.
+
+    Args:
+        datum (dict): The oracle datum
+
+    Returns:
+        bool: True if valid else False
+    """
+    try:
+        # there is a single field in the datum that is nested
+        if len(datum['fields']) != 1:
+            return False
+
+        if len(datum['fields'][0]['fields']) != 1:
+            return False
+
+        if len(datum['fields'][0]['fields'][0]['map']) != 3:
+            return False
+
+        # every thing seems good
+        return True
+
+    except KeyError:
+        return False
