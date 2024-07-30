@@ -27,6 +27,7 @@ config = yaml_file.read("config.yaml")
 db = DbManager()
 db.initialize()
 db.status.load(config)
+db.oracle.create("", {})
 
 # Get the directory of the currently executing script
 parent_dir = parent_directory_path()

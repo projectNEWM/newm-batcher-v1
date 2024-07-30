@@ -48,7 +48,7 @@ class OracleDbManager(BaseDbManager):
             datum_json = self.dict_to_json(datum)
             conn.execute(
                 'UPDATE oracle SET txid = ?, datum = ? WHERE id = ?',
-                (txid, datum_json, "unique_status")
+                (txid, datum_json, "unique_oracle")
             )
             conn.commit()
         finally:
