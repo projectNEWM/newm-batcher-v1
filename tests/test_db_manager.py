@@ -193,3 +193,30 @@ def test_update_oracle(db_manager):
     _datum = record['datum']
     assert txid == _txid
     assert datum == _datum
+
+
+def test_create_vault(db_manager, sample_value):
+    tag = "acab"
+    pkh = "acab"
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.vault.create(tag, txid, pkh, datum, sample_value)
+
+    record = db_manager.vault.read(pkh)
+    _txid = record['txid']
+    _datum = record['datum']
+    assert txid == _txid
+    assert datum == _datum
+
+
+def test_delete_vault(db_manager, sample_value):
+    tag = "acab"
+    pkh = "acab"
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.vault.create(tag, txid, pkh, datum, sample_value)
+
+    delete_flag = db_manager.vault.delete(tag)
+    record = db_manager.vault.read(pkh)
+    assert record is None
+    assert delete_flag is True
