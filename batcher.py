@@ -85,10 +85,11 @@ def webhook():
             if int(block_number) > latest_block_number:
                 # we are synced, start fulfilling orders
                 logger.debug(f"Block: {block_number}")
-                # sort first
-                sorted_queue = Sorting.fifo(db)
-                # then batch
-                Aggregate.orders(db, sorted_queue, config, logger)
+                if config["debug_mode"] is False:
+                    # sort first
+                    sorted_queue = Sorting.fifo(db)
+                    # then batch
+                    Aggregate.orders(db, sorted_queue, config, logger)
             else:
                 # we are syncing
                 tip_difference = latest_block_number - int(block_number)
