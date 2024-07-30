@@ -1,8 +1,10 @@
 import argparse
 import json
 import sys
+import time
 
 from src import yaml_file
+from src.address import pkh_from_address
 from src.cli import get_latest_block_number
 from src.datums import queue_validity, sale_validity
 from src.db_manager import DbManager
@@ -93,9 +95,27 @@ def sorted_queue(db: DbManager):
 
 def oracle_utxo(db: DbManager):
     record = db.oracle.read()
-    print(record)
-    # print(f"Oracle TxId: {record['txid']}")
-    # print(json.dumps(record['datum'], indent=4))
+    try:
+        print(f"Oracle TxId: {record['txid']}")
+        print(json.dumps(record['datum'], indent=4))
+        time_left = int(record['datum']['fields'][0]['fields'][0]['map'][2]['v']['int'] / 1000) - int(time.time())
+        current_price = record['datum']['fields'][0]['fields'][0]['map'][0]['v']['int'] / 1000000
+        print(f"{time_left} seconds remaining which is about {time_left / 60} minutes")
+        print(f"Current Price: {current_price} USD")
+    except TypeError:
+        print("Oracle Never Updated")
+
+
+def vault_utxo(db: DbManager):
+    # batcher pkh for signing
+    batcher_pkh = pkh_from_address(config['batcher_address'])
+    record = db.vault.read(batcher_pkh)
+    try:
+        print(f"Vault TxId: {record['txid']}")
+        print(json.dumps(record['datum'], indent=4))
+        print(f"{record['value']}")
+    except TypeError:
+        print("Vault Does Not Exist")
 
 
 def main():
@@ -104,7 +124,7 @@ def main():
     parser.add_argument('--batcher', action='store_true', help='return the batcher UTxOs')
     parser.add_argument('--oracle', action='store_true', help='return the oracle UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
-    parser.add_argument('--vaults', action='store_true', help='return the vault UTxOs')
+    parser.add_argument('--vault', action='store_true', help='return the vault UTxOs')
     parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
     parser.add_argument('--query-order', type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
@@ -126,6 +146,9 @@ def main():
 
     if args.oracle:
         oracle_utxo(db_manager)
+
+    if args.vault:
+        vault_utxo(db_manager)
 
     if args.sales:
         sale_utxos(db_manager)
