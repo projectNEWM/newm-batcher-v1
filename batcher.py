@@ -25,6 +25,7 @@ config = yaml_file.read("config.yaml")
 
 # start the sqlite3 database
 db = DbManager()
+db.initialize()
 db.status.load(config)
 
 # Get the directory of the currently executing script
@@ -71,7 +72,7 @@ def webhook():
     block_slot = data['context']['slot']
 
     # Get the current status
-    sync_status = db.read_status()
+    sync_status = db.status.read()
 
     # What the db thinks is the current block is
     db_number = sync_status["block_number"]
@@ -79,7 +80,7 @@ def webhook():
     # check for a change in the block number
     if block_number != db_number:
         # the block number has changed so update the db
-        db.update_status(block_number, block_hash, block_slot)
+        db.status.update(block_number, block_hash, block_slot)
         try:
             # are we still syncing?
             if int(block_number) > latest_block_number:
@@ -110,15 +111,15 @@ def webhook():
 
         # tx inputs
         if variant == 'TxInput':
-            IOManager.batcher_input(db, data, logger)
-            IOManager.sale_input(db, data, logger)
-            IOManager.queue_input(db, data, logger)
+            IOManager.spent_input(db, data, logger)
 
         # tx outputs
         if variant == 'TxOutput':
             IOManager.batcher_output(db, config, data, logger)
             IOManager.sale_output(db, config, data, logger)
             IOManager.queue_output(db, config, data, logger)
+            IOManager.vault_output(db, config, data, logger)
+            IOManager.oracle_output(db, config, data, logger)
     except Exception:
         pass
 
@@ -169,7 +170,7 @@ def start_processes():
     Start the batcher processes as a multiprocessing event.
     """
     # create the daemon toml file
-    sync_status = db.read_status()
+    sync_status = db.status.read()
     # start log
     logger.info(f"Loading Block {sync_status['block_number']} @ Slot {sync_status['timestamp']} With Hash {sync_status['block_hash']}")
 
