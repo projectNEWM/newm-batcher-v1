@@ -91,11 +91,20 @@ def sorted_queue(db: DbManager):
                 print(f"Queue Entry: {entry[0]}")
 
 
+def oracle_utxo(db: DbManager):
+    record = db.oracle.read()
+    print(record)
+    # print(f"Oracle TxId: {record['txid']}")
+    # print(json.dumps(record['datum'], indent=4))
+
+
 def main():
     parser = argparse.ArgumentParser(description='NEWM-Batcher Database Analysis Tool')
     parser.add_argument('-s', '--status', action='store_true', help='return the current sync status')
     parser.add_argument('--batcher', action='store_true', help='return the batcher UTxOs')
+    parser.add_argument('--oracle', action='store_true', help='return the oracle UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
+    parser.add_argument('--vaults', action='store_true', help='return the vault UTxOs')
     parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
     parser.add_argument('--query-order', type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
@@ -114,6 +123,9 @@ def main():
 
     if args.batcher:
         batcher_utxos(db_manager)
+
+    if args.oracle:
+        oracle_utxo(db_manager)
 
     if args.sales:
         sale_utxos(db_manager)

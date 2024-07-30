@@ -49,7 +49,7 @@ class Sorting:
             # there will be a list of orders for some sale
             sale_to_order_dict[sale] = []
 
-            orders = db.read_all_queue(sale)
+            orders = db.queue.read_all(sale)
 
             # if there are no orders for this sale continue to the next one
             if len(orders) == 0:

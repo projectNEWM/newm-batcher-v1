@@ -25,8 +25,8 @@ socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/
 ###############################################################################
 
 # Oracle Feed Address
-oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw",
-oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5",
+oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw"
+oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
