@@ -3,8 +3,9 @@ import os
 
 from loguru._logger import Logger
 
+from src.address import pkh_from_address
 from src.cli import does_tx_exists_in_mempool, sign, submit, txid
-from src.datums import sale_validity
+from src.datums import oracle_validity, sale_validity, vault_validity
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
 from src.utility import file_exists, parent_directory_path, sha3_256
@@ -31,10 +32,28 @@ class Aggregate:
 
         batcher_infos = db.batcher.read_all()
 
+        # batcher pkh for signing will come from vault now
+        batcher_pkh = pkh_from_address(config['batcher_address'])
+        vault_info = db.vault.read(batcher_pkh)
+        if vault_info is None:
+            logger.critical("Vault is not set up for batcher")
+            return
+        if vault_validity(vault_info['datum']) is False:
+            logger.critical("Vault has failed the validity test")
+            return
+
+        oracle_info = db.oracle.read()
+        if oracle_info is None:
+            logger.critical("Oracle is not set up for batcher")
+            return
+        if oracle_validity(oracle_info['datum']) is False:
+            logger.critical("Oracle has failed the validity test")
+            return
+
         batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
         if batcher is None:
-            logger.debug("Batcher is returning None from profit endpoint")
+            logger.critical("Batcher is returning None from profit endpoint")
             return
 
         if profit_success_flag is True:
@@ -58,7 +77,7 @@ class Aggregate:
                 # attempt to get the db batcher utxo then
                 batcher = db.batcher.read(config("batcher_policy"))
                 if batcher is None:
-                    logger.warning("Batcher UTxO can not be found")
+                    logger.critical("Batcher UTxO can not be found")
                     return
 
         # handle the sales now

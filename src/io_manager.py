@@ -16,6 +16,8 @@ class IOManager:
 
         # sha3_256 hash of the input utxo
         utxo_base_64 = sha3_256(input_utxo)
+        
+        # attempt to delete from the dbs 
         if db.batcher.delete(utxo_base_64):
             logger.success(f"Spent Batcher Input @ {input_utxo} @ Timestamp {data['context']['timestamp']}")
 

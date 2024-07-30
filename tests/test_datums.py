@@ -1,6 +1,7 @@
 import pytest
 
-from src.datums import get_incentive_amount, queue_validity, sale_validity
+from src.datums import (get_incentive_amount, oracle_validity, queue_validity,
+                        sale_validity, vault_validity)
 
 
 @pytest.fixture
@@ -185,6 +186,104 @@ def bad_queue_datum():
     }
 
 
+@pytest.fixture
+def good_vault_datum():
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": "e154dbd9ee8685258d7be1d3f374e4c2f1aebeada68707113b1422b0"
+            },
+            {
+                "bytes": ""
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def bad_vault_datum():
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": ""
+            },
+            {
+                "bytes": ""
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def good_oracle_datum():
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "constructor": 2,
+                "fields": [
+                    {
+                        "map": [
+                            {
+                                "k": {
+                                    "int": 0
+                                },
+                                "v": {
+                                    "int": 2737
+                                }
+                            },
+                            {
+                                "k": {
+                                    "int": 1
+                                },
+                                "v": {
+                                    "int": 1722379126784
+                                }
+                            },
+                            {
+                                "k": {
+                                    "int": 2
+                                },
+                                "v": {
+                                    "int": 1722380926784
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def bad_oracle_datum():
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "constructor": 2,
+                "fields": [
+                    {
+                        "map": [
+                            {
+                                "k": {
+                                    "int": 0
+                                },
+                                "v": {
+                                    "int": 2737
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+
 def test_is_good_queue_datum_valid(good_queue_datum):
     result = queue_validity(good_queue_datum)
     assert result is True
@@ -208,4 +307,24 @@ def test_is_good_sale_datum_valid(good_sale_datum):
 
 def test_is_bad_sale_datum_valid(bad_sale_datum):
     result = sale_validity(bad_sale_datum)
+    assert result is False
+
+
+def test_is_good_vault_datum_valid(good_vault_datum):
+    result = vault_validity(good_vault_datum)
+    assert result is True
+
+
+def test_is_bad_vault_datum_valid(bad_vault_datum):
+    result = vault_validity(bad_vault_datum)
+    assert result is False
+
+
+def test_is_good_oracle_datum_valid(good_oracle_datum):
+    result = oracle_validity(good_oracle_datum)
+    assert result is True
+
+
+def test_is_bad_oracle_datum_valid(bad_oracle_datum):
+    result = oracle_validity(bad_oracle_datum)
     assert result is False
