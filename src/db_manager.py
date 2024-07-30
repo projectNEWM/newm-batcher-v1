@@ -47,6 +47,16 @@ class DbManager:
                 )
             """)
 
+            # Table for oracle records
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS oracle (
+                    tag TEXT PRIMARY KEY,
+                    txid TEXT,
+                    datum TEXT,
+                    value TEXT
+                )
+            """)
+
             # Table for batcher records
             self.conn.execute("""
                 CREATE TABLE IF NOT EXISTS batcher (
