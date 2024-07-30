@@ -26,7 +26,9 @@ config = yaml_file.read("config.yaml")
 # start the sqlite3 database
 db = DbManager()
 db.initialize()
+# load the start status from config
 db.status.load(config)
+# create the start oracle from empty
 db.oracle.create("", {})
 
 # Get the directory of the currently executing script
@@ -87,6 +89,8 @@ def webhook():
             if int(block_number) > latest_block_number:
                 # we are synced, start fulfilling orders
                 logger.debug(f"Block: {block_number}")
+                # debug mode will not sort and aggregate orders to fulfill
+                # it will sync the db only
                 if config["debug_mode"] is False:
                     # sort first
                     sorted_queue = Sorting.fifo(db)
