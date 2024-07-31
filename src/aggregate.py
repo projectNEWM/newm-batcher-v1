@@ -5,7 +5,8 @@ from loguru._logger import Logger
 
 from src.address import pkh_from_address
 from src.cli import does_tx_exists_in_mempool, sign, submit, txid
-from src.datums import oracle_validity, sale_validity, vault_validity
+from src.datums import (data_validity, oracle_validity, sale_validity,
+                        vault_validity)
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
 from src.utility import file_exists, parent_directory_path, sha3_256
@@ -48,6 +49,14 @@ class Aggregate:
             return
         if oracle_validity(oracle_info['datum']) is False:
             logger.critical("Oracle has failed the validity test")
+            return
+
+        data_info = db.data.read()
+        if data_info is None:
+            logger.critical("Data is not set up for batcher")
+            return
+        if data_validity(data_info['datum']) is False:
+            logger.critical("Data has failed the validity test")
             return
 
         batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
