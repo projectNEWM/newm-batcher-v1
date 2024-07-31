@@ -211,6 +211,8 @@ def oracle_validity(datum: dict) -> bool:
         if len(datum['fields'][0]['fields'][0]['map']) != 3:
             return False
 
+        if datum['fields'][0]['fields'][0]['map'][0]['v']['int'] <= 0:
+            return False
         # every thing seems good
         return True
 
@@ -230,6 +232,9 @@ def data_validity(datum: dict) -> bool:
     """
     try:
         # TODO
+        print(datum['fields'][7]['fields'][5]['int'])
+        if datum['fields'][7]['fields'][5]['int'] < 0:
+            return False
         # every thing seems good
         return True
 

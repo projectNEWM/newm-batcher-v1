@@ -9,7 +9,7 @@ from src.datums import (data_validity, oracle_validity, sale_validity,
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
 from src.utility import file_exists, parent_directory_path, sha3_256
-from utxo_manager import UTxOManager
+from src.utxo_manager import UTxOManager
 
 
 class Aggregate:
@@ -59,9 +59,9 @@ class Aggregate:
             logger.critical("Data has failed the validity test")
             return
 
-        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
+        batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
-        if batcher is None:
+        if batcher_info is None:
             logger.critical("Batcher is returning None from profit endpoint")
             return
 
@@ -74,20 +74,22 @@ class Aggregate:
                 # TODO
                 #
                 # Is deleting here what we want to do?
-                for batcher_info in batcher_infos:
-                    tag = sha3_256(batcher_info['txid'])
+                for batcher in batcher_infos:
+                    tag = sha3_256(batcher['txid'])
                     if db.batcher.delete(tag):
                         logger.success(f"Spent Batcher Input @ {tag}")
-                tag = sha3_256(batcher['txid'])
-                db.batcher.create(tag, batcher['txid'], batcher['value'])
-                logger.success(f"Batcher Output @ {batcher['txid']}")
+                tag = sha3_256(batcher_info['txid'])
+                db.batcher.create(tag, batcher_info['txid'], batcher_info['value'])
+                logger.success(f"Batcher Output @ {batcher_info['txid']}")
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
-                batcher = db.batcher.read(config("batcher_policy"))
-                if batcher is None:
+                batcher_info = db.batcher.read(config("batcher_policy"))
+                if batcher_info is None:
                     logger.critical("Batcher UTxO can not be found")
                     return
+        # create the UTxOManger
+        utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info)
 
         # handle the sales now
         for sale_tkn in sorted_queue:
@@ -96,6 +98,9 @@ class Aggregate:
                 logger.warning(f"Sale: {sale_tkn} has failed the validity test")
                 # skip this sale as something is wrong
                 continue
+
+            # set the sale now that we know it
+            utxo.set_sale(sale_info)
 
             orders = sorted_queue[sale_tkn]
             if len(orders) == 0:
@@ -120,8 +125,8 @@ class Aggregate:
 
                 logger.debug(f"Queue: {order_hash}")
 
-                # create the UTxOManger
-                utxo = UTxOManager(batcher_info, data_info, oracle_info, queue_info, sale_info, vault_info)
+                # set the queue now that we know it
+                utxo.set_queue(queue_info)
 
                 # build the purchase tx
                 utxo, purchase_success_flag = Endpoint.purchase(utxo, config, None)
