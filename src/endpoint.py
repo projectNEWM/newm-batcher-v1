@@ -7,7 +7,7 @@ from src.cli import txid
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
-from src.redeemer import empty
+from src.redeemer import empty, token, tokens
 from src.utility import parent_directory_path, sha3_256
 from src.value import Value
 
@@ -15,7 +15,7 @@ from src.value import Value
 class Endpoint:
 
     @staticmethod
-    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, vault_info: dict, oracle_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
+    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, vault_info: dict, oracle_info: dict, data_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
         """
         Purchase endpoint between the sale and the queue entry.
 
@@ -34,7 +34,8 @@ class Endpoint:
         purchase_success_flag = False
 
         # reference UTxOs for the scripts
-        data_ref_utxo = config['data_ref_utxo']
+        data_ref_utxo = data_info['txid']
+        oracle_ref_utxo = oracle_info['txid']
         sale_ref_utxo = config['sale_ref_utxo']
         queue_ref_utxo = config['queue_ref_utxo']
         vault_ref_utxo = config['vault_ref_utxo']
@@ -43,6 +44,7 @@ class Endpoint:
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
         # HARDCODE FEE FOR NOW, NEED WAY TO ESITMATE THESE UNITS BETTER
+        # TODO
         fee = 505550
         fee_value = Value({"lovelace": fee})
         # Sale Example: Mem 634386 Steps 239749112
@@ -73,13 +75,24 @@ class Endpoint:
         vault_datum = vault_info['datum']
         write(vault_datum, "tmp/vault-datum.json")
         oracle_datum = oracle_info['datum']
+        data_datum = data_info['datum']
+
+        # datum paths
         sale_datum_file_path = os.path.join(parent_dir, "tmp/sale-datum.json")
         queue_datum_file_path = os.path.join(parent_dir, "tmp/queue-datum.json")
         vault_datum_file_path = os.path.join(parent_dir, "tmp/vault-datum.json")
 
         # profit vault
+        usd_profit_margin = data_datum['fields'][7]['fields'][5]['int']
+        newm_usd_price = oracle_datum['fields'][0]['fields'][0]['map'][0]['v']['int']
+        profit_payment_pid = data_datum['fields'][7]['fields'][3]['bytes']
+        profit_payment_tkn = data_datum['fields'][7]['fields'][4]['bytes']
+        profit_payment_amt = usd_profit_margin // newm_usd_price
+        profit_value = Value({profit_payment_pid: {profit_payment_tkn: profit_payment_amt}})
+
         # queue incentive
         incentive_value = incentive_to_value(queue_datum)
+
         # sale bundle and cost
         bundle_value = bundle_to_value(sale_datum)
         cost_value = cost_to_value(sale_datum)
@@ -89,6 +102,13 @@ class Endpoint:
         sale_value = sale_info['value']
         queue_value = queue_info['value']
         vault_value = vault_info['value']
+
+        # if set to zero then no profit
+        if usd_profit_margin == 0:
+            vault_out_value = copy.deepcopy(vault_value)
+        else:
+            write(tokens([token(profit_payment_pid, profit_payment_tkn, profit_payment_amt)]), "tmp/add-tokens-redeemer.json")
+            vault_out_value = copy.deepcopy(vault_value) + copy.deepcopy(profit_value)
 
         # the number of bundles going to the queue entry
         number_of_bundles = get_number_of_bundles(
@@ -135,6 +155,7 @@ class Endpoint:
             "--out-file", out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
             "--read-only-tx-in-reference", data_ref_utxo,
+            "--read-only-tx-in-reference", oracle_ref_utxo,
             "--tx-in", batcher_info['txid'],
             "--tx-in", sale_info['txid'],
             "--spending-tx-in-reference", sale_ref_utxo,
@@ -148,11 +169,19 @@ class Endpoint:
             "--spending-reference-tx-in-inline-datum-present",
             "--spending-reference-tx-in-execution-units", queue_execution_units,
             "--spending-reference-tx-in-redeemer-file", queue_redeemer_file_path,
+            "--tx-in", vault_info['txid'],
+            "--spending-tx-in-reference", vault_ref_utxo,
+            "--spending-plutus-script-v2",
+            "--spending-reference-tx-in-inline-datum-present",
+            "--spending-reference-tx-in-execution-units", vault_execution_units,
+            "--spending-reference-tx-in-redeemer-file", vault_redeemer_file_path,
             "--tx-out", batcher_out_value.to_output(config['batcher_address']),
             "--tx-out", sale_out_value.to_output(config['sale_address']),
             "--tx-out-inline-datum-file", sale_datum_file_path,
             "--tx-out", queue_out_value.to_output(config['queue_address']),
             "--tx-out-inline-datum-file", queue_datum_file_path,
+            "--tx-out", vault_out_value.to_output(config['vault_address']),
+            "--tx-out-inline-datum-file", vault_datum_file_path,
             "--required-signer-hash", batcher_pkh,
             "--required-signer-hash", config['collat_pkh'],
             "--fee", str(fee)

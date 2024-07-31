@@ -111,7 +111,7 @@ def data_utxo(db: DbManager):
     try:
         print(f"Data TxId: {record['txid']}")
         print(json.dumps(record['datum'], indent=4))
-    except TypeError:
+    except (TypeError, KeyError):
         print("Oracle Never Updated")
 
 
@@ -123,7 +123,7 @@ def vault_utxo(db: DbManager):
         print(f"Vault TxId: {record['txid']}")
         print(json.dumps(record['datum'], indent=4))
         print(f"{record['value']}")
-    except TypeError:
+    except (TypeError, KeyError):
         print("Vault Does Not Exist")
 
 
