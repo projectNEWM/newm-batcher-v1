@@ -83,8 +83,8 @@ def webhook():
         try:
             # are we still syncing?
             if int(block_number) > latest_block_number:
-                # we are synced, start fulfilling orders
                 logger.debug(f"Block: {block_number}")
+                # we are synced, start fulfilling orders
                 # debug mode will not sort and aggregate orders to fulfill
                 # it will sync the db only
                 if config["debug_mode"] is False:
@@ -93,11 +93,11 @@ def webhook():
                     # then batch
                     Aggregate.orders(db, sorted_queue, config, logger)
             else:
-                # we are syncing
+                # we are still syncing
                 tip_difference = latest_block_number - int(block_number)
                 logger.debug(f"Blocks til tip: {tip_difference}")
         except TypeError:
-            # incase block number some how isnt a number
+            # incase block number some how isnt a number; which does happen at start
             pass
 
     # try to sync inputs and outputs
