@@ -219,3 +219,31 @@ def test_delete_vault(db_manager, sample_value):
     record = db_manager.vault.read(pkh)
     assert record is None
     assert delete_flag is True
+
+
+def test_create_data(db_manager):
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.data.create(txid, datum)
+
+    record = db_manager.data.read()
+    _txid = record['txid']
+    _datum = record['datum']
+    assert txid == _txid
+    assert datum == _datum
+
+
+def test_update_data(db_manager):
+    txid = "test_txid"
+    datum = {"key": "value"}
+    db_manager.data.create(txid, datum)
+
+    txid2 = "test_txid2"
+    datum2 = {"key": "value2"}
+    db_manager.data.update(txid2, datum2)
+
+    record = db_manager.data.read()
+    _txid = record['txid']
+    _datum = record['datum']
+    assert txid2 == _txid
+    assert datum2 == _datum

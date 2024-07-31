@@ -34,8 +34,12 @@ sale_address: "addr_test1xqk2zrw5g9pjk289kn8m8p68f254hnaacsmz3euwve3m5f8fe2gwsm4
 queue_address: "addr_test1xpg80nts44jr50utr23rxrz5jk02mfywudljszfengjl970fe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75szptqwc"
 vault_address: "addr_test1xr66w6j86evtpxc29xgfc5uhetmmf4c0rvx73ad478473jlfe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75s7avfx7"
 
+# Data Contract
+data_address: "addr_test1wrp4cpyvutvy306n7xekpzfvysyls0d5nkzqel6agyfsh0ccwd96w"
+data_policy: "9a3d3b5887f96b15faa7c2c42ebf46805587e7946345345b8a762667"
+data_asset: "dba9b3fdc4ec5fddb8e3109393e44665c18231386433b8033db7092b794d1f39"
+
 # Data, Sale, and Queue Contract Script Reference UTxOs
-data_ref_utxo: "4f378b5b9c223d5bc45c70b20c19059fd05960b3ee55f7c7cb02096364852616#0"
 sale_ref_utxo: "402b8db50bdcc9db1355e4510435dd334964d549d43adb1490e24aaee5aa5a5d#1"
 queue_ref_utxo: "27a3452545e4e4691fe397db7dbabace9d0bb54e07d80358113a6da60eb039a0#1"
 vault_ref_utxo: "05b3d25ccbc9f3f298ef12b52411871bb45c518316d793e27cd9f20ceb5349c2#1"
@@ -48,14 +52,17 @@ batcher_policy: "d4add3a85c2ced3607ba0b17e71a403863c2435348bba0821f74523a"
 batcher_asset: "5ca1ab1e000affab1e000ca11ab1e0005e77ab1e"
 
 # Starting Block Information
-starting_block_number: 2500000
-starting_timestamp: 65970693
-starting_blockhash: "700362b512fa0e4e980af0d87efc6e8d95ac262bd2a15afb4bebd8066e903af0"
+starting_block_number: 2508424
+starting_timestamp: 66180120
+starting_blockhash: "afa362ac6a3a57f92dfee6f76bbe59b4f6e164385af4b82f0399009822d69f4e"
 delay_depth: 3
 
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
+# Available logging levels
+#
+# TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
 logging_level: "TRACE"
 
 # Debug Mode

@@ -216,3 +216,22 @@ def oracle_validity(datum: dict) -> bool:
 
     except KeyError:
         return False
+
+
+def data_validity(datum: dict) -> bool:
+    """
+    Validate that the Data datum is in the correct form for an order to be fulfilled.
+
+    Args:
+        datum (dict): The data datum
+
+    Returns:
+        bool: True if valid else False
+    """
+    try:
+        # TODO
+        # every thing seems good
+        return True
+
+    except KeyError:
+        return False

@@ -25,11 +25,7 @@ config = yaml_file.read("config.yaml")
 
 # start the sqlite3 database
 db = DbManager()
-db.initialize()
-# load the start status from config
-db.status.load(config)
-# create the start oracle from empty
-db.oracle.create("", {})
+db.initialize(config)
 
 # Get the directory of the currently executing script
 parent_dir = parent_directory_path()
@@ -116,15 +112,13 @@ def webhook():
 
         # tx inputs
         if variant == 'TxInput':
-            IOManager.spent_input(db, data, logger)
+            IOManager.handle_input(db, data, logger)
 
         # tx outputs
         if variant == 'TxOutput':
-            IOManager.batcher_output(db, config, data, logger)
-            IOManager.sale_output(db, config, data, logger)
-            IOManager.queue_output(db, config, data, logger)
-            IOManager.vault_output(db, config, data, logger)
-            IOManager.oracle_output(db, config, data, logger)
+            IOManager.handle_output(db, config, data, logger)
+
+    # not the right variant so pass it
     except Exception:
         pass
 

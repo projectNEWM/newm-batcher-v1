@@ -106,6 +106,15 @@ def oracle_utxo(db: DbManager):
         print("Oracle Never Updated")
 
 
+def data_utxo(db: DbManager):
+    record = db.data.read()
+    try:
+        print(f"Data TxId: {record['txid']}")
+        print(json.dumps(record['datum'], indent=4))
+    except TypeError:
+        print("Oracle Never Updated")
+
+
 def vault_utxo(db: DbManager):
     # batcher pkh for signing
     batcher_pkh = pkh_from_address(config['batcher_address'])
@@ -123,6 +132,7 @@ def main():
     parser.add_argument('-s', '--status', action='store_true', help='return the current sync status')
     parser.add_argument('--batcher', action='store_true', help='return the batcher UTxOs')
     parser.add_argument('--oracle', action='store_true', help='return the oracle UTxO')
+    parser.add_argument('--data', action='store_true', help='return the data UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
     parser.add_argument('--vault', action='store_true', help='return the vault UTxOs')
     parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
@@ -146,6 +156,9 @@ def main():
 
     if args.oracle:
         oracle_utxo(db_manager)
+
+    if args.data:
+        data_utxo(db_manager)
 
     if args.vault:
         vault_utxo(db_manager)

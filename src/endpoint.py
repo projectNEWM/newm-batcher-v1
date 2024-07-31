@@ -70,9 +70,14 @@ class Endpoint:
         write(sale_datum, "tmp/sale-datum.json")
         queue_datum = queue_info['datum']
         write(queue_datum, "tmp/queue-datum.json")
+        vault_datum = vault_info['datum']
+        write(vault_datum, "tmp/vault-datum.json")
+        oracle_datum = oracle_info['datum']
         sale_datum_file_path = os.path.join(parent_dir, "tmp/sale-datum.json")
         queue_datum_file_path = os.path.join(parent_dir, "tmp/queue-datum.json")
+        vault_datum_file_path = os.path.join(parent_dir, "tmp/vault-datum.json")
 
+        # profit vault
         # queue incentive
         incentive_value = incentive_to_value(queue_datum)
         # sale bundle and cost
@@ -83,6 +88,7 @@ class Endpoint:
         batcher_value = batcher_info['value']
         sale_value = sale_info['value']
         queue_value = queue_info['value']
+        vault_value = vault_info['value']
 
         # the number of bundles going to the queue entry
         number_of_bundles = get_number_of_bundles(

@@ -1,4 +1,5 @@
 from src.db.batcher_db_manager import BatcherDbManager
+from src.db.data_db_manager import DataDbManager
 from src.db.oracle_db_manager import OracleDbManager
 from src.db.queue_db_manager import QueueDbManager
 from src.db.sale_db_manager import SaleDbManager
@@ -10,6 +11,7 @@ from src.db.vault_db_manager import VaultDbManager
 class DbManager:
     def __init__(self, db_file='batcher.db'):
         self.batcher = BatcherDbManager(db_file)
+        self.data = DataDbManager(db_file)
         self.oracle = OracleDbManager(db_file)
         self.queue = QueueDbManager(db_file)
         self.sale = SaleDbManager(db_file)
@@ -17,17 +19,25 @@ class DbManager:
         self.status = StatusDbManager(db_file)
         self.vault = VaultDbManager(db_file)
 
-    def initialize(self):
+    def initialize(self, config):
         self.batcher.initialize()
+        self.data.initialize()
         self.oracle.initialize()
         self.queue.initialize()
         self.sale.initialize()
         self.seen.initialize()
         self.status.initialize()
         self.vault.initialize()
+        # load the start status from config
+        self.status.load(config)
+        # create the start oracle from empty
+        self.oracle.create("", {})
+        # create the start data from empty
+        self.data.create("", {})
 
     def cleanup(self):
         self.batcher.cleanup()
+        self.data.cleanup()
         self.oracle.cleanup()
         self.queue.cleanup()
         self.sale.cleanup()
