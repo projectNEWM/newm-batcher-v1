@@ -15,3 +15,31 @@ def empty(index: int) -> dict:
         "fields": []
     }
     return data
+
+
+def token(pid: str, tkn: str, amt: int) -> dict:
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": pid
+            },
+            {
+                "bytes": tkn
+            },
+            {
+                "int": amt
+            }
+        ]
+    }
+
+
+def tokens(token_list: list) -> dict:
+    return {
+        "constructor": 0,
+        "fields": [
+            {
+                "list": token_list
+            }
+        ]
+    }
