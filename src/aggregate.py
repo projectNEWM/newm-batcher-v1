@@ -1,4 +1,3 @@
-import copy
 import os
 
 from loguru._logger import Logger
@@ -10,6 +9,7 @@ from src.datums import (data_validity, oracle_validity, sale_validity,
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
 from src.utility import file_exists, parent_directory_path, sha3_256
+from utxo_manager import UTxOManager
 
 
 class Aggregate:
@@ -91,8 +91,8 @@ class Aggregate:
 
         # handle the sales now
         for sale_tkn in sorted_queue:
-            sale = db.sale.read(sale_tkn)
-            if sale_validity(sale['datum']) is False:
+            sale_info = db.sale.read(sale_tkn)
+            if sale_validity(sale_info['datum']) is False:
                 logger.warning(f"Sale: {sale_tkn} has failed the validity test")
                 # skip this sale as something is wrong
                 continue
@@ -104,23 +104,27 @@ class Aggregate:
             logger.debug(f"Sale: {sale_tkn}")
             for order_data in orders:
                 order_hash = order_data[0]
-                order = db.queue.read(order_hash)
+                queue_info = db.queue.read(order_hash)
 
                 # check if the order is in the db
-                if order is None:
+                if queue_info is None:
                     logger.warning(f"Order: {order_hash} Not Found")
                     # skip this order its not in the db
                     continue
 
                 # check if the tag has been seen before
-                if db.seen.read(order["tag"]) is True:
+                if db.seen.read(queue_info["tag"]) is True:
                     logger.warning(f"Order: {order_hash} Has Been Seen")
                     # skip this order as its already been seen
                     continue
 
                 logger.debug(f"Queue: {order_hash}")
+
+                # create the UTxOManger
+                utxo = UTxOManager(batcher_info, data_info, oracle_info, queue_info, sale_info, vault_info)
+
                 # build the purchase tx
-                new_sale, new_order, new_batcher, purchase_success_flag = Endpoint.purchase(copy.deepcopy(sale), copy.deepcopy(order), copy.deepcopy(batcher), config)
+                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, None)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
@@ -140,7 +144,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                new_new_sale, new_new_order, new_new_batcher, refund_success_flag = Endpoint.refund(copy.deepcopy(new_sale), copy.deepcopy(new_order), copy.deepcopy(new_batcher), config)
+                utxo, refund_success_flag = Endpoint.refund(utxo, config, None)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
                     logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
@@ -169,10 +173,8 @@ class Aggregate:
                         # TODO
                         #
                         # Seen may need to be removed
-                        db.seen.create(order_hash)
-                        db.seen.create(tag)
-                        sale = copy.deepcopy(new_sale)
-                        batcher = copy.deepcopy(new_batcher)
+                        # db.seen.create(order_hash)
+                        # db.seen.create(tag)
                     else:
                         logger.warning(f"Order: {order_hash} Purchased: Failed")
 
@@ -182,9 +184,7 @@ class Aggregate:
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
-                        db.seen.create(tag)
-                        sale = copy.deepcopy(new_new_sale)
-                        batcher = copy.deepcopy(new_new_batcher)
+                        # db.seen.create(tag)
                     else:
                         logger.warning(f"Order: {tag} Refund: Failed")
         return
