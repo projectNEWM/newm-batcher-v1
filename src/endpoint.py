@@ -9,33 +9,31 @@ from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
 from src.json_file import write
 from src.redeemer import empty, token, tokens
 from src.utility import parent_directory_path, sha3_256
+from src.utxo_manager import UTxOManager
 from src.value import Value
 
 
 class Endpoint:
 
     @staticmethod
-    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, vault_info: dict, oracle_info: dict, data_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
+    def purchase(utxo: UTxOManager, config: dict, logger=None) -> tuple[UTxOManager, bool]:
         """
         Purchase endpoint between the sale and the queue entry.
 
         Args:
-            sale_info (dict): The sale information
-            queue_info (dict): The queue entry information
-            batcher_info (dict): The batcher information
-            vault_info (dict): The vault information
-            oracle_info (dict): The oracle information
+            utxo (UTxOManager): The utxo manager for all the contracts
             config (dict): The batcher configuration
+            logger (optional): The logger if required
 
         Returns:
-            tuple[dict, dict, dict, bool]: The sale, queue, batcher info, and a success flag.
+            tuple[UTxOManager, bool]: The utxo manager for the contracts and the success boolean
         """
         # set success flag to false
         purchase_success_flag = False
 
         # reference UTxOs for the scripts
-        data_ref_utxo = data_info['txid']
-        oracle_ref_utxo = oracle_info['txid']
+        data_ref_utxo = utxo.data.txid
+        oracle_ref_utxo = utxo.oracle.txid
         sale_ref_utxo = config['sale_ref_utxo']
         queue_ref_utxo = config['queue_ref_utxo']
         vault_ref_utxo = config['vault_ref_utxo']
@@ -68,14 +66,14 @@ class Endpoint:
         vault_redeemer_file_path = os.path.join(parent_dir, "tmp/add-tokens-redeemer.json")
 
         # datums for purchase
-        sale_datum = sale_info['datum']
+        sale_datum = utxo.sale.datum
         write(sale_datum, "tmp/sale-datum.json")
-        queue_datum = queue_info['datum']
+        queue_datum = utxo.queue.datum
         write(queue_datum, "tmp/queue-datum.json")
-        vault_datum = vault_info['datum']
+        vault_datum = utxo.vault.datum
         write(vault_datum, "tmp/vault-datum.json")
-        oracle_datum = oracle_info['datum']
-        data_datum = data_info['datum']
+        oracle_datum = utxo.oracle.datum
+        data_datum = utxo.data.datum
 
         # datum paths
         sale_datum_file_path = os.path.join(parent_dir, "tmp/sale-datum.json")
@@ -98,13 +96,14 @@ class Endpoint:
         cost_value = cost_to_value(sale_datum)
 
         # current values
-        batcher_value = batcher_info['value']
-        sale_value = sale_info['value']
-        queue_value = queue_info['value']
-        vault_value = vault_info['value']
+        batcher_value = utxo.batcher.value
+        sale_value = utxo.sale.value
+        queue_value = utxo.queue.value
+        vault_value = utxo.vault.value
 
         # if set to zero then no profit
         if usd_profit_margin == 0:
+            write(tokens([]), "tmp/add-tokens-redeemer.json")
             vault_out_value = copy.deepcopy(vault_value)
         else:
             write(tokens([token(profit_payment_pid, profit_payment_tkn, profit_payment_amt)]), "tmp/add-tokens-redeemer.json")
@@ -115,7 +114,7 @@ class Endpoint:
             queue_datum, sale_datum, sale_value)
         # must have at least 1 bundle
         if number_of_bundles == 0:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
         # total cost being paid
         total_cost_value = number_of_bundles * copy.deepcopy(cost_value)
@@ -123,29 +122,29 @@ class Endpoint:
         total_bundle_value = number_of_bundles * copy.deepcopy(bundle_value)
         # if total cost value not in queue then fail
         if queue_value.contains(total_cost_value) is False:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
         # if incentive not in queue then fail
         if queue_value.contains(incentive_value) is False:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
-        combined_value = copy.deepcopy(incentive_value) + copy.deepcopy(total_cost_value)
+        combined_value = copy.deepcopy(incentive_value) + copy.deepcopy(total_cost_value) + copy.deepcopy(profit_value)
         if queue_value.contains(combined_value) is False:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
         # if bundle not in sale then fail
         if sale_value.contains(total_bundle_value) is False:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         sale_out_value = copy.deepcopy(sale_value) + copy.deepcopy(total_cost_value) - copy.deepcopy(total_bundle_value)
 
         if sale_out_value.has_negative_entries() is True:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
-        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
+            return utxo, purchase_success_flag
+        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
 
         if queue_out_value.has_negative_entries() is True:
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         func = [
@@ -156,20 +155,20 @@ class Endpoint:
             "--tx-in-collateral", config['collat_utxo'],
             "--read-only-tx-in-reference", data_ref_utxo,
             "--read-only-tx-in-reference", oracle_ref_utxo,
-            "--tx-in", batcher_info['txid'],
-            "--tx-in", sale_info['txid'],
+            "--tx-in", utxo.batcher.txid,
+            "--tx-in", utxo.sale.txid,
             "--spending-tx-in-reference", sale_ref_utxo,
             "--spending-plutus-script-v2",
             "--spending-reference-tx-in-inline-datum-present",
             "--spending-reference-tx-in-execution-units", sale_execution_units,
             "--spending-reference-tx-in-redeemer-file", sale_redeemer_file_path,
-            "--tx-in", queue_info['txid'],
+            "--tx-in", utxo.queue.txid,
             "--spending-tx-in-reference", queue_ref_utxo,
             "--spending-plutus-script-v2",
             "--spending-reference-tx-in-inline-datum-present",
             "--spending-reference-tx-in-execution-units", queue_execution_units,
             "--spending-reference-tx-in-redeemer-file", queue_redeemer_file_path,
-            "--tx-in", vault_info['txid'],
+            "--tx-in", utxo.vault.txid,
             "--spending-tx-in-reference", vault_ref_utxo,
             "--spending-plutus-script-v2",
             "--spending-reference-tx-in-inline-datum-present",
@@ -197,42 +196,45 @@ class Endpoint:
             logger.debug(errors)
 
         if "Command failed" in errors.decode():
-            return sale_info, queue_info, batcher_info, purchase_success_flag
+            return utxo, purchase_success_flag
 
         # check output / errors, if all good assume true here
         purchase_success_flag = True
 
         intermediate_txid = txid(out_file_path)
 
-        queue_info['txid'] = intermediate_txid + "#2"
-        queue_info['value'] = copy.deepcopy(queue_out_value)
+        utxo.batcher.txid = intermediate_txid + "#0"
+        utxo.batcher.value = batcher_out_value
 
-        sale_info['txid'] = intermediate_txid + "#1"
-        sale_info['value'] = copy.deepcopy(sale_out_value)
+        utxo.sale.txid = intermediate_txid + "#1"
+        utxo.sale.value = sale_out_value
 
-        batcher_info['txid'] = intermediate_txid + "#0"
-        batcher_info['value'] = copy.deepcopy(batcher_out_value)
+        utxo.queue.txid = intermediate_txid + "#2"
+        utxo.queue.value = queue_out_value
 
-        return sale_info, queue_info, batcher_info, purchase_success_flag
+        utxo.vault.txid = intermediate_txid + "#3"
+        utxo.vault.value = vault_out_value
+
+        return utxo, purchase_success_flag
 
     @staticmethod
-    def refund(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
+    def refund(utxo: UTxOManager, config: dict, logger=None) -> tuple[UTxOManager, bool]:
         """
         Refund endpoint between the sale and the queue entry.
 
         Args:
-            sale_info (dict): The sale information
-            queue_info (dict): The queue entry information
-            batcher_info (dict): The batcher information
+            utxo (UTxOManager): The utxo manager for all the contracts
             config (dict): The batcher configuration
+            logger (optional): The logger if required
 
         Returns:
-            tuple[dict, dict, dict, bool]: The sale, queue, batcher info, and a success flag.
+            tuple[UTxOManager, bool]: The utxo manager for the contracts and the success boolean
         """
         refund_success_flag = False
 
         # reference UTxOs for the scripts
-        data_ref_utxo = config['data_ref_utxo']
+        data_ref_utxo = utxo.data.txid
+        oracle_ref_utxo = utxo.oracle.txid
         queue_ref_utxo = config['queue_ref_utxo']
 
         # batcher pkh for signing
@@ -240,7 +242,8 @@ class Endpoint:
 
         fee = 350000
         fee_value = Value({"lovelace": fee})
-        execution_units = '(400000000, 1500000)'
+        # Refund Example: Mem 1231866 Steps 455696460
+        execution_units = '(460000000, 1500000)'
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -254,7 +257,7 @@ class Endpoint:
         queue_redeemer_file_path = os.path.join(parent_dir, "tmp/refund-redeemer.json")
 
         # datums for refund
-        queue_datum = queue_info['datum']
+        queue_datum = utxo.queue.datum
 
         # queue entry owner address
         owner_address = to_address(queue_datum, config["network"])
@@ -262,17 +265,17 @@ class Endpoint:
         # queue incentive
         incentive_value = incentive_to_value(queue_datum)
 
-        batcher_value = batcher_info['value']
-        queue_value = queue_info['value']
+        batcher_value = utxo.batcher.value
+        queue_value = utxo.queue.value
 
         # if incentive not in queue then fail
         if queue_value.contains(incentive_value) is False:
-            return sale_info, queue_info, batcher_info, refund_success_flag
+            return utxo, refund_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
         if queue_out_value.has_negative_entries() is True:
-            return sale_info, queue_info, batcher_info, refund_success_flag
+            return utxo, refund_success_flag
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         func = [
@@ -282,9 +285,10 @@ class Endpoint:
             '--out-file', out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
             '--read-only-tx-in-reference', data_ref_utxo,
-            '--read-only-tx-in-reference', sale_info['txid'],
-            "--tx-in", batcher_info['txid'],
-            '--tx-in', queue_info['txid'],
+            '--read-only-tx-in-reference', oracle_ref_utxo,
+            '--read-only-tx-in-reference', utxo.sale.txid,
+            "--tx-in", utxo.batcher.txid,
+            '--tx-in', utxo.queue.txid,
             '--spending-tx-in-reference', queue_ref_utxo,
             '--spending-plutus-script-v2',
             '--spending-reference-tx-in-inline-datum-present',
@@ -307,20 +311,17 @@ class Endpoint:
             logger.debug(errors)
 
         if "Command failed" in errors.decode():
-            return sale_info, queue_info, batcher_info, refund_success_flag
+            return utxo, refund_success_flag
 
         # do someting
         refund_success_flag = True
 
         intermediate_txid = txid(out_file_path)
 
-        queue_info['txid'] = intermediate_txid + "#1"
-        queue_info['value'] = copy.deepcopy(queue_out_value)
+        utxo.batcher.txid = intermediate_txid + "#0"
+        utxo.batcher.value = batcher_out_value
 
-        batcher_info['txid'] = intermediate_txid + "#0"
-        batcher_info['value'] = copy.deepcopy(batcher_out_value)
-
-        return sale_info, queue_info, batcher_info, refund_success_flag
+        return utxo, refund_success_flag
 
     @staticmethod
     def profit(batcher_infos: list[dict], config: dict) -> tuple[dict, bool]:
