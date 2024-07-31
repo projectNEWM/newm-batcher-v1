@@ -1,3 +1,6 @@
+import copy
+
+
 class QueueUTxOManager:
     def __init__(self, data: dict):
         self._data = data
@@ -22,6 +25,10 @@ class QueueUTxOManager:
     def txid(self):
         return self._data.get('txid')
 
+    @txid.setter
+    def txid(self, value):
+        self._data['txid'] = value
+
     @property
     def datum(self):
         return self._data.get('datum')
@@ -29,3 +36,7 @@ class QueueUTxOManager:
     @property
     def value(self):
         return self._data.get('value')
+
+    @value.setter
+    def value(self, new_value):
+        self._data['value'] = copy.deepcopy(new_value)
