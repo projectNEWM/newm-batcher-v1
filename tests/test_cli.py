@@ -147,3 +147,15 @@ def test_submit_a_signed_tx(test_signed_file_path2, live_node):
     result = cli.submit(test_signed_file_path2, live_node["socket"], live_node["network"])
     # if the tx is unsubmitted then its true else its false
     assert result is True or result is False
+
+
+@pytest.mark.live_node
+def test_query_slot_number(live_node):
+    slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"])
+    assert slot == 66783612
+
+
+def test_query_slot_number_with_no_socket(live_node):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.query_slot_number("", 1722466813112, live_node["network"])
+        assert excinfo.value.code == 1
