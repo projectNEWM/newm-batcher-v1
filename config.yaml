@@ -66,4 +66,4 @@ max_num_log_files: 1
 logging_level: "TRACE"
 
 # Debug Mode
-debug_mode: True
+debug_mode: False
