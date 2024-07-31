@@ -15,7 +15,7 @@ from src.value import Value
 class Endpoint:
 
     @staticmethod
-    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
+    def purchase(sale_info: dict, queue_info: dict, batcher_info: dict, vault_info: dict, oracle_info: dict, config: dict, logger=None) -> tuple[dict, dict, dict, bool]:
         """
         Purchase endpoint between the sale and the queue entry.
 
@@ -23,6 +23,8 @@ class Endpoint:
             sale_info (dict): The sale information
             queue_info (dict): The queue entry information
             batcher_info (dict): The batcher information
+            vault_info (dict): The vault information
+            oracle_info (dict): The oracle information
             config (dict): The batcher configuration
 
         Returns:
@@ -35,15 +37,20 @@ class Endpoint:
         data_ref_utxo = config['data_ref_utxo']
         sale_ref_utxo = config['sale_ref_utxo']
         queue_ref_utxo = config['queue_ref_utxo']
+        vault_ref_utxo = config['vault_ref_utxo']
 
         # batcher pkh for signing
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
         # HARDCODE FEE FOR NOW, NEED WAY TO ESITMATE THESE UNITS BETTER
-        fee = 505549
+        fee = 505550
         fee_value = Value({"lovelace": fee})
-        sale_execution_units = "(290266843, 618944)"
-        queue_execution_units = "(687212169, 2506909)"
+        # Sale Example: Mem 634386 Steps 239749112
+        sale_execution_units = "(240000000, 635000)"
+        # Queue Example: Mem 1651174 Steps 649844778
+        queue_execution_units = "(650000000, 1660000)"
+        # Vault Example: Mem 284377 Steps 121918683
+        vault_execution_units = "(122000000, 285000)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -56,6 +63,7 @@ class Endpoint:
         write(empty(0), "tmp/purchase-redeemer.json")
         sale_redeemer_file_path = os.path.join(parent_dir, "tmp/purchase-redeemer.json")
         queue_redeemer_file_path = os.path.join(parent_dir, "tmp/purchase-redeemer.json")
+        vault_redeemer_file_path = os.path.join(parent_dir, "tmp/add-tokens-redeemer.json")
 
         # datums for purchase
         sale_datum = sale_info['datum']
