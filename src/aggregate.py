@@ -129,7 +129,8 @@ class Aggregate:
                 utxo.set_queue(queue_info)
 
                 # build the purchase tx
-                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, None)
+                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
+                return
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
@@ -149,7 +150,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                utxo, refund_success_flag = Endpoint.refund(utxo, config, None)
+                utxo, refund_success_flag = Endpoint.refund(utxo, config, logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
                     logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
@@ -170,7 +171,8 @@ class Aggregate:
 
                 # submit tx
                 if purchase_success_flag is True:
-                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'])
+                    logger.debug(f"Order: {order_hash} Submit Purchased")
+                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], logger)
                     if purchase_result is True:
                         logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
                         tag = sha3_256(txid(signed_purchase_tx))
@@ -185,7 +187,8 @@ class Aggregate:
 
                 # submit tx
                 if refund_success_flag is True:
-                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'])
+                    logger.debug(f"Order: {order_hash} Submit Refund")
+                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], logger)
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")

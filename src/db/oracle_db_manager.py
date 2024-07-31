@@ -19,7 +19,7 @@ class OracleDbManager(BaseDbManager):
         try:
             datum_json = self.dict_to_json(datum)
             conn.execute(
-                'INSERT OR REPLACE INTO oracle (id, txid, datum) VALUES (?, ?, ?)',
+                'INSERT OR IGNORE INTO oracle (id, txid, datum) VALUES (?, ?, ?)',
                 ("unique_oracle", txid, datum_json)
             )
             conn.commit()

@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from src.address import pkh_from_address
-from src.cli import txid
+from src.cli import query_slot_number, txid
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
@@ -46,11 +46,11 @@ class Endpoint:
         fee = 505550
         fee_value = Value({"lovelace": fee})
         # Sale Example: Mem 634386 Steps 239749112
-        sale_execution_units = "(240000000, 635000)"
+        sale_execution_units = "(260000000, 695000)"
         # Queue Example: Mem 1651174 Steps 649844778
-        queue_execution_units = "(650000000, 1660000)"
+        queue_execution_units = "(690000000, 1750000)"
         # Vault Example: Mem 284377 Steps 121918683
-        vault_execution_units = "(122000000, 285000)"
+        vault_execution_units = "(135000000, 295000)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -147,11 +147,17 @@ class Endpoint:
             return utxo, purchase_success_flag
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
+        # timeunits
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 1)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -1)
+
         func = [
             "cardano-cli", "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
+            "--invalid-before", str(start_slot),
+            "--invalid-hereafter", str(end_slot),
             "--tx-in-collateral", config['collat_utxo'],
             "--read-only-tx-in-reference", data_ref_utxo,
             "--read-only-tx-in-reference", oracle_ref_utxo,
@@ -243,7 +249,7 @@ class Endpoint:
         fee = 350000
         fee_value = Value({"lovelace": fee})
         # Refund Example: Mem 1231866 Steps 455696460
-        execution_units = '(460000000, 1500000)'
+        execution_units = '(500000000, 1500000)'
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -258,6 +264,7 @@ class Endpoint:
 
         # datums for refund
         queue_datum = utxo.queue.datum
+        oracle_datum = utxo.oracle.datum
 
         # queue entry owner address
         owner_address = to_address(queue_datum, config["network"])
@@ -278,11 +285,17 @@ class Endpoint:
             return utxo, refund_success_flag
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
+        # time units
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 1)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -1)
+
         func = [
             'cardano-cli', 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
+            "--invalid-before", str(start_slot),
+            "--invalid-hereafter", str(end_slot),
             "--tx-in-collateral", config['collat_utxo'],
             '--read-only-tx-in-reference', data_ref_utxo,
             '--read-only-tx-in-reference', oracle_ref_utxo,

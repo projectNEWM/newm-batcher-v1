@@ -19,7 +19,7 @@ class DataDbManager(BaseDbManager):
         try:
             datum_json = self.dict_to_json(datum)
             conn.execute(
-                'INSERT OR REPLACE INTO data (id, txid, datum) VALUES (?, ?, ?)',
+                'INSERT OR IGNORE INTO data (id, txid, datum) VALUES (?, ?, ?)',
                 ("unique_data", txid, datum_json)
             )
             conn.commit()

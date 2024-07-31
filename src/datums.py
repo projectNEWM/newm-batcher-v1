@@ -232,7 +232,6 @@ def data_validity(datum: dict) -> bool:
     """
     try:
         # TODO
-        print(datum['fields'][7]['fields'][5]['int'])
         if datum['fields'][7]['fields'][5]['int'] < 0:
             return False
         # every thing seems good

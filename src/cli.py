@@ -1,6 +1,28 @@
+import datetime
 import json
 import subprocess
 import sys
+
+
+def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0) -> int:
+    timestamp = datetime.datetime.fromtimestamp(unix_time / 1000 + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    func = [
+        'cardano-cli',
+        'query',
+        'slot-number',
+        '--socket-path',
+        socket
+    ]
+    func += network.split(" ")
+    func += [timestamp]
+    # this saves to out file
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+    # exit application if node is not live
+    if "Connection refused" in errors.decode():
+        sys.exit(1)
+    # decode output into int
+    return int(output.decode())
 
 
 def query_protocol_parameters(socket: str, file_path: str, network: str) -> None:
