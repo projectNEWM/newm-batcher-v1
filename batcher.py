@@ -25,7 +25,7 @@ config = yaml_file.read("config.yaml")
 
 # start the sqlite3 database
 db = DbManager()
-db.initialize_status(config)
+db.initialize(config)
 
 # Get the directory of the currently executing script
 parent_dir = parent_directory_path()
@@ -71,7 +71,7 @@ def webhook():
     block_slot = data['context']['slot']
 
     # Get the current status
-    sync_status = db.read_status()
+    sync_status = db.status.read()
 
     # What the db thinks is the current block is
     db_number = sync_status["block_number"]
@@ -79,22 +79,25 @@ def webhook():
     # check for a change in the block number
     if block_number != db_number:
         # the block number has changed so update the db
-        db.update_status(block_number, block_hash, block_slot)
+        db.status.update(block_number, block_hash, block_slot)
         try:
             # are we still syncing?
             if int(block_number) > latest_block_number:
+                logger.debug(f"Block: {block_number} : Timestamp: {block_slot}")
                 # we are synced, start fulfilling orders
-                logger.debug(f"Block: {block_number}")
-                # sort first
-                sorted_queue = Sorting.fifo(db)
-                # then batch
-                Aggregate.orders(db, sorted_queue, config, logger)
+                # debug mode will not sort and aggregate orders to fulfill
+                # it will sync the db only
+                if config["debug_mode"] is False:
+                    # sort first
+                    sorted_queue = Sorting.fifo(db)
+                    # then batch
+                    Aggregate.orders(db, sorted_queue, config, logger)
             else:
-                # we are syncing
+                # we are still syncing
                 tip_difference = latest_block_number - int(block_number)
                 logger.debug(f"Blocks til tip: {tip_difference}")
         except TypeError:
-            # incase block number some how isnt a number
+            # incase block number some how isnt a number; which does happen at start
             pass
 
     # try to sync inputs and outputs
@@ -109,15 +112,13 @@ def webhook():
 
         # tx inputs
         if variant == 'TxInput':
-            IOManager.batcher_input(db, data, logger)
-            IOManager.sale_input(db, data, logger)
-            IOManager.queue_input(db, data, logger)
+            IOManager.handle_input(db, data, logger)
 
         # tx outputs
         if variant == 'TxOutput':
-            IOManager.batcher_output(db, config, data, logger)
-            IOManager.sale_output(db, config, data, logger)
-            IOManager.queue_output(db, config, data, logger)
+            IOManager.handle_output(db, config, data, logger)
+
+    # not the right variant so pass it
     except Exception:
         pass
 
@@ -168,7 +169,7 @@ def start_processes():
     Start the batcher processes as a multiprocessing event.
     """
     # create the daemon toml file
-    sync_status = db.read_status()
+    sync_status = db.status.read()
     # start log
     logger.info(f"Loading Block {sync_status['block_number']} @ Slot {sync_status['timestamp']} With Hash {sync_status['block_hash']}")
 

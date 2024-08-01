@@ -1,13 +1,16 @@
-import copy
 import os
 
 from loguru._logger import Logger
 
-from src.cli import does_tx_exists_in_mempool, sign, submit, txid
-from src.datums import sale_validity
+from src.address import pkh_from_address
+from src.cli import (does_tx_exists_in_mempool, does_utxo_exist, sign, submit,
+                     txid)
+from src.datums import (data_validity, oracle_validity, sale_validity,
+                        vault_validity)
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
 from src.utility import file_exists, parent_directory_path, sha3_256
+from src.utxo_manager import UTxOManager
 
 
 class Aggregate:
@@ -29,12 +32,48 @@ class Aggregate:
             logger.critical("Batcher Secret Key Is Missing!")
             return
 
-        batcher_infos = db.read_all_batcher()
+        batcher_infos = db.batcher.read_all()
 
-        batcher, profit_success_flag = Endpoint.profit(batcher_infos, config)
+        # batcher pkh for signing will come from vault now
+        batcher_pkh = pkh_from_address(config['batcher_address'])
+        vault_info = db.vault.read(batcher_pkh)
+        if vault_info is None:
+            logger.critical("Vault is not set up for batcher")
+            return
+        if vault_validity(vault_info['datum']) is False:
+            logger.critical("Vault has failed the validity test")
+            return
+        # does the vault utxo actually exist still?
+        if does_utxo_exist(config["socket_path"], vault_info['txid'], config["network"]) is False:
+            logger.warning(f"Vault: {vault_info['txid']} does not exist on chain")
+            # then its not in the utxo set right now
+            return
+
+        oracle_info = db.oracle.read()
+        if oracle_info is None:
+            logger.critical("Oracle is not set up for batcher")
+            return
+        if oracle_validity(oracle_info['datum']) is False:
+            logger.critical("Oracle has failed the validity test")
+            return
+        # does the oracle utxo actually exist still?
+        if does_utxo_exist(config["socket_path"], oracle_info['txid'], config["network"]) is False:
+            logger.warning(f"Oracle: {oracle_info['txid']} does not exist on chain")
+            # then its not in the utxo set right now
+            return
+
+        data_info = db.data.read()
+        if data_info is None:
+            logger.critical("Data is not set up for batcher")
+            return
+        if data_validity(data_info['datum']) is False:
+            logger.critical("Data has failed the validity test")
+            return
+
+        batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
-        if batcher is None:
-            logger.debug("Batcher is returning None from profit endpoint")
+        if batcher_info is None:
+            logger.critical("Batcher is returning None from profit endpoint")
             return
 
         if profit_success_flag is True:
@@ -42,28 +81,43 @@ class Aggregate:
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"], logger):
                 # if submit was successful then delete what was spent and add in the new outputs
-                for batcher_info in batcher_infos:
-                    tag = sha3_256(batcher_info['txid'])
-                    if db.delete_batcher(tag):
+                #
+                # TODO
+                #
+                # Is deleting here what we want to do?
+                for batcher in batcher_infos:
+                    tag = sha3_256(batcher['txid'])
+                    if db.batcher.delete(tag):
                         logger.success(f"Spent Batcher Input @ {tag}")
-                tag = sha3_256(batcher['txid'])
-                db.create_batcher(tag, batcher['txid'], batcher['value'])
-                logger.success(f"Batcher Output @ {batcher['txid']}")
+                tag = sha3_256(batcher_info['txid'])
+                db.batcher.create(tag, batcher_info['txid'], batcher_info['value'])
+                logger.success(f"Batcher Output @ {batcher_info['txid']}")
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
-                batcher = db.read_batcher(config("batcher_policy"))
-                if batcher is None:
-                    logger.warning("Batcher UTxO can not be found")
+                batcher_info = db.batcher.read(config("batcher_policy"))
+                if batcher_info is None:
+                    logger.critical("Batcher UTxO can not be found")
                     return
+        # create the UTxOManger
+        utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info)
 
         # handle the sales now
         for sale_tkn in sorted_queue:
-            sale = db.read_sale(sale_tkn)
-            if sale_validity(sale['datum']) is False:
+            sale_info = db.sale.read(sale_tkn)
+            if sale_validity(sale_info['datum']) is False:
                 logger.warning(f"Sale: {sale_tkn} has failed the validity test")
                 # skip this sale as something is wrong
                 continue
+
+            # does the sale utxo actually exist still?
+            if does_utxo_exist(config["socket_path"], sale_info['txid'], config["network"]) is False:
+                logger.warning(f"Sale: {sale_info['txid']} does not exist on chain")
+                # then its not in the utxo set right now
+                continue
+
+            # set the sale now that we know it
+            utxo.set_sale(sale_info)
 
             orders = sorted_queue[sale_tkn]
             if len(orders) == 0:
@@ -72,23 +126,33 @@ class Aggregate:
             logger.debug(f"Sale: {sale_tkn}")
             for order_data in orders:
                 order_hash = order_data[0]
-                order = db.read_queue(order_hash)
+                queue_info = db.queue.read(order_hash)
 
                 # check if the order is in the db
-                if order is None:
+                if queue_info is None:
                     logger.warning(f"Order: {order_hash} Not Found")
                     # skip this order its not in the db
                     continue
 
                 # check if the tag has been seen before
-                if db.read_seen(order["tag"]) is True:
+                if db.seen.read(queue_info["tag"]) is True:
                     logger.warning(f"Order: {order_hash} Has Been Seen")
                     # skip this order as its already been seen
                     continue
 
+                # does the queue utxo actually exist still?
+                if does_utxo_exist(config["socket_path"], queue_info['txid'], config["network"]) is False:
+                    logger.warning(f"Queue: {queue_info['txid']} does not exist on chain")
+                    # then its not in the utxo set right now
+                    continue
+
                 logger.debug(f"Queue: {order_hash}")
+
+                # set the queue now that we know it
+                utxo.set_queue(queue_info)
+
                 # build the purchase tx
-                new_sale, new_order, new_batcher, purchase_success_flag = Endpoint.purchase(copy.deepcopy(sale), copy.deepcopy(order), copy.deepcopy(batcher), config)
+                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
@@ -108,7 +172,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                new_new_sale, new_new_order, new_new_batcher, refund_success_flag = Endpoint.refund(copy.deepcopy(new_sale), copy.deepcopy(new_order), copy.deepcopy(new_batcher), config)
+                utxo, refund_success_flag = Endpoint.refund(utxo, config, logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
                     logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
@@ -129,26 +193,26 @@ class Aggregate:
 
                 # submit tx
                 if purchase_success_flag is True:
-                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'])
+                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], logger)
                     if purchase_result is True:
                         logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
                         tag = sha3_256(txid(signed_purchase_tx))
-                        db.create_seen(order_hash)
-                        db.create_seen(tag)
-                        sale = copy.deepcopy(new_sale)
-                        batcher = copy.deepcopy(new_batcher)
+                        #
+                        # TODO
+                        #
+                        # Seen may need to be removed
+                        # db.seen.create(order_hash)
+                        # db.seen.create(tag)
                     else:
                         logger.warning(f"Order: {order_hash} Purchased: Failed")
 
                 # submit tx
                 if refund_success_flag is True:
-                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'])
+                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], logger)
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
-                        db.create_seen(tag)
-                        sale = copy.deepcopy(new_new_sale)
-                        batcher = copy.deepcopy(new_new_batcher)
+                        # db.seen.create(tag)
                     else:
                         logger.warning(f"Order: {tag} Refund: Failed")
         return
