@@ -43,6 +43,11 @@ class Aggregate:
         if vault_validity(vault_info['datum']) is False:
             logger.critical("Vault has failed the validity test")
             return
+        # does the vault utxo actually exist still?
+        if does_utxo_exist(config["socket_path"], vault_info['txid'], config["network"]) is False:
+            logger.warning(f"Vault: {vault_info['txid']} does not exist on chain")
+            # then its not in the utxo set right now
+            return
 
         oracle_info = db.oracle.read()
         if oracle_info is None:
@@ -50,6 +55,11 @@ class Aggregate:
             return
         if oracle_validity(oracle_info['datum']) is False:
             logger.critical("Oracle has failed the validity test")
+            return
+        # does the oracle utxo actually exist still?
+        if does_utxo_exist(config["socket_path"], oracle_info['txid'], config["network"]) is False:
+            logger.warning(f"Oracle: {oracle_info['txid']} does not exist on chain")
+            # then its not in the utxo set right now
             return
 
         data_info = db.data.read()
@@ -183,7 +193,6 @@ class Aggregate:
 
                 # submit tx
                 if purchase_success_flag is True:
-                    logger.debug(f"Order: {order_hash} Submit Purchased")
                     purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], logger)
                     if purchase_result is True:
                         logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
@@ -199,7 +208,6 @@ class Aggregate:
 
                 # submit tx
                 if refund_success_flag is True:
-                    logger.debug(f"Order: {order_hash} Submit Refund")
                     refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], logger)
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:

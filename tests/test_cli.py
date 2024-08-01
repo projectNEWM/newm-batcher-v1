@@ -90,6 +90,12 @@ def test_get_latest_block_number(live_node):
     assert result > 0
 
 
+@pytest.mark.live_node
+def test_get_latest_slot_number(live_node):
+    result = cli.get_latest_slot_number(live_node["socket"], live_node["file_path"], live_node["network"])
+    assert result > 0
+
+
 def test_tx_id_of_no_file():
     with pytest.raises(SystemExit) as excinfo:
         cli.txid("")
