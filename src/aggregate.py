@@ -3,7 +3,8 @@ import os
 from loguru._logger import Logger
 
 from src.address import pkh_from_address
-from src.cli import does_tx_exists_in_mempool, sign, submit, txid
+from src.cli import (does_tx_exists_in_mempool, does_utxo_exist, sign, submit,
+                     txid)
 from src.datums import (data_validity, oracle_validity, sale_validity,
                         vault_validity)
 from src.db_manager import DbManager
@@ -99,6 +100,12 @@ class Aggregate:
                 # skip this sale as something is wrong
                 continue
 
+            # does the sale utxo actually exist still?
+            if does_utxo_exist(config["socket_path"], sale_info['txid'], config["network"]) is False:
+                logger.warning(f"Sale: {sale_info['txid']} does not exist on chain")
+                # then its not in the utxo set right now
+                continue
+
             # set the sale now that we know it
             utxo.set_sale(sale_info)
 
@@ -121,6 +128,12 @@ class Aggregate:
                 if db.seen.read(queue_info["tag"]) is True:
                     logger.warning(f"Order: {order_hash} Has Been Seen")
                     # skip this order as its already been seen
+                    continue
+
+                # does the queue utxo actually exist still?
+                if does_utxo_exist(config["socket_path"], queue_info['txid'], config["network"]) is False:
+                    logger.warning(f"Queue: {queue_info['txid']} does not exist on chain")
+                    # then its not in the utxo set right now
                     continue
 
                 logger.debug(f"Queue: {order_hash}")

@@ -167,3 +167,21 @@ def test_query_slot_number_with_no_socket(live_node):
     with pytest.raises(SystemExit) as excinfo:
         cli.query_slot_number("", 1722466813112, live_node["network"])
         assert excinfo.value.code == 1
+
+
+@pytest.mark.live_node
+def test_query_utxo_does_exist(live_node):
+    output = cli.does_utxo_exist(live_node["socket"], "01fc59107bafe99b0f2c1e45ebd16c7ebb75830d19970220100a21c7c74218dd#1", live_node["network"])
+    assert output is True
+
+
+@pytest.mark.live_node
+def test_query_utxo_does_not_exist(live_node):
+    output = cli.does_utxo_exist(live_node["socket"], "aacee651c33ed033402e96e8e946a82a3cc3c0be29bf0897ee465817be227255#2", live_node["network"])
+    assert output is False
+
+
+def test_query_utxo_with_no_socket(live_node):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.does_utxo_exist("", "aacee651c33ed033402e96e8e946a82a3cc3c0be29bf0897ee465817be227255#2", live_node["network"])
+        assert excinfo.value.code == 1
