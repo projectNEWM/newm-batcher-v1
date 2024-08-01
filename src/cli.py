@@ -1,6 +1,72 @@
+import datetime
 import json
 import subprocess
 import sys
+
+
+def does_utxo_exist(socket: str, txin: str, network: str) -> bool:
+    """Query if a utxo exists given network and txin, id#idx.
+
+    Args:
+        socket (str): The node socket path
+        txin (str): The txin in the form id#idx
+        network (str): The network flag
+
+    Returns:
+        bool: If the utxo exists then true else false
+    """
+    func = [
+        'cardano-cli',
+        'query',
+        'utxo',
+        '--socket-path',
+        socket,
+        '--output-json',
+        '--tx-in',
+        txin
+    ]
+    func += network.split(" ")
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+
+    # exit application if node is not live
+    if "Connection refused" in errors.decode():
+        sys.exit(1)
+
+    # Parse the JSON string into a Python dictionary
+    json_dict = json.loads(output.decode('utf-8'))
+    return len(json_dict) != 0
+
+
+def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0) -> int:
+    """Query the slot number for a given network and a given unix time.
+
+    Args:
+        socket (str): The node socket path
+        unix_time (int): The unix timestamp
+        network (str): The network flag
+        delta (int | optional): The delta to be added to the unix time
+
+    Returns:
+        int: The slot cooresponding to the unix timestamp
+    """
+    timestamp = datetime.datetime.fromtimestamp((unix_time / 1000) + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    func = [
+        'cardano-cli',
+        'query',
+        'slot-number',
+        '--socket-path',
+        socket
+    ]
+    func += network.split(" ")
+    func += [timestamp]
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+    # exit application if node is not live
+    if "Connection refused" in errors.decode():
+        sys.exit(1)
+    # decode output into int
+    return int(output.decode())
 
 
 def query_protocol_parameters(socket: str, file_path: str, network: str) -> None:
@@ -131,6 +197,28 @@ def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
         data = json.load(read_content)
 
     return int(data['block'])
+
+
+def get_latest_slot_number(socket: str, file_path: str, network: str) -> int:
+    """
+    Query the tip of the blockchain and returns the latest block number.
+
+    Args:
+        socket (str): The socket path to the node
+        file_path (str): The output file path
+        network (str): The network flag
+
+    Returns:
+        int: The latest block number
+    """
+    # get current tip
+    query_tip(socket, file_path, network)
+
+    # get the block data
+    with open(file_path, "r") as read_content:
+        data = json.load(read_content)
+
+    return int(data['slot'])
 
 
 def txid(file_path: str) -> str:

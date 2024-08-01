@@ -90,6 +90,12 @@ def test_get_latest_block_number(live_node):
     assert result > 0
 
 
+@pytest.mark.live_node
+def test_get_latest_slot_number(live_node):
+    result = cli.get_latest_slot_number(live_node["socket"], live_node["file_path"], live_node["network"])
+    assert result > 0
+
+
 def test_tx_id_of_no_file():
     with pytest.raises(SystemExit) as excinfo:
         cli.txid("")
@@ -147,3 +153,41 @@ def test_submit_a_signed_tx(test_signed_file_path2, live_node):
     result = cli.submit(test_signed_file_path2, live_node["socket"], live_node["network"])
     # if the tx is unsubmitted then its true else its false
     assert result is True or result is False
+
+
+@pytest.mark.live_node
+def test_query_slot_number(live_node):
+    slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"])
+    assert slot == 66783613
+
+
+@pytest.mark.live_node
+def test_query_slot_number_with_delta(live_node):
+    start_slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"], 21)
+    end_slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"], -21)
+    assert start_slot == 66783634
+    assert end_slot == 66783592
+
+
+def test_query_slot_number_with_no_socket(live_node):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.query_slot_number("", 1722466813112, live_node["network"])
+        assert excinfo.value.code == 1
+
+
+@pytest.mark.live_node
+def test_query_utxo_does_exist(live_node):
+    output = cli.does_utxo_exist(live_node["socket"], "1e0b413409dd9591b2a69bca80d7d776e8bb5130f02af0bf886e08ce5b6e183a#0", live_node["network"])
+    assert output is True
+
+
+@pytest.mark.live_node
+def test_query_utxo_does_not_exist(live_node):
+    output = cli.does_utxo_exist(live_node["socket"], "aacee651c33ed033402e96e8e946a82a3cc3c0be29bf0897ee465817be227255#2", live_node["network"])
+    assert output is False
+
+
+def test_query_utxo_with_no_socket(live_node):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.does_utxo_exist("", "aacee651c33ed033402e96e8e946a82a3cc3c0be29bf0897ee465817be227255#2", live_node["network"])
+        assert excinfo.value.code == 1

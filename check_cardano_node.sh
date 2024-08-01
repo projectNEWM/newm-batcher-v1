@@ -3,6 +3,7 @@
 socket=$(yq '.socket_path' config.yaml)
 network=$(yq '.network' config.yaml)
 
+
 # Determine the magic value based on the network
 if [[ "$network" == "--mainnet" ]]; then
     magic="764824073"
