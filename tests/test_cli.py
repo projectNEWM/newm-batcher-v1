@@ -177,7 +177,7 @@ def test_query_slot_number_with_no_socket(live_node):
 
 @pytest.mark.live_node
 def test_query_utxo_does_exist(live_node):
-    output = cli.does_utxo_exist(live_node["socket"], "01fc59107bafe99b0f2c1e45ebd16c7ebb75830d19970220100a21c7c74218dd#1", live_node["network"])
+    output = cli.does_utxo_exist(live_node["socket"], "1e0b413409dd9591b2a69bca80d7d776e8bb5130f02af0bf886e08ce5b6e183a#0", live_node["network"])
     assert output is True
 
 
