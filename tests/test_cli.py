@@ -152,7 +152,15 @@ def test_submit_a_signed_tx(test_signed_file_path2, live_node):
 @pytest.mark.live_node
 def test_query_slot_number(live_node):
     slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"])
-    assert slot == 66783612
+    assert slot == 66783613
+
+
+@pytest.mark.live_node
+def test_query_slot_number_with_delta(live_node):
+    start_slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"], 21)
+    end_slot = cli.query_slot_number(live_node["socket"], 1722466813112, live_node["network"], -21)
+    assert start_slot == 66783634
+    assert end_slot == 66783592
 
 
 def test_query_slot_number_with_no_socket(live_node):

@@ -5,7 +5,7 @@ import sys
 
 
 def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0) -> int:
-    timestamp = datetime.datetime.fromtimestamp(unix_time / 1000 + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    timestamp = datetime.datetime.fromtimestamp((unix_time / 1000) + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     func = [
         'cardano-cli',
         'query',

@@ -50,7 +50,7 @@ class Endpoint:
         # Queue Example: Mem 1651174 Steps 649844778
         queue_execution_units = "(690000000, 1750000)"
         # Vault Example: Mem 284377 Steps 121918683
-        vault_execution_units = "(135000000, 295000)"
+        vault_execution_units = "(135000000, 355000)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -148,8 +148,8 @@ class Endpoint:
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # timeunits
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 1)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -1)
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
 
         func = [
             "cardano-cli", "transaction", "build-raw",
@@ -197,8 +197,8 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            logger.debug(func)
-            logger.debug(output)
+            # logger.debug(func)
+            # logger.debug(output)
             logger.debug(errors)
 
         if "Command failed" in errors.decode():
@@ -286,8 +286,8 @@ class Endpoint:
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # time units
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 1)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -1)
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
 
         func = [
             'cardano-cli', 'transaction', 'build-raw',
@@ -319,8 +319,8 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            logger.debug(func)
-            logger.debug(output)
+            # logger.debug(func)
+            # logger.debug(output)
             logger.debug(errors)
 
         if "Command failed" in errors.decode():

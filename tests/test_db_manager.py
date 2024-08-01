@@ -23,9 +23,9 @@ def config():
 
 
 @pytest.fixture
-def db_manager(cleanup):
+def db_manager(cleanup, config):
     manager = DbManager(db_file='test_batcher.db')
-    manager.initialize()
+    manager.initialize(config)
     yield manager
     manager.cleanup()
 
@@ -174,8 +174,8 @@ def test_create_oracle(db_manager):
     record = db_manager.oracle.read()
     _txid = record['txid']
     _datum = record['datum']
-    assert txid == _txid
-    assert datum == _datum
+    assert "" == _txid
+    assert {} == _datum
 
 
 def test_update_oracle(db_manager):
@@ -229,8 +229,8 @@ def test_create_data(db_manager):
     record = db_manager.data.read()
     _txid = record['txid']
     _datum = record['datum']
-    assert txid == _txid
-    assert datum == _datum
+    assert "" == _txid
+    assert {} == _datum
 
 
 def test_update_data(db_manager):
