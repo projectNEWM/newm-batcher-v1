@@ -83,7 +83,7 @@ def webhook():
         try:
             # are we still syncing?
             if int(block_number) > latest_block_number:
-                logger.debug(f"Block: {block_number}")
+                logger.debug(f"Block: {block_number} : Timestamp: {block_slot}")
                 # we are synced, start fulfilling orders
                 # debug mode will not sort and aggregate orders to fulfill
                 # it will sync the db only

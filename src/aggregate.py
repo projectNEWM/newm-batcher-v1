@@ -130,7 +130,6 @@ class Aggregate:
 
                 # build the purchase tx
                 utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
-                return
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
                     logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
