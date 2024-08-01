@@ -199,6 +199,28 @@ def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
     return int(data['block'])
 
 
+def get_latest_slot_number(socket: str, file_path: str, network: str) -> int:
+    """
+    Query the tip of the blockchain and returns the latest block number.
+
+    Args:
+        socket (str): The socket path to the node
+        file_path (str): The output file path
+        network (str): The network flag
+
+    Returns:
+        int: The latest block number
+    """
+    # get current tip
+    query_tip(socket, file_path, network)
+
+    # get the block data
+    with open(file_path, "r") as read_content:
+        data = json.load(read_content)
+
+    return int(data['slot'])
+
+
 def txid(file_path: str) -> str:
     """
     Get the tx id of a signed transactions.

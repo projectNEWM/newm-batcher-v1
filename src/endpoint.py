@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from src.address import pkh_from_address
-from src.cli import query_slot_number, txid
+from src.cli import get_latest_slot_number, query_slot_number, txid
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
@@ -50,7 +50,7 @@ class Endpoint:
         # Queue Example: Mem 1651174 Steps 649844778
         queue_execution_units = "(690000000, 1750000)"
         # Vault Example: Mem 284377 Steps 121918683
-        vault_execution_units = "(135000000, 355000)"
+        vault_execution_units = "(145000000, 355000)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -150,6 +150,13 @@ class Endpoint:
         # timeunits
         start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
         end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
+
+        if logger is not None:
+            logger.debug(f"latest: {latest_slot_number}")
+            logger.debug(f"start: {start_slot}")
+            logger.debug(f"end: {end_slot}")
+            logger.debug(f"end - latest: {end_slot - latest_slot_number}")
 
         func = [
             "cardano-cli", "transaction", "build-raw",
