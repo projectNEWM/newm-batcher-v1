@@ -36,6 +36,7 @@ class Aggregate:
 
         # batcher pkh for signing will come from vault now
         batcher_pkh = pkh_from_address(config['batcher_address'])
+
         vault_info = db.vault.read(batcher_pkh)
         if vault_info is None:
             logger.critical("Vault is not set up for batcher")
