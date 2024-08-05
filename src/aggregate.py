@@ -69,6 +69,11 @@ class Aggregate:
         if data_validity(data_info['datum']) is False:
             logger.critical("Data has failed the validity test")
             return
+        # does the sale utxo actually exist still?
+        if does_utxo_exist(config["socket_path"], data_info['txid'], config["network"]) is False:
+            logger.warning(f"Data: {data_info['txid']} does not exist on chain")
+            # then its not in the utxo set right now
+            return
 
         batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token

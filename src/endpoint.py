@@ -28,6 +28,9 @@ class Endpoint:
         Returns:
             tuple[UTxOManager, bool]: The utxo manager for the contracts and the success boolean
         """
+        # usd policy id
+        usd_policy_id = "555344"
+
         # set success flag to false
         purchase_success_flag = False
 
@@ -67,6 +70,7 @@ class Endpoint:
 
         # datums for purchase
         sale_datum = utxo.sale.datum
+        sale_is_using_usd = sale_datum['fields'][2]['fields'][0]['bytes'] == usd_policy_id
         write(sale_datum, "tmp/sale-datum.json")
         queue_datum = utxo.queue.datum
         write(queue_datum, "tmp/queue-datum.json")
@@ -93,7 +97,12 @@ class Endpoint:
 
         # sale bundle and cost
         bundle_value = bundle_to_value(sale_datum)
-        cost_value = cost_to_value(sale_datum)
+        # if we are not using usd equivalent then just use the cost data else do the conversion
+        if sale_is_using_usd is False:
+            cost_value = cost_to_value(sale_datum)
+        else:
+            cost_amt = sale_datum['fields'][2]['fields'][2]['int'] // newm_usd_price
+            cost_value = Value({profit_payment_pid: {profit_payment_tkn: cost_amt}})
 
         # current values
         batcher_value = utxo.batcher.value
@@ -157,17 +166,24 @@ class Endpoint:
             logger.debug(f"start: {start_slot}")
             logger.debug(f"end: {end_slot}")
             logger.debug(f"end - latest: {end_slot - latest_slot_number}")
+        # if true then the oracle is required
+        is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
         func = [
             "cardano-cli", "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
-            "--invalid-before", str(start_slot),
-            "--invalid-hereafter", str(end_slot),
             "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                "--read-only-tx-in-reference", oracle_ref_utxo,
+            ]
+        func += [
             "--read-only-tx-in-reference", data_ref_utxo,
-            "--read-only-tx-in-reference", oracle_ref_utxo,
             "--tx-in", utxo.batcher.txid,
             "--tx-in", utxo.sale.txid,
             "--spending-tx-in-reference", sale_ref_utxo,
@@ -181,19 +197,24 @@ class Endpoint:
             "--spending-reference-tx-in-inline-datum-present",
             "--spending-reference-tx-in-execution-units", queue_execution_units,
             "--spending-reference-tx-in-redeemer-file", queue_redeemer_file_path,
-            "--tx-in", utxo.vault.txid,
-            "--spending-tx-in-reference", vault_ref_utxo,
-            "--spending-plutus-script-v2",
-            "--spending-reference-tx-in-inline-datum-present",
-            "--spending-reference-tx-in-execution-units", vault_execution_units,
-            "--spending-reference-tx-in-redeemer-file", vault_redeemer_file_path,
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+        ]
+        if usd_profit_margin != 0:
+            func += [
+                "--tx-in", utxo.vault.txid,
+                "--spending-tx-in-reference", vault_ref_utxo,
+                "--spending-plutus-script-v2",
+                "--spending-reference-tx-in-inline-datum-present",
+                "--spending-reference-tx-in-execution-units", vault_execution_units,
+                "--spending-reference-tx-in-redeemer-file", vault_redeemer_file_path,
+                "--tx-out", vault_out_value.to_output(config['vault_address']),
+                "--tx-out-inline-datum-file", vault_datum_file_path,
+            ]
+        func += [
             "--tx-out", sale_out_value.to_output(config['sale_address']),
             "--tx-out-inline-datum-file", sale_datum_file_path,
             "--tx-out", queue_out_value.to_output(config['queue_address']),
             "--tx-out-inline-datum-file", queue_datum_file_path,
-            "--tx-out", vault_out_value.to_output(config['vault_address']),
-            "--tx-out-inline-datum-file", vault_datum_file_path,
+            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
             "--required-signer-hash", batcher_pkh,
             "--required-signer-hash", config['collat_pkh'],
             "--fee", str(fee)
@@ -216,17 +237,18 @@ class Endpoint:
 
         intermediate_txid = txid(out_file_path)
 
-        utxo.batcher.txid = intermediate_txid + "#0"
-        utxo.batcher.value = batcher_out_value
-
-        utxo.sale.txid = intermediate_txid + "#1"
+        utxo.sale.txid = intermediate_txid + "#0" if usd_profit_margin == 0 else intermediate_txid + "#1"
         utxo.sale.value = sale_out_value
 
-        utxo.queue.txid = intermediate_txid + "#2"
+        utxo.queue.txid = intermediate_txid + "#1" if usd_profit_margin == 0 else intermediate_txid + "#2"
         utxo.queue.value = queue_out_value
 
-        utxo.vault.txid = intermediate_txid + "#3"
-        utxo.vault.value = vault_out_value
+        utxo.batcher.txid = intermediate_txid + "#2" if usd_profit_margin == 0 else intermediate_txid + "#3"
+        utxo.batcher.value = batcher_out_value
+
+        if usd_profit_margin != 0:
+            utxo.vault.txid = intermediate_txid + "#3"
+            utxo.vault.value = vault_out_value
 
         return utxo, purchase_success_flag
 
@@ -243,6 +265,10 @@ class Endpoint:
         Returns:
             tuple[UTxOManager, bool]: The utxo manager for the contracts and the success boolean
         """
+        # usd policy id
+        usd_policy_id = "555344"
+
+        #
         refund_success_flag = False
 
         # reference UTxOs for the scripts
@@ -272,6 +298,8 @@ class Endpoint:
         # datums for refund
         queue_datum = utxo.queue.datum
         oracle_datum = utxo.oracle.datum
+        sale_datum = utxo.sale.datum
+        data_datum = utxo.data.datum
 
         # queue entry owner address
         owner_address = to_address(queue_datum, config["network"])
@@ -281,6 +309,11 @@ class Endpoint:
 
         batcher_value = utxo.batcher.value
         queue_value = utxo.queue.value
+
+        sale_is_using_usd = sale_datum['fields'][2]['fields'][0]['bytes'] == usd_policy_id
+        usd_profit_margin = data_datum['fields'][7]['fields'][5]['int']
+        # if true then the oracle is required
+        is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
         # if incentive not in queue then fail
         if queue_value.contains(incentive_value) is False:
@@ -301,11 +334,16 @@ class Endpoint:
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
-            "--invalid-before", str(start_slot),
-            "--invalid-hereafter", str(end_slot),
             "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                '--read-only-tx-in-reference', oracle_ref_utxo,
+            ]
+        func += [
             '--read-only-tx-in-reference', data_ref_utxo,
-            '--read-only-tx-in-reference', oracle_ref_utxo,
             '--read-only-tx-in-reference', utxo.sale.txid,
             "--tx-in", utxo.batcher.txid,
             '--tx-in', utxo.queue.txid,
