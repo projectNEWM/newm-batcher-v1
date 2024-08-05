@@ -31,7 +31,7 @@ oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
 sale_address: "addr_test1xqk2zrw5g9pjk289kn8m8p68f254hnaacsmz3euwve3m5f8fe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75swa5eh0"
-queue_address: "addr_test1xpg80nts44jr50utr23rxrz5jk02mfywudljszfengjl970fe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75szptqwc"
+queue_address: "addr_test1xpmj7vfnu8ryg9ykj5cxdtkyg5rfd44hqwwpkjmnq4neyglfe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75s34cg7w"
 vault_address: "addr_test1xr66w6j86evtpxc29xgfc5uhetmmf4c0rvx73ad478473jlfe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75s7avfx7"
 
 # Data Contract
@@ -40,16 +40,15 @@ data_policy: "9a3d3b5887f96b15faa7c2c42ebf46805587e7946345345b8a762667"
 data_asset: "dba9b3fdc4ec5fddb8e3109393e44665c18231386433b8033db7092b794d1f39"
 
 # Data, Sale, and Queue Contract Script Reference UTxOs
-sale_ref_utxo: "402b8db50bdcc9db1355e4510435dd334964d549d43adb1490e24aaee5aa5a5d#1"
-queue_ref_utxo: "27a3452545e4e4691fe397db7dbabace9d0bb54e07d80358113a6da60eb039a0#1"
-vault_ref_utxo: "05b3d25ccbc9f3f298ef12b52411871bb45c518316d793e27cd9f20ceb5349c2#1"
+sale_ref_utxo: "2f616fbc5baac99dd917872460eb2e3b44e415f247c843ef6ec99ef431b5be10#1"
+queue_ref_utxo: "69617d2a5ede6fc9064007342ea3ca81000cf5756624f25ade9aaad3e0469fd2#1"
+vault_ref_utxo: "6f11a4dbd2e68363f2232b11b052b1c2fdf0cee284e6d91a0b84402194ed27cf#1"
 
 # The Newm Pointer Policy Id
 pointer_policy: "ed37d8a9be7f2e99db9d973731f63e9afc74b99b436e161390f907c5"
 
 # The Newm Batcher Policy Id
-batcher_policy: "d4add3a85c2ced3607ba0b17e71a403863c2435348bba0821f74523a"
-batcher_asset: "5ca1ab1e000affab1e000ca11ab1e0005e77ab1e"
+batcher_policy: "36bd690356f3dfd216c6cf0aba028f5626a0802e6f898f36c78bd682"
 
 # Starting Block Information
 starting_block_number: 2508424
@@ -66,4 +65,4 @@ max_num_log_files: 1
 logging_level: "TRACE"
 
 # Debug Mode
-debug_mode: False
+debug_mode: True
