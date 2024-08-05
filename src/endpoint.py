@@ -237,6 +237,10 @@ class Endpoint:
 
         intermediate_txid = txid(out_file_path)
 
+        if usd_profit_margin != 0:
+            utxo.vault.txid = intermediate_txid + "#0"
+            utxo.vault.value = vault_out_value
+
         utxo.sale.txid = intermediate_txid + "#0" if usd_profit_margin == 0 else intermediate_txid + "#1"
         utxo.sale.value = sale_out_value
 
@@ -245,10 +249,6 @@ class Endpoint:
 
         utxo.batcher.txid = intermediate_txid + "#2" if usd_profit_margin == 0 else intermediate_txid + "#3"
         utxo.batcher.value = batcher_out_value
-
-        if usd_profit_margin != 0:
-            utxo.vault.txid = intermediate_txid + "#3"
-            utxo.vault.value = vault_out_value
 
         return utxo, purchase_success_flag
 
@@ -364,7 +364,7 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            # logger.debug(func)
+            logger.debug(func)
             # logger.debug(output)
             logger.debug(errors)
 
