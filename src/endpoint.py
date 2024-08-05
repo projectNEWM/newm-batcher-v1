@@ -378,7 +378,7 @@ class Endpoint:
         fee_value = Value({"lovelace": fee})
 
         # send back 5 ada and the batcher token
-        batcher_out_value = Value({"lovelace": 5000000, config["batcher_policy"]: {config["batcher_asset"]: 1}})
+        batcher_tkn = ""
 
         # empty value for summing
         total_batcher_value = Value({})
@@ -397,6 +397,7 @@ class Endpoint:
 
                 returning_batcher_info = copy.deepcopy(batcher_info)
                 found_batcher_policy = True
+                batcher_tkn = batcher_info['value'].get_token(config["batcher_policy"])
             else:
                 # only do the profit if some other utxo contains at least 5 ada
                 if batcher_info['value'].contains(Value({"lovelace": 5000000})):
@@ -413,6 +414,7 @@ class Endpoint:
         # here we have the batcher policy and the profit payment utxo
 
         # the profit is the total value minus the fee and the default batcher value
+        batcher_out_value = Value({"lovelace": 5000000, config["batcher_policy"]: {batcher_tkn: 1}})
         batcher_profit_value = copy.deepcopy(total_batcher_value) - copy.deepcopy(batcher_out_value) - copy.deepcopy(fee_value)
 
         func = [
