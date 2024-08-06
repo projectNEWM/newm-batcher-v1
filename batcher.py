@@ -154,7 +154,7 @@ def run_daemon():
     subprocess.run([program_path, 'daemon', '--config', 'daemon.toml'])
 
 
-def flask_process(start_event: multiprocessing.Event):
+def flask_process(start_event):
     """Start and wait for the flask app to begin.
 
     Args:
