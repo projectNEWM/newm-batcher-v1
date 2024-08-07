@@ -23,6 +23,16 @@ def test_draft_file_path():
 
 
 @pytest.fixture
+def test_draft_file_path2():
+    return os.path.join(os.path.dirname(__file__), 'test_files', 'test_tx2.draft')
+
+
+@pytest.fixture
+def test_protocol_file_path():
+    return os.path.join(os.path.dirname(__file__), 'test_files', 'test_protocol.json')
+
+
+@pytest.fixture
 def test_skey_file_path():
     return os.path.join(os.path.dirname(__file__), 'test_files', 'test_payment.skey')
 
@@ -191,3 +201,13 @@ def test_query_utxo_with_no_socket(live_node):
     with pytest.raises(SystemExit) as excinfo:
         cli.does_utxo_exist("", "aacee651c33ed033402e96e8e946a82a3cc3c0be29bf0897ee465817be227255#2", live_node["network"])
         assert excinfo.value.code == 1
+
+
+def test_calculate_min_fee(test_protocol_file_path, test_draft_file_path):
+    fee = cli.calculate_min_fee(test_draft_file_path, test_protocol_file_path)
+    assert fee == 180681
+
+
+def test_calculate_min_fee2(test_protocol_file_path, test_draft_file_path2):
+    fee = cli.calculate_min_fee(test_draft_file_path2, test_protocol_file_path)
+    assert fee == 319825
