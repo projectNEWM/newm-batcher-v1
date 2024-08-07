@@ -1,7 +1,21 @@
 import pytest
 from pycardano import Network
 
-from src.address import from_pkh_sc, pkh_from_address
+from src.address import from_pkh_sc, header_byte_from_address, pkh_from_address
+
+
+def test_header_from_base_address():
+    addr = "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+    header = "00"
+    result = header_byte_from_address(addr)
+    assert result == header
+
+
+def test_header_from_enterprise_address():
+    addr = "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
+    header = "60"
+    result = header_byte_from_address(addr)
+    assert result == header
 
 
 def test_pkh_from_base_address():

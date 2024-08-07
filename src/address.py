@@ -35,3 +35,17 @@ def pkh_from_address(addr: str) -> str:
     address = Address.from_primitive(addr)
     pkh = address.payment_part
     return pkh.to_primitive().hex()
+
+
+def header_byte_from_address(addr: str) -> str:
+    """
+    Get the header byte from a bech32 address.
+
+    Args:
+        addr (str): The address
+
+    Returns:
+        str: The header byte
+    """
+    address = Address.from_primitive(addr)
+    return address.header_byte.hex()

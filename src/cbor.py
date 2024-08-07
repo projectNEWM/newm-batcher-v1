@@ -19,10 +19,29 @@ def to_bytes(hex_string: str) -> bytes:
 
 
 def tag(tag_number: int, data: any):
+    """Create a custom CBOR tag with any type of data.
+
+    Args:
+        tag_number (int): The constructor number plus 121
+        data (any): Any valid cbor data
+
+    Returns:
+        CBORTag: A CBORTag
+    """
     return cbor2.CBORTag(tag_number, data)
 
 
 def dumps_with_indefinite_array(tag_number: int, data: list) -> bytes:
+    """Create a indefinite array for a custom data type that does not have
+    nested data types.
+
+    Args:
+        tag_number (int): The constructor number plus 121
+        data (list): The fields list from the datum
+
+    Returns:
+        bytes: The cbor bytes of the custom data type
+    """
     indefinite_array_start = b'\x9f'
     indefinite_array_end = b'\xff'
 
@@ -41,7 +60,16 @@ def dumps_with_indefinite_array(tag_number: int, data: list) -> bytes:
     return encoded_data
 
 
-def convert_datum(datum):
+def convert_datum(datum: dict) -> bytes:
+    """Convert any datum used in the contracts into valid cbor. This should
+    work with sale, queue, vault, oracle, and data datums.
+
+    Args:
+        datum (dict): The datum in json format.
+
+    Returns:
+        bytes: The cbor bytes of the datum type.
+    """
     indefinite_array_start = b'\x9f'
     indefinite_array_end = b'\xff'
 
