@@ -127,6 +127,11 @@ def vault_utxo(db: DbManager):
         print("Vault Does Not Exist")
 
 
+def simulate_purchase(db: DbManager, tkn: str, tag: str):
+    # simulate the purchase endpoint between a sale and a queue
+    pass
+
+
 def main():
     parser = argparse.ArgumentParser(description='NEWM-Batcher Database Analysis Tool')
     parser.add_argument('-s', '--status', action='store_true', help='return the current sync status')
@@ -138,6 +143,7 @@ def main():
     parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
     parser.add_argument('--query-order', type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
+    parser.add_argument('--simulate-purchase', nargs=2, type=str, help='simulate the purchase endpoint')
 
     args = parser.parse_args()
 
@@ -174,6 +180,10 @@ def main():
 
     if args.sorted_queue:
         sorted_queue(db_manager)
+
+    if args.simulate_purchase:
+        tkn, tag = args.simulate_purchase
+        simulate_purchase(db_manager, tkn, tag)
 
 
 if __name__ == '__main__':
