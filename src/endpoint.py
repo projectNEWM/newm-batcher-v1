@@ -44,8 +44,7 @@ class Endpoint:
         # batcher pkh for signing
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
-        # HARDCODE FEE FOR NOW, NEED WAY TO ESITMATE THESE UNITS BETTER
-        # TODO
+        # Lets assume this is the upper bound
         fee = 505550
         fee_value = Value({"lovelace": fee})
         # Sale Example: Mem 634386 Steps 239749112
@@ -231,6 +230,8 @@ class Endpoint:
 
         if "Command failed" in errors.decode():
             return utxo, purchase_success_flag
+
+        # At this point we should be able to simulate the tx draft
 
         # check output / errors, if all good assume true here
         purchase_success_flag = True
