@@ -3,11 +3,13 @@ import os
 import subprocess
 
 from src.address import pkh_from_address
-from src.cli import get_latest_slot_number, query_slot_number, txid
+from src.cli import (calculate_min_fee, get_latest_slot_number,
+                     query_slot_number, txid)
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
 from src.redeemer import empty, token, tokens
+from src.tx_simulate import get_cbor_from_file, inputs_from_cbor
 from src.utility import parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
@@ -232,6 +234,15 @@ class Endpoint:
             return utxo, purchase_success_flag
 
         # At this point we should be able to simulate the tx draft
+        cborHex = get_cbor_from_file(out_file_path)
+        inputs, inputs_cbor = inputs_from_cbor(cborHex)
+        # At this point we should be able to calculate the total fee
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        if logger is not None:
+            logger.debug(inputs)
+            logger.debug(inputs_cbor)
+            logger.debug(f"tx fee: {tx_fee}")
+        # At this point we should be able to rebuild the tx draft
 
         # check output / errors, if all good assume true here
         purchase_success_flag = True
