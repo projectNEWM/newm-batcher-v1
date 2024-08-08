@@ -40,9 +40,16 @@ data_policy: "8a29411b61d4d4fc79090ac49ca7c384420476adb523694f7f110ff6"
 data_asset: "c65e8f235690f99453d7e02da594f2c180b3fe6af2236e676283fe61540e91eb"
 
 # Data, Sale, and Queue Contract Script Reference UTxOs
+reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
+
 sale_ref_utxo: "9af67c86e6137d41915c0d0e554ad69ee86911c4c4d4f68fd0a2f4d384673ca9#1"
+sale_lovelace: 41901820
+
 queue_ref_utxo: "098a3281a90809d9ee1df32efb2570fce45dab43894e4509181a05cee8a23e18#1"
+queue_lovelace: 57715210
+
 vault_ref_utxo: "d784249b5093460ad0e3ae9e57d80c5651e3046c029f091fd980f0b997e6ddba#1"
+vault_lovelace: 29570910
 
 # The Newm Pointer Policy Id
 pointer_policy: "2fb0decb35c05da7528b1871fee58f875c54b74f61e1a44f270d2115"
