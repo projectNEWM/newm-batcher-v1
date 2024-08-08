@@ -2,18 +2,17 @@ import copy
 import os
 import subprocess
 
-from cbor2 import dumps
-
-from src.address import bech32_to_hex, pkh_from_address
-from src.cbor import convert_datum, tag, to_bytes
+from src.address import pkh_from_address
 from src.cli import (calculate_min_fee, get_latest_slot_number,
                      query_slot_number, txid)
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
 from src.redeemer import empty, token, tokens
-from src.tx_simulate import get_cbor_from_file, inputs_from_cbor
-from src.utility import find_index_of_target, parent_directory_path, sha3_256
+from src.tx_simulate import (calculate_total_fee, convert_execution_unit,
+                             get_cbor_from_file, get_index_in_order,
+                             purchase_simulation, sort_lexicographically)
+from src.utility import parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
 
@@ -173,8 +172,9 @@ class Endpoint:
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # timeunits
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        delta = 60
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
         latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
 
         # will fail due to time validation logic
@@ -242,7 +242,6 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            # logger.debug(func)
             logger.debug(f"Output: {output}")
             logger.debug(f"Errors: {errors}")
 
@@ -251,72 +250,87 @@ class Endpoint:
 
         # At this point we should be able to simulate the tx draft
         cborHex = get_cbor_from_file(out_file_path)
-        inputs, inputs_cbor = inputs_from_cbor(cborHex)
+        execution_units = purchase_simulation(cborHex, utxo, config)
 
-        # initialize the outputs
-        outputs = [{} for _ in inputs]
-
-        # build outputs
-        # batcher
-        batcher_index = find_index_of_target(inputs, utxo.batcher.txid)
-        batcher_bytes = to_bytes(bech32_to_hex(batcher_address))
-        outputs[batcher_index] = {0: batcher_bytes, 1: utxo.batcher.value.simulate_form()}
-        # sale
-        sale_index = find_index_of_target(inputs, utxo.sale.txid)
-        sale_bytes = to_bytes(bech32_to_hex(config['sale_address']))
-        sale_datum_bytes = [1, tag(24, convert_datum(utxo.sale.datum))]
-        outputs[sale_index] = {0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
-        # queue
-        queue_index = find_index_of_target(inputs, utxo.queue.txid)
-        queue_bytes = to_bytes(bech32_to_hex(config['queue_address']))
-        queue_datum_bytes = [1, tag(24, convert_datum(utxo.queue.datum))]
-        outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
-        # vault
-        vault_index = find_index_of_target(inputs, utxo.vault.txid)
-        vault_bytes = to_bytes(bech32_to_hex(config['vault_address']))
-        vault_datum_bytes = [1, tag(24, convert_datum(utxo.vault.datum))]
-        outputs[vault_index] = {0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
-        # oracle
-        oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
-        oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
-        oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
-        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
-        # collateral; hardcoded
-        collat_index = find_index_of_target(inputs, config['collat_utxo'])
-        collat_bytes = to_bytes(bech32_to_hex(collat_address))
-        outputs[collat_index] = {0: collat_bytes, 1: 5000000}
-        # data
-        data_index = find_index_of_target(inputs, utxo.data.txid)
-        data_bytes = to_bytes(bech32_to_hex(config['data_address']))
-        data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
-        outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
-        # reference stuff
-        reference_bytes = to_bytes(bech32_to_hex(config['reference_address']))
-        # sale ref
-        sale_ref_index = find_index_of_target(inputs, utxo.reference.sale.txid)
-        sale_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.sale.cborHex)])))
-        outputs[sale_ref_index] = {0: reference_bytes, 1: utxo.reference.sale.value.simulate_form(), 3: sale_ref_bytes}
-        # queue ref
-        queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
-        queue_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.queue.cborHex)])))
-        outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
-        # vault ref
-        vault_ref_index = find_index_of_target(inputs, utxo.reference.vault.txid)
-        vault_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.vault.cborHex)])))
-        outputs[vault_ref_index] = {0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
-        outputs_cbor = dumps(outputs).hex()
+        if execution_units == [{}]:
+            if logger is not None:
+                logger.critical("Validation Failed!")
+            return utxo, purchase_success_flag
+        ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
 
         # At this point we should be able to calculate the total fee
         tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
-        if logger is not None:
-            logger.debug(inputs)
-            logger.debug(outputs)
-            logger.debug(inputs_cbor)
-            logger.debug(outputs_cbor)
-            logger.debug(f"tx fee: {tx_fee}")
-        # At this point we should be able to rebuild the tx draft
+        total_fee = calculate_total_fee(tx_fee, execution_units)
 
-        # check output / errors, if all good assume true here
+        fee_value = Value({"lovelace": total_fee})
+        sale_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.sale.txid)])
+        queue_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.queue.txid)])
+        vault_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.vault.txid)])
+
+        if logger is not None:
+            logger.debug(execution_units)
+            logger.debug(f"tx fee: {tx_fee}")
+            logger.debug(f"total fee: {total_fee}")
+
+        # At this point we should be able to rebuild the tx draft
+        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
+
+        func = [
+            "cardano-cli", "transaction", "build-raw",
+            "--babbage-era",
+            "--protocol-params-file", protocol_file_path,
+            "--out-file", out_file_path,
+            "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                "--read-only-tx-in-reference", oracle_ref_utxo,
+            ]
+        func += [
+            "--read-only-tx-in-reference", data_ref_utxo,
+            "--tx-in", utxo.batcher.txid,
+            "--tx-in", utxo.sale.txid,
+            "--spending-tx-in-reference", sale_ref_utxo,
+            "--spending-plutus-script-v2",
+            "--spending-reference-tx-in-inline-datum-present",
+            "--spending-reference-tx-in-execution-units", sale_execution_units,
+            "--spending-reference-tx-in-redeemer-file", sale_redeemer_file_path,
+            "--tx-in", utxo.queue.txid,
+            "--spending-tx-in-reference", queue_ref_utxo,
+            "--spending-plutus-script-v2",
+            "--spending-reference-tx-in-inline-datum-present",
+            "--spending-reference-tx-in-execution-units", queue_execution_units,
+            "--spending-reference-tx-in-redeemer-file", queue_redeemer_file_path,
+        ]
+        if usd_profit_margin != 0:
+            func += [
+                "--tx-in", utxo.vault.txid,
+                "--spending-tx-in-reference", vault_ref_utxo,
+                "--spending-plutus-script-v2",
+                "--spending-reference-tx-in-inline-datum-present",
+                "--spending-reference-tx-in-execution-units", vault_execution_units,
+                "--spending-reference-tx-in-redeemer-file", vault_redeemer_file_path,
+                "--tx-out", vault_out_value.to_output(config['vault_address']),
+                "--tx-out-inline-datum-file", vault_datum_file_path,
+            ]
+        func += [
+            "--tx-out", sale_out_value.to_output(config['sale_address']),
+            "--tx-out-inline-datum-file", sale_datum_file_path,
+            "--tx-out", queue_out_value.to_output(config['queue_address']),
+            "--tx-out-inline-datum-file", queue_datum_file_path,
+            "--tx-out", batcher_out_value.to_output(batcher_address),
+            "--required-signer-hash", batcher_pkh,
+            "--required-signer-hash", collat_pkh,
+            "--fee", str(total_fee)
+        ]
+
+        # this saves to out file
+        p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = p.communicate()
+
+        # should be good to go
         purchase_success_flag = True
 
         intermediate_txid = txid(out_file_path)
@@ -412,15 +426,19 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
         if queue_out_value.has_negative_entries() is True:
             return utxo, refund_success_flag
+
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # time units
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        delta = 60
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
         latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
+            if logger is not None:
+                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
             return utxo, refund_success_flag
 
         func = [
@@ -458,14 +476,16 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            logger.debug(func)
-            # logger.debug(output)
-            logger.debug(errors)
+            logger.debug(f"Output: {output}")
+            logger.debug(f"Errors: {errors}")
 
         if "Command failed" in errors.decode():
             return utxo, refund_success_flag
+        # At this point we should be able to simulate the tx draft
+        # At this point we should be able to calculate the total fee
+        # At this point we should be able to rebuild the tx draft
 
-        # do someting
+        # everything should be good to go
         refund_success_flag = True
 
         intermediate_txid = txid(out_file_path)
