@@ -2,7 +2,10 @@ import copy
 import os
 import subprocess
 
-from src.address import pkh_from_address
+from cbor2 import dumps
+
+from src.address import bech32_to_hex, pkh_from_address
+from src.cbor import convert_datum, tag, to_bytes
 from src.cli import (calculate_min_fee, get_latest_slot_number,
                      query_slot_number, txid)
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
@@ -10,7 +13,7 @@ from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
 from src.json_file import write
 from src.redeemer import empty, token, tokens
 from src.tx_simulate import get_cbor_from_file, inputs_from_cbor
-from src.utility import parent_directory_path, sha3_256
+from src.utility import find_index_of_target, parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
 
@@ -44,7 +47,12 @@ class Endpoint:
         vault_ref_utxo = config['vault_ref_utxo']
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
+
+        # collat pkh for signing
+        collat_address = config['collat_address']
+        collat_pkh = pkh_from_address(collat_address)
 
         # Lets assume this is the upper bound
         # Sale Example: Mem 634386 Steps 239749112
@@ -171,10 +179,10 @@ class Endpoint:
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
+            if logger is not None:
+                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
             return utxo, purchase_success_flag
 
-        if logger is not None:
-            logger.debug(f"Difference: end - latest: {end_slot - latest_slot_number}")
         # if true then the oracle is required
         is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
@@ -223,9 +231,9 @@ class Endpoint:
             "--tx-out-inline-datum-file", sale_datum_file_path,
             "--tx-out", queue_out_value.to_output(config['queue_address']),
             "--tx-out-inline-datum-file", queue_datum_file_path,
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             "--required-signer-hash", batcher_pkh,
-            "--required-signer-hash", config['collat_pkh'],
+            "--required-signer-hash", collat_pkh,
             "--fee", str(fee)
         ]
 
@@ -244,22 +252,51 @@ class Endpoint:
         # At this point we should be able to simulate the tx draft
         cborHex = get_cbor_from_file(out_file_path)
         inputs, inputs_cbor = inputs_from_cbor(cborHex)
+
         # initialize the outputs
         outputs = [{} for _ in inputs]
+
         # build outputs
         # batcher
+        batcher_index = find_index_of_target(inputs, utxo.batcher.txid)
+        batcher_bytes = to_bytes(bech32_to_hex(batcher_address))
+        outputs[batcher_index] = {0: batcher_bytes, 1: utxo.batcher.value.simulate_form()}
         # sale
+        sale_index = find_index_of_target(inputs, utxo.sale.txid)
+        sale_bytes = to_bytes(bech32_to_hex(config['sale_address']))
+        sale_datum_bytes = [1, tag(24, convert_datum(utxo.sale.datum))]
+        outputs[sale_index] = {0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
         # queue
+        queue_index = find_index_of_target(inputs, utxo.queue.txid)
+        queue_bytes = to_bytes(bech32_to_hex(config['queue_address']))
+        queue_datum_bytes = [1, tag(24, convert_datum(utxo.queue.datum))]
+        outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
         # vault
+        vault_index = find_index_of_target(inputs, utxo.vault.txid)
+        vault_bytes = to_bytes(bech32_to_hex(config['vault_address']))
+        vault_datum_bytes = [1, tag(24, convert_datum(utxo.vault.datum))]
+        outputs[vault_index] = {0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
         # oracle
-        # collateral
-        
+        oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
+        oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
+        oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
+        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
+        # collateral; hardcoded
+        collat_index = find_index_of_target(inputs, config['collat_utxo'])
+        collat_bytes = to_bytes(bech32_to_hex(collat_address))
+        outputs[collat_index] = {0: collat_bytes, 1: 5000000}
+        # reference stuff
+
+        # output cbor
+        outputs_cbor = dumps(outputs).hex()
+
         # At this point we should be able to calculate the total fee
         tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
         if logger is not None:
             logger.debug(inputs)
             logger.debug(outputs)
             logger.debug(inputs_cbor)
+            logger.debug(outputs_cbor)
             logger.debug(f"tx fee: {tx_fee}")
         # At this point we should be able to rebuild the tx draft
 
@@ -308,7 +345,12 @@ class Endpoint:
         queue_ref_utxo = config['queue_ref_utxo']
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
+
+        # collat pkh for signing
+        collat_address = config['collat_address']
+        collat_pkh = pkh_from_address(collat_address)
 
         fee = 350000
         fee_value = Value({"lovelace": fee})
@@ -388,10 +430,10 @@ class Endpoint:
             '--spending-reference-tx-in-inline-datum-present',
             '--spending-reference-tx-in-execution-units', execution_units,
             '--spending-reference-tx-in-redeemer-file', queue_redeemer_file_path,
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             '--tx-out', queue_out_value.to_output(owner_address),
             '--required-signer-hash', batcher_pkh,
-            "--required-signer-hash", config['collat_pkh'],
+            "--required-signer-hash", collat_pkh,
             '--fee', str(fee)
         ]
 
@@ -439,7 +481,8 @@ class Endpoint:
             return batcher_infos[0], profit_success_flag
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -499,7 +542,7 @@ class Endpoint:
         ]
         func += tx_in_list
         func += [
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             "--tx-out", batcher_profit_value.to_output(config['profit_address']),
             '--required-signer-hash', batcher_pkh,
             '--fee', str(fee)

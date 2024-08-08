@@ -6,6 +6,7 @@ from src.db.sale_db_manager import SaleDbManager
 from src.db.seen_db_manager import SeenDbManager
 from src.db.status_db_manager import StatusDbManager
 from src.db.vault_db_manager import VaultDbManager
+from src.value import Value
 
 
 class DbManager:
@@ -31,7 +32,7 @@ class DbManager:
         # load the start status from config
         self.status.load(config)
         # create the start oracle from empty
-        self.oracle.create("", {})
+        self.oracle.create("", {}, Value({}))
         # create the start data from empty
         self.data.create("", {})
 

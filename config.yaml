@@ -13,7 +13,7 @@ batcher_address: "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprd
 profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
 
 # Collat Wallet Information
-collat_pkh: "c59da4ec6e515c2efc8866274dee6ac9a64b5945efd365f3a999e760"
+collat_address: "addr_test1vrzemf8vdeg4cthu3pnzwn0wdty6vj6eghhaxe0n4xv7wcqwqtchw"
 collat_utxo: "1e0b413409dd9591b2a69bca80d7d776e8bb5130f02af0bf886e08ce5b6e183a#0"
 
 # Node And Network Information
