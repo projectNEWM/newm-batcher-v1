@@ -107,6 +107,7 @@ class Aggregate:
                     return
         # get the reference info
         reference_info = db.reference.read()
+
         # create the UTxOManger
         utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
 
@@ -220,6 +221,9 @@ class Aggregate:
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
+                        #
+                        # TODO
+                        #
                         # db.seen.create(tag)
                     else:
                         logger.warning(f"Order: {tag} Refund: Failed")
