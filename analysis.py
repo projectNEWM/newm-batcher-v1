@@ -3,12 +3,16 @@ import json
 import sys
 import time
 
+from loguru import logger
+
 from src import yaml_file
 from src.address import pkh_from_address
 from src.cli import get_latest_block_number
 from src.datums import queue_validity, sale_validity
 from src.db_manager import DbManager
+from src.endpoint import Endpoint
 from src.sorting import Sorting
+from src.utxo_manager import UTxOManager
 
 config = yaml_file.read("config.yaml")
 
@@ -129,7 +133,17 @@ def vault_utxo(db: DbManager):
 
 def simulate_purchase(db: DbManager, tkn: str, tag: str):
     # simulate the purchase endpoint between a sale and a queue
-    pass
+    batcher_info = db.batcher.read(config["batcher_policy"])
+    batcher_pkh = pkh_from_address(config['batcher_address'])
+    vault_info = db.vault.read(batcher_pkh)
+    oracle_info = db.oracle.read()
+    data_info = db.data.read()
+    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info)
+    sale_info = db.sale.read(tkn)
+    utxo.set_sale(sale_info)
+    queue_info = db.queue.read(tag)
+    utxo.set_queue(queue_info)
+    utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
 
 
 def main():
@@ -140,10 +154,10 @@ def main():
     parser.add_argument('--data', action='store_true', help='return the data UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
     parser.add_argument('--vault', action='store_true', help='return the vault UTxOs')
-    parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
-    parser.add_argument('--query-order', type=str, help='return the queue info for a queue entry')
+    parser.add_argument('--query-sale', metavar=('TKN',), type=str, help='return the queue entries for a sale')
+    parser.add_argument('--query-order', metavar=('TAG',), type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
-    parser.add_argument('--simulate-purchase', nargs=2, type=str, help='simulate the purchase endpoint')
+    parser.add_argument('--simulate-purchase', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
 
     args = parser.parse_args()
 
