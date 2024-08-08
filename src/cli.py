@@ -4,6 +4,24 @@ import subprocess
 import sys
 
 
+def calculate_min_fee(tx_body_file: str, protocol_params_file: str) -> int:
+    func = [
+        'cardano-cli',
+        'transaction',
+        'calculate-min-fee',
+        '--tx-body-file',
+        tx_body_file,
+        '--protocol-params-file',
+        protocol_params_file,
+        '--output-json',
+        '--witness-count', '3'
+    ]
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, _ = p.communicate()
+    json_dict = json.loads(output.decode('utf-8'))
+    return json_dict['fee']
+
+
 def does_utxo_exist(socket: str, txin: str, network: str) -> bool:
     """Query if a utxo exists given network and txin, id#idx.
 

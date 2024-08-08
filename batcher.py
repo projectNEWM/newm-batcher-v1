@@ -106,7 +106,6 @@ def webhook():
 
         # if a rollback occurs we need to handle it somehow
         if variant == 'RollBack':
-            logger.debug(data)
             # how do we handle it?
             logger.critical(f"ROLLBACK: {block_number}")
 

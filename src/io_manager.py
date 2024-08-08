@@ -44,6 +44,7 @@ class IOManager:
         output_utxo = context['tx_hash'] + '#' + str(context['output_idx'])
         utxo_base_64 = sha3_256(output_utxo)
 
+        # check if its the batcher
         if data['tx_output']['address'] == config['batcher_address']:
             value_obj = asset_list_to_value(data['tx_output']['assets'])
             value_obj.add_lovelace(data['tx_output']['amount'])
@@ -51,6 +52,7 @@ class IOManager:
             db.batcher.create(utxo_base_64, output_utxo, value_obj)
             logger.success(f"Batcher Output @ {output_utxo} @ Timestamp: {context['timestamp']}")
 
+        # check if its the sale contract
         if data['tx_output']['address'] == config['sale_address']:
             # get the datum
             sale_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
@@ -79,7 +81,7 @@ class IOManager:
             db.queue.create(utxo_base_64, output_utxo, pointer_token, queue_datum, value_obj, timestamp, tx_idx)
             logger.success(f"Queue Output @ {output_utxo} @ Timestamp: {timestamp}")
 
-        # check if its the queue contract
+        # check if its the vault contract
         if data['tx_output']['address'] == config['vault_address']:
             # get the queue datum
             vault_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
@@ -92,7 +94,7 @@ class IOManager:
             db.vault.create(utxo_base_64, output_utxo, pkh, vault_datum, value_obj)
             logger.success(f"Vault Output @ {output_utxo} @ Timestamp: {timestamp}")
 
-        # check if its the queue contract
+        # check if its the oracle contract
         if data['tx_output']['address'] == config['oracle_address']:
             oracle_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
 
@@ -100,10 +102,10 @@ class IOManager:
             value_obj.add_lovelace(data['tx_output']['amount'])
 
             if value_obj.get_quantity(config['oracle_policy'], config['oracle_asset']) == 1:
-                db.oracle.update(output_utxo, oracle_datum)
+                db.oracle.update(output_utxo, oracle_datum, value_obj)
                 logger.success(f"Oracle Output @ {output_utxo} @ Timestamp: {timestamp}")
 
-        # check if its the queue contract
+        # check if its the data contract
         if data['tx_output']['address'] == config['data_address']:
             data_datum = data['tx_output']['inline_datum']['plutus_data'] if data['tx_output']['inline_datum'] is not None else {}
 
@@ -111,5 +113,5 @@ class IOManager:
             value_obj.add_lovelace(data['tx_output']['amount'])
 
             if value_obj.get_quantity(config['data_policy'], config['data_asset']) == 1:
-                db.data.update(output_utxo, data_datum)
+                db.data.update(output_utxo, data_datum, value_obj)
                 logger.success(f"Data Output @ {output_utxo} @ Timestamp: {timestamp}")

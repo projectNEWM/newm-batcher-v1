@@ -13,7 +13,7 @@ batcher_address: "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprd
 profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
 
 # Collat Wallet Information
-collat_pkh: "c59da4ec6e515c2efc8866274dee6ac9a64b5945efd365f3a999e760"
+collat_address: "addr_test1vrzemf8vdeg4cthu3pnzwn0wdty6vj6eghhaxe0n4xv7wcqwqtchw"
 collat_utxo: "1e0b413409dd9591b2a69bca80d7d776e8bb5130f02af0bf886e08ce5b6e183a#0"
 
 # Node And Network Information
@@ -30,30 +30,37 @@ oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
-sale_address: "addr_test1xqk2zrw5g9pjk289kn8m8p68f254hnaacsmz3euwve3m5f8fe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75swa5eh0"
-queue_address: "addr_test1xpmj7vfnu8ryg9ykj5cxdtkyg5rfd44hqwwpkjmnq4neyglfe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75s34cg7w"
-vault_address: "addr_test1xr66w6j86evtpxc29xgfc5uhetmmf4c0rvx73ad478473jlfe2gwsm4kjgam80dz22c4uvnad8zry884mqe0wjmpc75s7avfx7"
+sale_address: "addr_test1xqac806wz4563gqwkcvrjx5ucls0zhr8eyjyqwptay5ljkg4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3qe2ty9j"
+queue_address: "addr_test1xqyreluem3sxfvyjfuslpspxexewjl8r8r3xydn39laaj6q4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3qur55w7"
+vault_address: "addr_test1xrwy3ylzjqvrshhfmh07w6wnm0hq23nrkjmyzlceqc3g5cc4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3q99p0qm"
 
 # Data Contract
-data_address: "addr_test1wrp4cpyvutvy306n7xekpzfvysyls0d5nkzqel6agyfsh0ccwd96w"
-data_policy: "9a3d3b5887f96b15faa7c2c42ebf46805587e7946345345b8a762667"
-data_asset: "dba9b3fdc4ec5fddb8e3109393e44665c18231386433b8033db7092b794d1f39"
+data_address: "addr_test1wze6szp52kupg2kcmwarqsqrntrqypwg94n77k4lm6eckts5yc34w"
+data_policy: "8a29411b61d4d4fc79090ac49ca7c384420476adb523694f7f110ff6"
+data_asset: "c65e8f235690f99453d7e02da594f2c180b3fe6af2236e676283fe61540e91eb"
 
 # Data, Sale, and Queue Contract Script Reference UTxOs
-sale_ref_utxo: "2f616fbc5baac99dd917872460eb2e3b44e415f247c843ef6ec99ef431b5be10#1"
-queue_ref_utxo: "69617d2a5ede6fc9064007342ea3ca81000cf5756624f25ade9aaad3e0469fd2#1"
-vault_ref_utxo: "6f11a4dbd2e68363f2232b11b052b1c2fdf0cee284e6d91a0b84402194ed27cf#1"
+reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
+
+sale_ref_utxo: "9af67c86e6137d41915c0d0e554ad69ee86911c4c4d4f68fd0a2f4d384673ca9#1"
+sale_lovelace: 41901820
+
+queue_ref_utxo: "098a3281a90809d9ee1df32efb2570fce45dab43894e4509181a05cee8a23e18#1"
+queue_lovelace: 57715210
+
+vault_ref_utxo: "d784249b5093460ad0e3ae9e57d80c5651e3046c029f091fd980f0b997e6ddba#1"
+vault_lovelace: 29570910
 
 # The Newm Pointer Policy Id
-pointer_policy: "ed37d8a9be7f2e99db9d973731f63e9afc74b99b436e161390f907c5"
+pointer_policy: "2fb0decb35c05da7528b1871fee58f875c54b74f61e1a44f270d2115"
 
 # The Newm Batcher Policy Id
-batcher_policy: "36bd690356f3dfd216c6cf0aba028f5626a0802e6f898f36c78bd682"
+batcher_policy: "32ede44e2939c30b7ee59eca6a680efdfc3510c4d63d0a197cb49257"
 
 # Starting Block Information
-starting_block_number: 2508424
-starting_timestamp: 66180120
-starting_blockhash: "afa362ac6a3a57f92dfee6f76bbe59b4f6e164385af4b82f0399009822d69f4e"
+starting_block_number: 2557028
+starting_timestamp: 67293599
+starting_blockhash: "02e52b1b2bd0462a05906b670b3cad63c1f03f3df81e04da0f7d034ad04acad1"
 delay_depth: 3
 
 # Logging Parameters

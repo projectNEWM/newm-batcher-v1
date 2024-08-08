@@ -3,12 +3,16 @@ import json
 import sys
 import time
 
+from loguru import logger
+
 from src import yaml_file
 from src.address import pkh_from_address
 from src.cli import get_latest_block_number
 from src.datums import queue_validity, sale_validity
 from src.db_manager import DbManager
+from src.endpoint import Endpoint
 from src.sorting import Sorting
+from src.utxo_manager import UTxOManager
 
 config = yaml_file.read("config.yaml")
 
@@ -127,6 +131,48 @@ def vault_utxo(db: DbManager):
         print("Vault Does Not Exist")
 
 
+def references_utxo(db: DbManager):
+    reference_info = db.reference.read()
+    print(f"Sale TxId: {reference_info['sale']['txid']}")
+    print(f"{reference_info['sale']['value']}")
+    print(f"Queue TxId: {reference_info['queue']['txid']}")
+    print(f"{reference_info['queue']['value']}")
+    print(f"Vault TxId: {reference_info['vault']['txid']}")
+    print(f"{reference_info['vault']['value']}")
+
+
+def simulate_purchase(db: DbManager, tkn: str, tag: str):
+    # simulate the purchase endpoint between a sale and a queue
+    reference_info = db.reference.read()
+    batcher_info = db.batcher.read(config["batcher_policy"])
+    batcher_pkh = pkh_from_address(config['batcher_address'])
+    vault_info = db.vault.read(batcher_pkh)
+    oracle_info = db.oracle.read()
+    data_info = db.data.read()
+    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
+    sale_info = db.sale.read(tkn)
+    utxo.set_sale(sale_info)
+    queue_info = db.queue.read(tag)
+    utxo.set_queue(queue_info)
+    utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
+
+
+def simulate_refund(db: DbManager, tkn: str, tag: str):
+    # simulate the purchase endpoint between a sale and a queue
+    reference_info = db.reference.read()
+    batcher_info = db.batcher.read(config["batcher_policy"])
+    batcher_pkh = pkh_from_address(config['batcher_address'])
+    vault_info = db.vault.read(batcher_pkh)
+    oracle_info = db.oracle.read()
+    data_info = db.data.read()
+    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
+    sale_info = db.sale.read(tkn)
+    utxo.set_sale(sale_info)
+    queue_info = db.queue.read(tag)
+    utxo.set_queue(queue_info)
+    utxo, purchase_success_flag = Endpoint.refund(utxo, config, logger)
+
+
 def main():
     parser = argparse.ArgumentParser(description='NEWM-Batcher Database Analysis Tool')
     parser.add_argument('-s', '--status', action='store_true', help='return the current sync status')
@@ -135,9 +181,12 @@ def main():
     parser.add_argument('--data', action='store_true', help='return the data UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
     parser.add_argument('--vault', action='store_true', help='return the vault UTxOs')
-    parser.add_argument('--query-sale', type=str, help='return the queue entries for a sale')
-    parser.add_argument('--query-order', type=str, help='return the queue info for a queue entry')
+    parser.add_argument('--references', action='store_true', help='return the reference UTxOs')
+    parser.add_argument('--query-sale', metavar=('TKN',), type=str, help='return the queue entries for a sale')
+    parser.add_argument('--query-order', metavar=('TAG',), type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
+    parser.add_argument('--simulate-purchase', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
+    parser.add_argument('--simulate-refund', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
 
     args = parser.parse_args()
 
@@ -160,11 +209,14 @@ def main():
     if args.data:
         data_utxo(db_manager)
 
+    if args.sales:
+        sale_utxos(db_manager)
+
     if args.vault:
         vault_utxo(db_manager)
 
-    if args.sales:
-        sale_utxos(db_manager)
+    if args.references:
+        references_utxo(db_manager)
 
     if args.query_sale:
         query_sale(db_manager, args.query_sale)
@@ -174,6 +226,14 @@ def main():
 
     if args.sorted_queue:
         sorted_queue(db_manager)
+
+    if args.simulate_purchase:
+        tkn, tag = args.simulate_purchase
+        simulate_purchase(db_manager, tkn, tag)
+
+    if args.simulate_refund:
+        tkn, tag = args.simulate_refund
+        simulate_refund(db_manager, tkn, tag)
 
 
 if __name__ == '__main__':

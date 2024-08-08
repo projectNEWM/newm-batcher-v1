@@ -3,11 +3,16 @@ import os
 import subprocess
 
 from src.address import pkh_from_address
-from src.cli import get_latest_slot_number, query_slot_number, txid
+from src.cli import (calculate_min_fee, get_latest_slot_number,
+                     query_slot_number, txid)
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
 from src.redeemer import empty, token, tokens
+from src.tx_simulate import (calculate_total_fee, convert_execution_unit,
+                             get_cbor_from_file, get_index_in_order,
+                             purchase_simulation, refund_simulation,
+                             sort_lexicographically)
 from src.utility import parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
@@ -42,18 +47,29 @@ class Endpoint:
         vault_ref_utxo = config['vault_ref_utxo']
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
 
-        # HARDCODE FEE FOR NOW, NEED WAY TO ESITMATE THESE UNITS BETTER
-        # TODO
-        fee = 505550
-        fee_value = Value({"lovelace": fee})
+        # collat pkh for signing
+        collat_address = config['collat_address']
+        collat_pkh = pkh_from_address(collat_address)
+
+        # Lets assume this is the upper bound
         # Sale Example: Mem 634386 Steps 239749112
-        sale_execution_units = "(260000000, 695000)"
         # Queue Example: Mem 1651174 Steps 649844778
-        queue_execution_units = "(690000000, 1750000)"
         # Vault Example: Mem 284377 Steps 121918683
-        vault_execution_units = "(145000000, 355000)"
+        #
+        # fee = 505550
+        # fee_value = Value({"lovelace": fee})
+        # sale_execution_units = "(260000000, 695000)"
+        # queue_execution_units = "(690000000, 1750000)"
+        # vault_execution_units = "(145000000, 355000)"
+
+        fee = 0
+        fee_value = Value({"lovelace": fee})
+        sale_execution_units = "(0, 0)"
+        queue_execution_units = "(0, 0)"
+        vault_execution_units = "(0, 0)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -157,15 +173,17 @@ class Endpoint:
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # timeunits
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        delta = 60
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
         latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
 
-        if logger is not None:
-            logger.debug(f"latest: {latest_slot_number}")
-            logger.debug(f"start: {start_slot}")
-            logger.debug(f"end: {end_slot}")
-            logger.debug(f"end - latest: {end_slot - latest_slot_number}")
+        # will fail due to time validation logic
+        if end_slot - latest_slot_number <= 0:
+            if logger is not None:
+                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
+            return utxo, purchase_success_flag
+
         # if true then the oracle is required
         is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
@@ -214,9 +232,9 @@ class Endpoint:
             "--tx-out-inline-datum-file", sale_datum_file_path,
             "--tx-out", queue_out_value.to_output(config['queue_address']),
             "--tx-out-inline-datum-file", queue_datum_file_path,
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             "--required-signer-hash", batcher_pkh,
-            "--required-signer-hash", config['collat_pkh'],
+            "--required-signer-hash", collat_pkh,
             "--fee", str(fee)
         ]
 
@@ -225,14 +243,97 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            # logger.debug(func)
-            # logger.debug(output)
-            logger.debug(errors)
+            logger.debug(f"Output: {output}")
+            logger.debug(f"Errors: {errors}")
 
         if "Command failed" in errors.decode():
             return utxo, purchase_success_flag
 
-        # check output / errors, if all good assume true here
+        # At this point we should be able to simulate the tx draft
+        cborHex = get_cbor_from_file(out_file_path)
+        execution_units = purchase_simulation(cborHex, utxo, config)
+
+        if execution_units == [{}]:
+            if logger is not None:
+                logger.critical("Validation Failed!")
+            return utxo, purchase_success_flag
+
+        # sort the inputs lexicograhpically so the execution units can be mapped
+        ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
+
+        # At this point we should be able to calculate the total fee
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        total_fee = calculate_total_fee(tx_fee, execution_units)
+
+        fee_value = Value({"lovelace": total_fee})
+        sale_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.sale.txid)])
+        queue_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.queue.txid)])
+        vault_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.vault.txid)])
+
+        if logger is not None:
+            logger.debug(execution_units)
+            logger.debug(f"tx fee: {tx_fee}")
+            logger.debug(f"total fee: {total_fee}")
+
+        # At this point we should be able to rebuild the tx draft
+        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
+
+        func = [
+            "cardano-cli", "transaction", "build-raw",
+            "--babbage-era",
+            "--protocol-params-file", protocol_file_path,
+            "--out-file", out_file_path,
+            "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                "--read-only-tx-in-reference", oracle_ref_utxo,
+            ]
+        func += [
+            "--read-only-tx-in-reference", data_ref_utxo,
+            "--tx-in", utxo.batcher.txid,
+            "--tx-in", utxo.sale.txid,
+            "--spending-tx-in-reference", sale_ref_utxo,
+            "--spending-plutus-script-v2",
+            "--spending-reference-tx-in-inline-datum-present",
+            "--spending-reference-tx-in-execution-units", sale_execution_units,
+            "--spending-reference-tx-in-redeemer-file", sale_redeemer_file_path,
+            "--tx-in", utxo.queue.txid,
+            "--spending-tx-in-reference", queue_ref_utxo,
+            "--spending-plutus-script-v2",
+            "--spending-reference-tx-in-inline-datum-present",
+            "--spending-reference-tx-in-execution-units", queue_execution_units,
+            "--spending-reference-tx-in-redeemer-file", queue_redeemer_file_path,
+        ]
+        if usd_profit_margin != 0:
+            func += [
+                "--tx-in", utxo.vault.txid,
+                "--spending-tx-in-reference", vault_ref_utxo,
+                "--spending-plutus-script-v2",
+                "--spending-reference-tx-in-inline-datum-present",
+                "--spending-reference-tx-in-execution-units", vault_execution_units,
+                "--spending-reference-tx-in-redeemer-file", vault_redeemer_file_path,
+                "--tx-out", vault_out_value.to_output(config['vault_address']),
+                "--tx-out-inline-datum-file", vault_datum_file_path,
+            ]
+        func += [
+            "--tx-out", sale_out_value.to_output(config['sale_address']),
+            "--tx-out-inline-datum-file", sale_datum_file_path,
+            "--tx-out", queue_out_value.to_output(config['queue_address']),
+            "--tx-out-inline-datum-file", queue_datum_file_path,
+            "--tx-out", batcher_out_value.to_output(batcher_address),
+            "--required-signer-hash", batcher_pkh,
+            "--required-signer-hash", collat_pkh,
+            "--fee", str(total_fee)
+        ]
+
+        # this saves to out file
+        p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = p.communicate()
+
+        # should be good to go
         purchase_success_flag = True
 
         intermediate_txid = txid(out_file_path)
@@ -277,12 +378,18 @@ class Endpoint:
         queue_ref_utxo = config['queue_ref_utxo']
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
 
-        fee = 350000
+        # collat pkh for signing
+        collat_address = config['collat_address']
+        collat_pkh = pkh_from_address(collat_address)
+
+        fee = 0
         fee_value = Value({"lovelace": fee})
         # Refund Example: Mem 1231866 Steps 455696460
-        execution_units = '(500000000, 1500000)'
+        # execution_units = '(500000000, 1500000)'
+        queue_execution_units = '(0, 0)'
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -323,11 +430,20 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
         if queue_out_value.has_negative_entries() is True:
             return utxo, refund_success_flag
+
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
         # time units
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        delta = 60
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
+        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
+
+        # will fail due to time validation logic
+        if end_slot - latest_slot_number <= 0:
+            if logger is not None:
+                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
+            return utxo, refund_success_flag
 
         func = [
             'cardano-cli', 'transaction', 'build-raw',
@@ -350,12 +466,12 @@ class Endpoint:
             '--spending-tx-in-reference', queue_ref_utxo,
             '--spending-plutus-script-v2',
             '--spending-reference-tx-in-inline-datum-present',
-            '--spending-reference-tx-in-execution-units', execution_units,
+            '--spending-reference-tx-in-execution-units', queue_execution_units,
             '--spending-reference-tx-in-redeemer-file', queue_redeemer_file_path,
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             '--tx-out', queue_out_value.to_output(owner_address),
             '--required-signer-hash', batcher_pkh,
-            "--required-signer-hash", config['collat_pkh'],
+            "--required-signer-hash", collat_pkh,
             '--fee', str(fee)
         ]
 
@@ -364,14 +480,72 @@ class Endpoint:
         output, errors = p.communicate()
 
         if logger is not None:
-            logger.debug(func)
-            # logger.debug(output)
-            logger.debug(errors)
+            logger.debug(f"Output: {output}")
+            logger.debug(f"Errors: {errors}")
 
         if "Command failed" in errors.decode():
             return utxo, refund_success_flag
+        # At this point we should be able to simulate the tx draft
+        cborHex = get_cbor_from_file(out_file_path)
+        execution_units = refund_simulation(cborHex, utxo, config)
 
-        # do someting
+        if execution_units == [{}]:
+            if logger is not None:
+                logger.critical("Validation Failed!")
+            return utxo, refund_success_flag
+
+        # sort the inputs lexicograhpically so the execution units can be mapped
+        ordered_list = sort_lexicographically(utxo.queue.txid)
+
+        # At this point we should be able to calculate the total fee
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        total_fee = calculate_total_fee(tx_fee, execution_units)
+
+        fee_value = Value({"lovelace": total_fee})
+        queue_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.queue.txid)])
+
+        if logger is not None:
+            logger.debug(execution_units)
+            logger.debug(f"tx fee: {tx_fee}")
+            logger.debug(f"total fee: {total_fee}")
+        # At this point we should be able to rebuild the tx draft
+        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
+
+        func = [
+            'cardano-cli', 'transaction', 'build-raw',
+            '--babbage-era',
+            '--protocol-params-file', protocol_file_path,
+            '--out-file', out_file_path,
+            "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                '--read-only-tx-in-reference', oracle_ref_utxo,
+            ]
+        func += [
+            '--read-only-tx-in-reference', data_ref_utxo,
+            '--read-only-tx-in-reference', utxo.sale.txid,
+            "--tx-in", utxo.batcher.txid,
+            '--tx-in', utxo.queue.txid,
+            '--spending-tx-in-reference', queue_ref_utxo,
+            '--spending-plutus-script-v2',
+            '--spending-reference-tx-in-inline-datum-present',
+            '--spending-reference-tx-in-execution-units', queue_execution_units,
+            '--spending-reference-tx-in-redeemer-file', queue_redeemer_file_path,
+            "--tx-out", batcher_out_value.to_output(batcher_address),
+            '--tx-out', queue_out_value.to_output(owner_address),
+            '--required-signer-hash', batcher_pkh,
+            "--required-signer-hash", collat_pkh,
+            '--fee', str(total_fee)
+        ]
+
+        # this saves to out file
+        p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = p.communicate()
+
+        # everything should be good to go
         refund_success_flag = True
 
         intermediate_txid = txid(out_file_path)
@@ -403,7 +577,8 @@ class Endpoint:
             return batcher_infos[0], profit_success_flag
 
         # batcher pkh for signing
-        batcher_pkh = pkh_from_address(config['batcher_address'])
+        batcher_address = config['batcher_address']
+        batcher_pkh = pkh_from_address(batcher_address)
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -463,7 +638,7 @@ class Endpoint:
         ]
         func += tx_in_list
         func += [
-            "--tx-out", batcher_out_value.to_output(config['batcher_address']),
+            "--tx-out", batcher_out_value.to_output(batcher_address),
             "--tx-out", batcher_profit_value.to_output(config['profit_address']),
             '--required-signer-hash', batcher_pkh,
             '--fee', str(fee)
