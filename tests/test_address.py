@@ -1,7 +1,8 @@
 import pytest
 from pycardano import Network
 
-from src.address import from_pkh_sc, header_byte_from_address, pkh_from_address
+from src.address import (bech32_to_hex, from_pkh_sc, header_byte_from_address,
+                         pkh_from_address)
 
 
 def test_header_from_base_address():
@@ -66,3 +67,17 @@ def test_from_pkh_sc_invalid_sc():
     network = Network.TESTNET
     with pytest.raises(ValueError):
         from_pkh_sc(pkh, sc, network)
+
+
+def test_bech32_to_hex_enterprise():
+    addr = "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
+    answer = "60e154dbd9ee8685258d7be1d3f374e4c2f1aebeada68707113b1422b0"
+    hex_encoding = bech32_to_hex(addr)
+    assert hex_encoding == answer
+
+
+def test_bech32_to_hex_base():
+    addr = "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+    answer = "00d9335ba4f8ebc0b8c9361613071cdc9e9fe92de49b8f2a4782023ef4bfaa385c8eab7bbdc6c98b50413435b3d02b73de3c644e1384b801d4"
+    hex_encoding = bech32_to_hex(addr)
+    assert hex_encoding == answer

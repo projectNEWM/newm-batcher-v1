@@ -101,7 +101,7 @@ class Aggregate:
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
-                batcher_info = db.batcher.read(config("batcher_policy"))
+                batcher_info = db.batcher.read(config["batcher_policy"])
                 if batcher_info is None:
                     logger.critical("Batcher UTxO can not be found")
                     return

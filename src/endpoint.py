@@ -47,14 +47,21 @@ class Endpoint:
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
         # Lets assume this is the upper bound
-        fee = 505550
-        fee_value = Value({"lovelace": fee})
         # Sale Example: Mem 634386 Steps 239749112
-        sale_execution_units = "(260000000, 695000)"
         # Queue Example: Mem 1651174 Steps 649844778
-        queue_execution_units = "(690000000, 1750000)"
         # Vault Example: Mem 284377 Steps 121918683
-        vault_execution_units = "(145000000, 355000)"
+        #
+        # fee = 505550
+        # fee_value = Value({"lovelace": fee})
+        # sale_execution_units = "(260000000, 695000)"
+        # queue_execution_units = "(690000000, 1750000)"
+        # vault_execution_units = "(145000000, 355000)"
+
+        fee = 0
+        fee_value = Value({"lovelace": fee})
+        sale_execution_units = "(0, 0)"
+        queue_execution_units = "(0, 0)"
+        vault_execution_units = "(0, 0)"
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -162,11 +169,12 @@ class Endpoint:
         end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
         latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
 
+        # will fail due to time validation logic
+        if end_slot - latest_slot_number <= 0:
+            return utxo, purchase_success_flag
+
         if logger is not None:
-            logger.debug(f"latest: {latest_slot_number}")
-            logger.debug(f"start: {start_slot}")
-            logger.debug(f"end: {end_slot}")
-            logger.debug(f"end - latest: {end_slot - latest_slot_number}")
+            logger.debug(f"Difference: end - latest: {end_slot - latest_slot_number}")
         # if true then the oracle is required
         is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
@@ -227,8 +235,8 @@ class Endpoint:
 
         if logger is not None:
             # logger.debug(func)
-            # logger.debug(output)
-            logger.debug(errors)
+            logger.debug(f"Output: {output}")
+            logger.debug(f"Errors: {errors}")
 
         if "Command failed" in errors.decode():
             return utxo, purchase_success_flag
@@ -236,10 +244,21 @@ class Endpoint:
         # At this point we should be able to simulate the tx draft
         cborHex = get_cbor_from_file(out_file_path)
         inputs, inputs_cbor = inputs_from_cbor(cborHex)
+        # initialize the outputs
+        outputs = [{} for _ in inputs]
+        # build outputs
+        # batcher
+        # sale
+        # queue
+        # vault
+        # oracle
+        # collateral
+        
         # At this point we should be able to calculate the total fee
         tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
         if logger is not None:
             logger.debug(inputs)
+            logger.debug(outputs)
             logger.debug(inputs_cbor)
             logger.debug(f"tx fee: {tx_fee}")
         # At this point we should be able to rebuild the tx draft
@@ -340,6 +359,11 @@ class Endpoint:
         # time units
         start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], 45)
         end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -45)
+        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
+
+        # will fail due to time validation logic
+        if end_slot - latest_slot_number <= 0:
+            return utxo, refund_success_flag
 
         func = [
             'cardano-cli', 'transaction', 'build-raw',
