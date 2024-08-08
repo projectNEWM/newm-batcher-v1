@@ -131,6 +131,18 @@ def vault_utxo(db: DbManager):
         print("Vault Does Not Exist")
 
 
+def references_utxo(db: DbManager):
+    sale = db.reference.read('sale_reference')
+    queue = db.reference.read('queue_reference')
+    vault = db.reference.read('vault_reference')
+    print(f"Sale TxId: {sale['txid']}")
+    print(f"{sale['value']}")
+    print(f"Queue TxId: {queue['txid']}")
+    print(f"{queue['value']}")
+    print(f"Vault TxId: {vault['txid']}")
+    print(f"{vault['value']}")
+
+
 def simulate_purchase(db: DbManager, tkn: str, tag: str):
     # simulate the purchase endpoint between a sale and a queue
     batcher_info = db.batcher.read(config["batcher_policy"])
@@ -154,6 +166,7 @@ def main():
     parser.add_argument('--data', action='store_true', help='return the data UTxO')
     parser.add_argument('--sales', action='store_true', help='return the sale UTxOs and queue entries')
     parser.add_argument('--vault', action='store_true', help='return the vault UTxOs')
+    parser.add_argument('--references', action='store_true', help='return the reference UTxOs')
     parser.add_argument('--query-sale', metavar=('TKN',), type=str, help='return the queue entries for a sale')
     parser.add_argument('--query-order', metavar=('TAG',), type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
@@ -180,11 +193,14 @@ def main():
     if args.data:
         data_utxo(db_manager)
 
+    if args.sales:
+        sale_utxos(db_manager)
+
     if args.vault:
         vault_utxo(db_manager)
 
-    if args.sales:
-        sale_utxos(db_manager)
+    if args.references:
+        references_utxo(db_manager)
 
     if args.query_sale:
         query_sale(db_manager, args.query_sale)
