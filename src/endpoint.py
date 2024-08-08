@@ -285,6 +285,11 @@ class Endpoint:
         collat_index = find_index_of_target(inputs, config['collat_utxo'])
         collat_bytes = to_bytes(bech32_to_hex(collat_address))
         outputs[collat_index] = {0: collat_bytes, 1: 5000000}
+        # data
+        data_index = find_index_of_target(inputs, utxo.data.txid)
+        data_bytes = to_bytes(bech32_to_hex(config['data_address']))
+        data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
+        outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
         # reference stuff
 
         # output cbor

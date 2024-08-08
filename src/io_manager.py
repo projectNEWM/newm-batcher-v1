@@ -113,5 +113,5 @@ class IOManager:
             value_obj.add_lovelace(data['tx_output']['amount'])
 
             if value_obj.get_quantity(config['data_policy'], config['data_asset']) == 1:
-                db.data.update(output_utxo, data_datum)
+                db.data.update(output_utxo, data_datum, value_obj)
                 logger.success(f"Data Output @ {output_utxo} @ Timestamp: {timestamp}")

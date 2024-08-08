@@ -34,7 +34,7 @@ class DbManager:
         # create the start oracle from empty
         self.oracle.create("", {}, Value({}))
         # create the start data from empty
-        self.data.create("", {})
+        self.data.create("", {}, Value({}))
 
     def cleanup(self):
         self.batcher.cleanup()
