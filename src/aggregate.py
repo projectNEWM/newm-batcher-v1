@@ -160,10 +160,10 @@ class Aggregate:
                 utxo.set_queue(queue_info)
 
                 # build the purchase tx
-                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
+                utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger=logger)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
-                    logger.warning(f"User Must Remove Order: {order_hash} Or May Be In Refund State")
+                    logger.warning(f"Order: {order_hash}: Remove Only Or Refund")
 
                 # if the purchase was successful then sign it and update the info
                 if purchase_success_flag is True:
@@ -180,10 +180,10 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                utxo, refund_success_flag = Endpoint.refund(utxo, config, logger)
+                utxo, refund_success_flag = Endpoint.refund(utxo, config, logger=logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
-                    logger.warning(f"Missing Incentive: User Must Remove Order: {order_hash}")
+                    logger.warning(f"Order: {order_hash}: Remove Only")
                     # skip the sign and submit as something didn't validate from the order
                     continue
 
