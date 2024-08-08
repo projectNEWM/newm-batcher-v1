@@ -157,6 +157,22 @@ def simulate_purchase(db: DbManager, tkn: str, tag: str):
     utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
 
 
+def simulate_refund(db: DbManager, tkn: str, tag: str):
+    # simulate the purchase endpoint between a sale and a queue
+    reference_info = db.reference.read()
+    batcher_info = db.batcher.read(config["batcher_policy"])
+    batcher_pkh = pkh_from_address(config['batcher_address'])
+    vault_info = db.vault.read(batcher_pkh)
+    oracle_info = db.oracle.read()
+    data_info = db.data.read()
+    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
+    sale_info = db.sale.read(tkn)
+    utxo.set_sale(sale_info)
+    queue_info = db.queue.read(tag)
+    utxo.set_queue(queue_info)
+    utxo, purchase_success_flag = Endpoint.refund(utxo, config, logger)
+
+
 def main():
     parser = argparse.ArgumentParser(description='NEWM-Batcher Database Analysis Tool')
     parser.add_argument('-s', '--status', action='store_true', help='return the current sync status')
@@ -170,6 +186,7 @@ def main():
     parser.add_argument('--query-order', metavar=('TAG',), type=str, help='return the queue info for a queue entry')
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
     parser.add_argument('--simulate-purchase', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
+    parser.add_argument('--simulate-refund', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
 
     args = parser.parse_args()
 
@@ -213,6 +230,10 @@ def main():
     if args.simulate_purchase:
         tkn, tag = args.simulate_purchase
         simulate_purchase(db_manager, tkn, tag)
+
+    if args.simulate_refund:
+        tkn, tag = args.simulate_refund
+        simulate_refund(db_manager, tkn, tag)
 
 
 if __name__ == '__main__':
