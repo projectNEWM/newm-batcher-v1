@@ -11,7 +11,8 @@ from src.json_file import write
 from src.redeemer import empty, token, tokens
 from src.tx_simulate import (calculate_total_fee, convert_execution_unit,
                              get_cbor_from_file, get_index_in_order,
-                             purchase_simulation, sort_lexicographically)
+                             purchase_simulation, refund_simulation,
+                             sort_lexicographically)
 from src.utility import parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
@@ -256,6 +257,8 @@ class Endpoint:
             if logger is not None:
                 logger.critical("Validation Failed!")
             return utxo, purchase_success_flag
+
+        # sort the inputs lexicograhpically so the execution units can be mapped
         ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
 
         # At this point we should be able to calculate the total fee
@@ -382,10 +385,11 @@ class Endpoint:
         collat_address = config['collat_address']
         collat_pkh = pkh_from_address(collat_address)
 
-        fee = 350000
+        fee = 0
         fee_value = Value({"lovelace": fee})
         # Refund Example: Mem 1231866 Steps 455696460
-        execution_units = '(500000000, 1500000)'
+        # execution_units = '(500000000, 1500000)'
+        queue_execution_units = '(0, 0)'
 
         # The parent directory for relative pathing
         parent_dir = parent_directory_path()
@@ -462,7 +466,7 @@ class Endpoint:
             '--spending-tx-in-reference', queue_ref_utxo,
             '--spending-plutus-script-v2',
             '--spending-reference-tx-in-inline-datum-present',
-            '--spending-reference-tx-in-execution-units', execution_units,
+            '--spending-reference-tx-in-execution-units', queue_execution_units,
             '--spending-reference-tx-in-redeemer-file', queue_redeemer_file_path,
             "--tx-out", batcher_out_value.to_output(batcher_address),
             '--tx-out', queue_out_value.to_output(owner_address),
@@ -482,8 +486,64 @@ class Endpoint:
         if "Command failed" in errors.decode():
             return utxo, refund_success_flag
         # At this point we should be able to simulate the tx draft
+        cborHex = get_cbor_from_file(out_file_path)
+        execution_units = refund_simulation(cborHex, utxo, config)
+
+        if execution_units == [{}]:
+            if logger is not None:
+                logger.critical("Validation Failed!")
+            return utxo, refund_success_flag
+
+        # sort the inputs lexicograhpically so the execution units can be mapped
+        ordered_list = sort_lexicographically(utxo.queue.txid)
+
         # At this point we should be able to calculate the total fee
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        total_fee = calculate_total_fee(tx_fee, execution_units)
+
+        fee_value = Value({"lovelace": total_fee})
+        queue_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.queue.txid)])
+
+        if logger is not None:
+            logger.debug(execution_units)
+            logger.debug(f"tx fee: {tx_fee}")
+            logger.debug(f"total fee: {total_fee}")
         # At this point we should be able to rebuild the tx draft
+        queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
+
+        func = [
+            'cardano-cli', 'transaction', 'build-raw',
+            '--babbage-era',
+            '--protocol-params-file', protocol_file_path,
+            '--out-file', out_file_path,
+            "--tx-in-collateral", config['collat_utxo'],
+        ]
+        if is_oracle_required is True:
+            func += [
+                "--invalid-before", str(start_slot),
+                "--invalid-hereafter", str(end_slot),
+                '--read-only-tx-in-reference', oracle_ref_utxo,
+            ]
+        func += [
+            '--read-only-tx-in-reference', data_ref_utxo,
+            '--read-only-tx-in-reference', utxo.sale.txid,
+            "--tx-in", utxo.batcher.txid,
+            '--tx-in', utxo.queue.txid,
+            '--spending-tx-in-reference', queue_ref_utxo,
+            '--spending-plutus-script-v2',
+            '--spending-reference-tx-in-inline-datum-present',
+            '--spending-reference-tx-in-execution-units', queue_execution_units,
+            '--spending-reference-tx-in-redeemer-file', queue_redeemer_file_path,
+            "--tx-out", batcher_out_value.to_output(batcher_address),
+            '--tx-out', queue_out_value.to_output(owner_address),
+            '--required-signer-hash', batcher_pkh,
+            "--required-signer-hash", collat_pkh,
+            '--fee', str(total_fee)
+        ]
+
+        # this saves to out file
+        p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = p.communicate()
 
         # everything should be good to go
         refund_success_flag = True

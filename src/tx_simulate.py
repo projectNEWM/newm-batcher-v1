@@ -204,14 +204,16 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
     # vault
     vault_index = find_index_of_target(inputs, utxo.vault.txid)
-    vault_bytes = to_bytes(bech32_to_hex(config['vault_address']))
-    vault_datum_bytes = [1, tag(24, convert_datum(utxo.vault.datum))]
-    outputs[vault_index] = {0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
+    if vault_index is not None:
+        vault_bytes = to_bytes(bech32_to_hex(config['vault_address']))
+        vault_datum_bytes = [1, tag(24, convert_datum(utxo.vault.datum))]
+        outputs[vault_index] = {0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
     # oracle
     oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
-    oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
-    oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
-    outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
+    if oracle_index is not None:
+        oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
+        oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
+        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
     # collateral; hardcoded
     collat_index = find_index_of_target(inputs, config['collat_utxo'])
     collat_bytes = to_bytes(bech32_to_hex(config['collat_address']))
@@ -233,8 +235,62 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
     # vault ref
     vault_ref_index = find_index_of_target(inputs, utxo.reference.vault.txid)
-    vault_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.vault.cborHex)]).hex()))
-    outputs[vault_ref_index] = {0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
+    if vault_ref_index is not None:
+        vault_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.vault.cborHex)]).hex()))
+        outputs[vault_ref_index] = {0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
+
+    outputs_cbor = dumps(outputs).hex()
+
+    network = True if "mainnet" in config['network'] else False
+    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=False)
+    return execution_units
+
+
+def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict):
+    inputs, inputs_cbor = inputs_from_cbor(cborHex)
+
+    # initialize the outputs
+    outputs = [{} for _ in inputs]
+
+    # build outputs
+    # batcher
+    batcher_index = find_index_of_target(inputs, utxo.batcher.txid)
+    batcher_bytes = to_bytes(bech32_to_hex(config['batcher_address']))
+    outputs[batcher_index] = {0: batcher_bytes, 1: utxo.batcher.value.simulate_form()}
+    # sale
+    sale_index = find_index_of_target(inputs, utxo.sale.txid)
+    sale_bytes = to_bytes(bech32_to_hex(config['sale_address']))
+    sale_datum_bytes = [1, tag(24, convert_datum(utxo.sale.datum))]
+    outputs[sale_index] = {0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
+    # queue
+    queue_index = find_index_of_target(inputs, utxo.queue.txid)
+    queue_bytes = to_bytes(bech32_to_hex(config['queue_address']))
+    queue_datum_bytes = [1, tag(24, convert_datum(utxo.queue.datum))]
+    outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
+    # oracle
+    oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
+    if oracle_index is not None:
+        oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
+        oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
+        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
+    # collateral; hardcoded
+    collat_index = find_index_of_target(inputs, config['collat_utxo'])
+    collat_bytes = to_bytes(bech32_to_hex(config['collat_address']))
+    outputs[collat_index] = {0: collat_bytes, 1: 5000000}
+    # data
+    data_index = find_index_of_target(inputs, utxo.data.txid)
+    data_bytes = to_bytes(bech32_to_hex(config['data_address']))
+    data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
+    outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
+
+    # reference stuff
+    reference_bytes = to_bytes(bech32_to_hex(config['reference_address']))
+    # queue ref
+    queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
+    queue_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
+    outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
+
+    # compute the output cbor
     outputs_cbor = dumps(outputs).hex()
 
     network = True if "mainnet" in config['network'] else False
