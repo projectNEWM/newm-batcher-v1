@@ -130,7 +130,10 @@ class Value:
             return NotImplemented
         if not isinstance(asset, str):
             return NotImplemented
-        return self.inner[policy][asset]
+        try:
+            return self.inner[policy][asset]
+        except KeyError:
+            return 0
 
     def dump(self) -> str:
         """
