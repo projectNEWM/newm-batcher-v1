@@ -60,17 +60,28 @@ class ReferenceDbManager(BaseDbManager):
         finally:
             conn.close()
 
-    def read(self, reference):
+    def read(self):
         conn = self.get_connection()
+        data = {
+            "sale": {},
+            "queue": {},
+            "vault": {},
+        }
         try:
             cursor = conn.cursor()
-            cursor.execute(
-                'SELECT txid, cborHex, value FROM reference WHERE id = ?', (reference,))
-            record = cursor.fetchone()  # there is only one
-            if record:
-                txid, cborHex, value_json = record
-                value = self.json_to_dict(value_json)
-                return {'txid': txid, 'cborHex': cborHex, 'value': Value(value)}
-            return None
+            references = {
+                "sale_reference": "sale",
+                "queue_reference": "queue",
+                "vault_reference": "vault",
+            }
+
+            for ref_id, key in references.items():
+                cursor.execute('SELECT txid, cborHex, value FROM reference WHERE id = ?', (ref_id,))
+                record = cursor.fetchone()  # there is only one
+                if record:
+                    txid, cborHex, value_json = record
+                    value = self.json_to_dict(value_json)
+                    data[key] = {'txid': txid, 'cborHex': cborHex, 'value': Value(value)}
+            return data
         finally:
             conn.close()

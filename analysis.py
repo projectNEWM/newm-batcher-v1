@@ -132,25 +132,24 @@ def vault_utxo(db: DbManager):
 
 
 def references_utxo(db: DbManager):
-    sale = db.reference.read('sale_reference')
-    queue = db.reference.read('queue_reference')
-    vault = db.reference.read('vault_reference')
-    print(f"Sale TxId: {sale['txid']}")
-    print(f"{sale['value']}")
-    print(f"Queue TxId: {queue['txid']}")
-    print(f"{queue['value']}")
-    print(f"Vault TxId: {vault['txid']}")
-    print(f"{vault['value']}")
+    reference_info = db.reference.read()
+    print(f"Sale TxId: {reference_info['sale']['txid']}")
+    print(f"{reference_info['sale']['value']}")
+    print(f"Queue TxId: {reference_info['queue']['txid']}")
+    print(f"{reference_info['queue']['value']}")
+    print(f"Vault TxId: {reference_info['vault']['txid']}")
+    print(f"{reference_info['vault']['value']}")
 
 
 def simulate_purchase(db: DbManager, tkn: str, tag: str):
     # simulate the purchase endpoint between a sale and a queue
+    reference_info = db.reference.read()
     batcher_info = db.batcher.read(config["batcher_policy"])
     batcher_pkh = pkh_from_address(config['batcher_address'])
     vault_info = db.vault.read(batcher_pkh)
     oracle_info = db.oracle.read()
     data_info = db.data.read()
-    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info)
+    utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
     sale_info = db.sale.read(tkn)
     utxo.set_sale(sale_info)
     queue_info = db.queue.read(tag)
