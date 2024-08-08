@@ -291,8 +291,19 @@ class Endpoint:
         data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
         outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
         # reference stuff
-
-        # output cbor
+        reference_bytes = to_bytes(bech32_to_hex(config['reference_address']))
+        # sale ref
+        sale_ref_index = find_index_of_target(inputs, utxo.reference.sale.txid)
+        sale_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.sale.cborHex)])))
+        outputs[sale_ref_index] = {0: reference_bytes, 1: utxo.reference.sale.value.simulate_form(), 3: sale_ref_bytes}
+        # queue ref
+        queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
+        queue_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.queue.cborHex)])))
+        outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
+        # vault ref
+        vault_ref_index = find_index_of_target(inputs, utxo.reference.vault.txid)
+        vault_ref_bytes = dumps(tag(24, dumps([2, to_bytes(utxo.reference.vault.cborHex)])))
+        outputs[vault_ref_index] = {0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
         outputs_cbor = dumps(outputs).hex()
 
         # At this point we should be able to calculate the total fee

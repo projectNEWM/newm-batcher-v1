@@ -105,8 +105,10 @@ class Aggregate:
                 if batcher_info is None:
                     logger.critical("Batcher UTxO can not be found")
                     return
+        # get the reference info
+        reference_info = db.reference.read()
         # create the UTxOManger
-        utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info)
+        utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
 
         # handle the sales now
         for sale_tkn in sorted_queue:
