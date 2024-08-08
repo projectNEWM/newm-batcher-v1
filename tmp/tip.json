@@ -1,10 +1,10 @@
 {
-    "block": 2553609,
+    "block": 2564602,
     "epoch": 159,
     "era": "Babbage",
-    "hash": "db4a2241ad695aeb6341e5e952452c836dc7ae0d8bc5ae53c8678b362f02febb",
-    "slot": 67215945,
-    "slotInEpoch": 169545,
-    "slotsToEpochEnd": 262455,
+    "hash": "21b724a1702f2fa8e21fb884cf835869b0601550f02fbf3e5e12aaf9b35c32e7",
+    "slot": 67472286,
+    "slotInEpoch": 425886,
+    "slotsToEpochEnd": 6114,
     "syncProgress": "100.00"
 }

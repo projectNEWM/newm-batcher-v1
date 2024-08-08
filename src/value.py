@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 
 from src.allowlist import allowed
+from src.cbor import to_bytes
 
 
 @dataclass
@@ -129,7 +130,10 @@ class Value:
             return NotImplemented
         if not isinstance(asset, str):
             return NotImplemented
-        return self.inner[policy][asset]
+        try:
+            return self.inner[policy][asset]
+        except KeyError:
+            return 0
 
     def dump(self) -> str:
         """
@@ -192,3 +196,16 @@ class Value:
                 # this is lovelace
                 if inner_copy[policy] == 0:
                     del self.inner[policy]
+
+    def simulate_form(self):
+        inner_copy = self.inner.copy()  # create a copy so we can delete
+        lovelace = inner_copy["lovelace"]
+        del inner_copy["lovelace"]
+        if len(inner_copy) == 0:
+            return int(lovelace)
+        obj = {}
+        for policy, assets in inner_copy.items():
+            obj[to_bytes(policy)] = {}
+            for asset, quantity in assets.items():
+                obj[to_bytes(policy)][to_bytes(asset)] = int(quantity)
+        return [int(lovelace), obj]

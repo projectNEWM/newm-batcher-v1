@@ -48,3 +48,28 @@ def file_exists(file_path):
     - bool: True if the file exists, False otherwise.
     """
     return os.path.exists(file_path)
+
+
+def find_index_of_target(lst: list[tuple[str, int]], target: str) -> int | None:
+    """
+    Finds the index of a target tuple in a list of tuples.
+
+    Parameters:
+    lst (List[Tuple[str, int]]): The list of tuples to search.
+    target (str): The target string in the format 'hash#index'.
+
+    Returns:
+    Optional[int]: The index of the target tuple if found, otherwise None.
+    """
+    # Split the target string into the hash and index
+    target_hash, target_index = target.split('#')
+    target_index = int(target_index)  # Convert the index part to an integer
+
+    # Create the target tuple
+    target_tuple = (target_hash, target_index)
+
+    # Find the index of the target tuple in the list
+    if target_tuple in lst:
+        return lst.index(target_tuple)
+    else:
+        return None  # Return None if the target is not found

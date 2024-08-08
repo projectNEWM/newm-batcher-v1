@@ -49,3 +49,15 @@ def header_byte_from_address(addr: str) -> str:
     """
     address = Address.from_primitive(addr)
     return address.header_byte.hex()
+
+
+def bech32_to_hex(addr: str) -> str:
+    address = Address.from_primitive(addr)
+    header = address.header_byte.hex()
+    pkh = address.payment_part.to_primitive().hex()
+    sc = address.staking_part
+    if sc is None:
+        return header + pkh
+    else:
+        sc = sc.to_primitive().hex()
+        return header + pkh + sc
