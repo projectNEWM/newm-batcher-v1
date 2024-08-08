@@ -29,12 +29,12 @@ class ReferenceDbManager(BaseDbManager):
         parent_dir = parent_directory_path()
 
         # sale
-        sale_path = os.path.join(parent_dir, "contracts/vault_contract.plutus")
+        sale_path = os.path.join(parent_dir, "contracts/sale_contract.plutus")
         sale_double_cbor = get_cbor_from_file(sale_path)
         sale_cbor = cbor2.loads(bytes.fromhex(sale_double_cbor)).hex()
 
         # queue
-        queue_path = os.path.join(parent_dir, "contracts/vault_contract.plutus")
+        queue_path = os.path.join(parent_dir, "contracts/queue_contract.plutus")
         queue_double_cbor = get_cbor_from_file(queue_path)
         queue_cbor = cbor2.loads(bytes.fromhex(queue_double_cbor)).hex()
 
