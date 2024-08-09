@@ -23,7 +23,7 @@ class QueueDbManager(BaseDbManager):
     def create(self, tag, txid, tkn, datum, value, timestamp, tx_idx):
         conn = self.get_connection()
         try:
-            datum_json = self.dict_to_json(datum)
+            datum_json = self.data_to_json(datum)
             value_json = value.dump()
             conn.execute(
                 'INSERT OR REPLACE INTO queue (tag, txid, tkn, datum, value, timestamp, tx_idx) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -41,8 +41,8 @@ class QueueDbManager(BaseDbManager):
             record = cursor.fetchone()
             if record:
                 txid, tkn, datum_json, value_json, timestamp, tx_idx = record
-                datum = self.json_to_dict(datum_json)
-                value = self.json_to_dict(value_json)
+                datum = self.json_to_data(datum_json)
+                value = self.json_to_data(value_json)
                 return {'tag': tag, 'txid': txid, 'tkn': tkn, 'datum': datum, 'value': Value(value), 'timestamp': timestamp, 'tx_idx': tx_idx}
             return None
         finally:
@@ -57,8 +57,8 @@ class QueueDbManager(BaseDbManager):
             queue_records = []
             for record in records:
                 tag, txid, tkn, datum_json, value_json, timestamp, tx_idx = record
-                datum = self.json_to_dict(datum_json)
-                value = self.json_to_dict(value_json)
+                datum = self.json_to_data(datum_json)
+                value = self.json_to_data(value_json)
                 queue_records.append((tag, {'tag': tag, 'txid': txid, 'tkn': tkn, 'datum': datum, 'value': Value(value), 'timestamp': timestamp, 'tx_idx': tx_idx}))
             return queue_records
         finally:

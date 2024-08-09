@@ -20,7 +20,7 @@ class DataDbManager(BaseDbManager):
     def create(self, txid, datum, value):
         conn = self.get_connection()
         try:
-            datum_json = self.dict_to_json(datum)
+            datum_json = self.data_to_json(datum)
             value_json = value.dump()
             conn.execute(
                 'INSERT OR IGNORE INTO data (id, txid, datum, value) VALUES (?, ?, ?, ?)',
@@ -39,8 +39,8 @@ class DataDbManager(BaseDbManager):
             record = cursor.fetchone()  # there is only one
             if record:
                 txid, datum_json, value_json = record
-                datum = self.json_to_dict(datum_json)
-                value = self.json_to_dict(value_json)
+                datum = self.json_to_data(datum_json)
+                value = self.json_to_data(value_json)
                 return {'txid': txid, 'datum': datum, 'value': Value(value)}
             return None
         finally:
@@ -50,7 +50,7 @@ class DataDbManager(BaseDbManager):
         # it only gets created once, so the id is always known
         conn = self.get_connection()
         try:
-            datum_json = self.dict_to_json(datum)
+            datum_json = self.data_to_json(datum)
             value_json = value.dump()
             conn.execute(
                 'UPDATE data SET txid = ?, datum = ?, value = ? WHERE id = ?',

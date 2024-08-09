@@ -17,8 +17,8 @@ class BaseDbManager:
         finally:
             conn.close()
 
-    def dict_to_json(self, dict_data):
+    def data_to_json(self, dict_data):
         return json.dumps(dict_data)
 
-    def json_to_dict(self, json_data):
+    def json_to_data(self, json_data):
         return json.loads(json_data)
