@@ -1,5 +1,6 @@
 import hashlib
 import os
+import time
 
 
 def sha3_256(input_string: str) -> str:
@@ -73,3 +74,12 @@ def find_index_of_target(lst: list[tuple[str, int]], target: str) -> int | None:
         return lst.index(target_tuple)
     else:
         return None  # Return None if the target is not found
+
+
+def current_time() -> int:
+    """Current unix time in milliseconds.
+
+    Returns:
+        int: The integer value of unix time.
+    """
+    return int(1000 * time.time())

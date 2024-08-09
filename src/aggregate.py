@@ -9,7 +9,8 @@ from src.datums import (data_validity, oracle_validity, sale_validity,
                         vault_validity)
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
-from src.utility import file_exists, parent_directory_path, sha3_256
+from src.utility import (current_time, file_exists, parent_directory_path,
+                         sha3_256)
 from src.utxo_manager import UTxOManager
 
 
@@ -127,6 +128,8 @@ class Aggregate:
         # create the UTxOManger
         utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
 
+        db.seen.delete(current_time())
+
         # handle the sales now
         for sale_tkn in sorted_queue:
             sale_info = db.sale.read(sale_tkn)
@@ -171,13 +174,21 @@ class Aggregate:
                     # then its not in the utxo set right now
                     continue
 
+                if db.seen.exists(queue_info['txid']) is True:
+                    logger.warning(f"Queue: {queue_info['txid']} may still be in the mempool")
+                    # then its not in the utxo set right now
+                    continue
+
                 logger.debug(f"Queue: {order_hash}")
 
                 # set the queue now that we know it
                 utxo.set_queue(queue_info)
 
                 # build the purchase tx
-                # purchase_inputs = [utxo.sale.txid, utxo.queue.txid]
+                start_time = utxo.oracle.datum['fields'][0]['fields'][0]['map'][1]['v']['int']
+                end_time = utxo.oracle.datum['fields'][0]['fields'][0]['map'][2]['v']['int']
+
+                purchase_input = utxo.queue.txid
                 utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger=logger)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
@@ -198,7 +209,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
-                # refund_inputs = [utxo.queue.txid]
+                refund_input = utxo.queue.txid
                 utxo, refund_success_flag = Endpoint.refund(utxo, config, logger=logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
@@ -224,12 +235,8 @@ class Aggregate:
                     if purchase_result is True:
                         logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
                         tag = sha3_256(txid(signed_purchase_tx))
-                        #
-                        # TODO
-                        #
-                        # Seen may need to be removed
-                        # db.seen.create(order_hash)
-                        # db.seen.create(tag)
+                        # saw something go into the mempool with this validity window
+                        db.seen.create(purchase_input, start_time, end_time)
                     else:
                         logger.warning(f"Order: {order_hash} Purchased: Failed")
 
@@ -239,10 +246,7 @@ class Aggregate:
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
-                        #
-                        # TODO
-                        #
-                        # db.seen.create(tag)
+                        db.seen.create(refund_input, start_time, end_time)
                     else:
                         logger.warning(f"Order: {tag} Refund: Failed")
         return
