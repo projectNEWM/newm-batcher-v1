@@ -46,6 +46,24 @@ class VaultDbManager(BaseDbManager):
         finally:
             conn.close()
 
+    def read_all(self, pkh):
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute('SELECT txid, datum, value FROM vault WHERE pkh = ?', (pkh,))
+            records = cursor.fetchall()  # Fetch all matching records
+            if records:
+                results = []
+                for record in records:
+                    txid, datum_json, value_json = record
+                    datum = self.json_to_dict(datum_json)
+                    value = self.json_to_dict(value_json)
+                    results.append({'pkh': pkh, 'txid': txid, 'datum': datum, 'value': Value(value)})
+                return results
+            return None
+        finally:
+            conn.close()
+
     def delete(self, tag):
         conn = self.get_connection()
         try:

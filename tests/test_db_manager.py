@@ -18,7 +18,13 @@ def config():
     return {
         "starting_block_number": 0,
         "starting_blockhash": "acab",
-        "starting_timestamp": 1
+        "starting_timestamp": 1,
+        "sale_ref_utxo": "acab",
+        "sale_lovelace": 0,
+        "queue_ref_utxo": "acab",
+        "queue_lovelace": 0,
+        "vault_ref_utxo": "acab",
+        "vault_lovelace": 0,
     }
 
 
@@ -166,10 +172,10 @@ def test_create_seen(db_manager):
     assert record is True
 
 
-def test_create_oracle(db_manager):
+def test_create_oracle(db_manager, sample_value):
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.oracle.create(txid, datum)
+    db_manager.oracle.create(txid, datum, sample_value)
 
     record = db_manager.oracle.read()
     _txid = record['txid']
@@ -178,14 +184,14 @@ def test_create_oracle(db_manager):
     assert {} == _datum
 
 
-def test_update_oracle(db_manager):
+def test_update_oracle(db_manager, sample_value):
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.oracle.create(txid, datum)
+    db_manager.oracle.create(txid, datum, sample_value)
 
     txid2 = "test_txid2"
     datum2 = {"key": "value2"}
-    db_manager.oracle.update(txid2, datum2)
+    db_manager.oracle.update(txid2, datum2, sample_value)
 
     record = db_manager.oracle.read()
     _txid = record['txid']
@@ -221,10 +227,10 @@ def test_delete_vault(db_manager, sample_value):
     assert delete_flag is True
 
 
-def test_create_data(db_manager):
+def test_create_data(db_manager, sample_value):
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.data.create(txid, datum)
+    db_manager.data.create(txid, datum, sample_value)
 
     record = db_manager.data.read()
     _txid = record['txid']
@@ -233,14 +239,14 @@ def test_create_data(db_manager):
     assert {} == _datum
 
 
-def test_update_data(db_manager):
+def test_update_data(db_manager, sample_value):
     txid = "test_txid"
     datum = {"key": "value"}
-    db_manager.data.create(txid, datum)
+    db_manager.data.create(txid, datum, sample_value)
 
     txid2 = "test_txid2"
     datum2 = {"key": "value2"}
-    db_manager.data.update(txid2, datum2)
+    db_manager.data.update(txid2, datum2, sample_value)
 
     record = db_manager.data.read()
     _txid = record['txid']
