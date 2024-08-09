@@ -66,10 +66,10 @@ delay_depth: 3
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
+
 # Available logging levels
-#
 # TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
 logging_level: "TRACE"
 
-# Debug Mode
+# Debug Mode; False is no debug
 debug_mode: False
