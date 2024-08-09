@@ -128,6 +128,7 @@ class Aggregate:
         # create the UTxOManger
         utxo = UTxOManager(batcher_info, data_info, oracle_info, vault_info, reference_info)
 
+        # delete all expired seen entries
         db.seen.delete(current_time())
 
         # handle the sales now
@@ -160,12 +161,6 @@ class Aggregate:
                 if queue_info is None:
                     logger.warning(f"Order: {order_hash} Not Found")
                     # skip this order its not in the db
-                    continue
-
-                # check if the tag has been seen before
-                if db.seen.read(queue_info["tag"]) is True:
-                    logger.warning(f"Order: {order_hash} Has Been Seen")
-                    # skip this order as its already been seen
                     continue
 
                 # does the queue utxo actually exist still?
@@ -246,6 +241,7 @@ class Aggregate:
                     tag = sha3_256(txid(signed_refund_tx))
                     if refund_result is True:
                         logger.success(f"Order: {tag} Refund: {refund_result}")
+                        # saw something go into the mempool with this validity window
                         db.seen.create(refund_input, start_time, end_time)
                     else:
                         logger.warning(f"Order: {tag} Refund: Failed")
