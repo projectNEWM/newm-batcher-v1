@@ -164,12 +164,44 @@ def test_delete_queue(db_manager, sample_value):
     assert delete_flag is True
 
 
-def test_create_seen(db_manager):
-    tag = "acab"
-    db_manager.seen.create(tag)
+def test_create_seen_exists(db_manager):
+    queue_txid = "cafe"
+    start_time = 0
+    end_time = 10
+    db_manager.seen.create(queue_txid, start_time, end_time)
 
-    record = db_manager.seen.read(tag)
+    record = db_manager.seen.exists(queue_txid)
     assert record is True
+
+
+def test_delete_seen_dont_exists(db_manager):
+    queue_txid = "cafe"
+    start_time = 0
+    end_time = 10
+    db_manager.seen.create(queue_txid, start_time, end_time)
+    db_manager.seen.delete(10)
+    record = db_manager.seen.exists(queue_txid)
+    assert record is False
+
+
+def test_delete_seen_exists(db_manager):
+    queue_txid = "cafe"
+    start_time = 0
+    end_time = 10
+    db_manager.seen.create(queue_txid, start_time, end_time)
+    db_manager.seen.delete(5)
+    record = db_manager.seen.exists(queue_txid)
+    assert record is True
+
+
+def test_create_seen_dont_exists(db_manager):
+    queue_txid = "cafe"
+    start_time = 0
+    end_time = 10
+    db_manager.seen.create(queue_txid, start_time, end_time)
+
+    record = db_manager.seen.exists("")
+    assert record is False
 
 
 def test_create_oracle(db_manager, sample_value):
