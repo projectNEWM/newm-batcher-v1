@@ -33,23 +33,37 @@ class Aggregate:
             return
 
         batcher_infos = db.batcher.read_all()
-
         # batcher pkh for signing will come from vault now
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
-        vault_info = db.vault.read(batcher_pkh)
-        if vault_info is None:
+        # vault
+        vault_infos = db.vault.read_all(batcher_pkh)
+        if vault_infos is None:
             logger.critical("Vault is not set up for batcher")
             return
-        if vault_validity(vault_info['datum']) is False:
-            logger.critical("Vault has failed the validity test")
-            return
-        # does the vault utxo actually exist still?
-        if does_utxo_exist(config["socket_path"], vault_info['txid'], config["network"]) is False:
-            logger.warning(f"Vault: {vault_info['txid']} does not exist on chain")
-            # then its not in the utxo set right now
+        # find one
+        for info in vault_infos:
+            use_this_vault_flag = True
+            # does is the vault datum valid?
+            if vault_validity(info['datum']) is False:
+                logger.critical("Vault has failed the validity test")
+                use_this_vault_flag = False
+                continue
+            # does the vault utxo actually exist still?
+            if does_utxo_exist(config["socket_path"], info['txid'], config["network"]) is False:
+                logger.warning(f"Vault: {info['txid']} does not exist on chain")
+                use_this_vault_flag = False
+                continue
+            # if good to go then set the vault info and break
+            if use_this_vault_flag is True:
+                vault_info = info
+                break
+        if use_this_vault_flag is False:
+            # then all the vaults
+            logger.warning("All Vaults do not exist on chain")
             return
 
+        # oracle
         oracle_info = db.oracle.read()
         if oracle_info is None:
             logger.critical("Oracle is not set up for batcher")
@@ -63,6 +77,7 @@ class Aggregate:
             # then its not in the utxo set right now
             return
 
+        # data
         data_info = db.data.read()
         if data_info is None:
             logger.critical("Data is not set up for batcher")
@@ -76,6 +91,9 @@ class Aggregate:
             # then its not in the utxo set right now
             return
 
+        #
+        # TODO
+        #
         batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
         # no utxos or no batcher token
         if batcher_info is None:
@@ -87,9 +105,6 @@ class Aggregate:
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"], logger):
                 # if submit was successful then delete what was spent and add in the new outputs
-                #
-                # TODO
-                #
                 # Is deleting here what we want to do?
                 for batcher in batcher_infos:
                     tag = sha3_256(batcher['txid'])
@@ -105,7 +120,8 @@ class Aggregate:
                 if batcher_info is None:
                     logger.critical("Batcher UTxO can not be found")
                     return
-        # get the reference info
+
+        # reference
         reference_info = db.reference.read()
 
         # create the UTxOManger
