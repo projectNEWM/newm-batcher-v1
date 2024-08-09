@@ -36,7 +36,7 @@ class BatcherDbManager(BaseDbManager):
             records = cursor.fetchall()
             for record in records:
                 tag, txid, value_json = record
-                value = Value(self.json_to_dict(value_json))
+                value = Value(self.json_to_data(value_json))
                 if value.exists(batcher_policy):
                     return {'tag': tag, 'txid': txid, 'value': value}
             return None
@@ -52,7 +52,7 @@ class BatcherDbManager(BaseDbManager):
             batcher_records = []
             for record in records:
                 tag, txid, value_json = record
-                value = self.json_to_dict(value_json)
+                value = self.json_to_data(value_json)
                 batcher_records.append({'tag': tag, 'txid': txid, 'value': Value(value)})
             return batcher_records
         finally:

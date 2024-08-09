@@ -21,7 +21,7 @@ class VaultDbManager(BaseDbManager):
     def create(self, tag, txid, pkh, datum, value):
         conn = self.get_connection()
         try:
-            datum_json = self.dict_to_json(datum)
+            datum_json = self.data_to_json(datum)
             value_json = value.dump()
             conn.execute(
                 'INSERT OR REPLACE INTO vault (tag, txid, pkh, datum, value) VALUES (?, ?, ?, ?, ?)',
@@ -39,8 +39,8 @@ class VaultDbManager(BaseDbManager):
             record = cursor.fetchone()
             if record:
                 txid, datum_json, value_json = record
-                datum = self.json_to_dict(datum_json)
-                value = self.json_to_dict(value_json)
+                datum = self.json_to_data(datum_json)
+                value = self.json_to_data(value_json)
                 return {'pkh': pkh, 'txid': txid, 'datum': datum, 'value': Value(value)}
             return None
         finally:
@@ -56,8 +56,8 @@ class VaultDbManager(BaseDbManager):
                 results = []
                 for record in records:
                     txid, datum_json, value_json = record
-                    datum = self.json_to_dict(datum_json)
-                    value = self.json_to_dict(value_json)
+                    datum = self.json_to_data(datum_json)
+                    value = self.json_to_data(value_json)
                     results.append({'pkh': pkh, 'txid': txid, 'datum': datum, 'value': Value(value)})
                 return results
             return None
