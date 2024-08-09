@@ -80,7 +80,7 @@ class ReferenceDbManager(BaseDbManager):
                 record = cursor.fetchone()  # there is only one
                 if record:
                     txid, cborHex, value_json = record
-                    value = self.json_to_dict(value_json)
+                    value = self.json_to_data(value_json)
                     data[key] = {'txid': txid, 'cborHex': cborHex, 'value': Value(value)}
             return data
         finally:

@@ -174,14 +174,18 @@ class Endpoint:
 
         # timeunits
         delta = 60
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
+        # start and end unix times
+        start_time = oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int']
+        end_time = oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int']
+        # start and end slots
+        start_slot = query_slot_number(config['socket_path'], start_time, config['network'], delta)
+        end_slot = query_slot_number(config['socket_path'], end_time, config['network'], -delta)
         latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
             if logger is not None:
-                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
+                logger.warning(f"Purchase Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late")
             return utxo, purchase_success_flag
 
         # if true then the oracle is required
@@ -442,7 +446,7 @@ class Endpoint:
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
             if logger is not None:
-                logger.warning(f"Difference: end - latest: {end_slot - latest_slot_number}")
+                logger.warning(f"Refund Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late")
             return utxo, refund_success_flag
 
         func = [

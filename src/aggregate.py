@@ -177,6 +177,7 @@ class Aggregate:
                 utxo.set_queue(queue_info)
 
                 # build the purchase tx
+                # purchase_inputs = [utxo.sale.txid, utxo.queue.txid]
                 utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger=logger)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
@@ -197,6 +198,7 @@ class Aggregate:
                 # The order may just be in the refund state
                 #
                 # assume its good to go and lets chain the refund
+                # refund_inputs = [utxo.queue.txid]
                 utxo, refund_success_flag = Endpoint.refund(utxo, config, logger=logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
