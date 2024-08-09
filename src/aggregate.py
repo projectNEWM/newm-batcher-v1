@@ -39,7 +39,7 @@ class Aggregate:
         # vault
         vault_infos = db.vault.read_all(batcher_pkh)
         if vault_infos is None:
-            logger.critical("Vault is not set up for batcher")
+            logger.critical("Vaults is not set up for batcher")
             return
         # find one
         for info in vault_infos:
@@ -60,7 +60,7 @@ class Aggregate:
                 break
         if use_this_vault_flag is False:
             # then all the vaults
-            logger.warning("All Vaults do not exist on chain")
+            logger.critical("All Vaults do not exist on chain")
             return
 
         # oracle
