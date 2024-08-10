@@ -9,12 +9,12 @@
 ###############################################################################
 
 # Batcher Information
-batcher_address: "addr_test1vrs4fk7ea6rg2fvd00sa8um5unp0rt474kngwpc38v2z9vqujprdk"
+batcher_address: "addr_test1vqzzzrr0tqft2dlxn47txnkvm9uvus70hade3cxk8m5pccsnespvn"
 profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
 
 # Collat Wallet Information
-collat_address: "addr_test1vrzemf8vdeg4cthu3pnzwn0wdty6vj6eghhaxe0n4xv7wcqwqtchw"
-collat_utxo: "1e0b413409dd9591b2a69bca80d7d776e8bb5130f02af0bf886e08ce5b6e183a#0"
+collat_address: "addr_test1vrt9kdej3je8tatg4ag35tmlrhej6c30wfluzl248fe5j7s29jsna"
+collat_utxo: "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0"
 
 # Node And Network Information
 network: "--testnet-magic 1"
