@@ -34,6 +34,14 @@ class Aggregate:
             return
 
         batcher_infos = db.batcher.read_all()
+
+        # does the batcher utxo actually exist still if the profit wasnt successful
+        for info in batcher_infos:
+            if does_utxo_exist(config["socket_path"], info['txid'], config["network"]) is False:
+                logger.warning(f"Batcher: {info['txid']} does not exist on chain")
+                # then its not in the utxo set right now
+                return
+
         # batcher pkh for signing will come from vault now
         batcher_pkh = pkh_from_address(config['batcher_address'])
 
@@ -86,35 +94,30 @@ class Aggregate:
         if data_validity(data_info['datum']) is False:
             logger.critical("Data has failed the validity test")
             return
-        # does the sale utxo actually exist still?
+        # does the data utxo actually exist still?
         if does_utxo_exist(config["socket_path"], data_info['txid'], config["network"]) is False:
             logger.warning(f"Data: {data_info['txid']} does not exist on chain")
             # then its not in the utxo set right now
             return
 
-        #
-        # TODO
-        #
+        # batcher info is returned from the profit endpoint
         batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
 
         # no utxos or no batcher token
         if batcher_info is None:
-            logger.critical("Batcher is returning None from profit endpoint")
+            logger.critical("Batcher UTxO can not be found")
             return
 
         if profit_success_flag is True:
             # sign and submit tx here
             sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
             if submit(signed_profit_tx, config["socket_path"], config["network"], logger):
-                # if submit was successful then delete what was spent and add in the new outputs
-                # Is deleting here what we want to do?
-                for batcher in batcher_infos:
-                    tag = sha3_256(batcher['txid'])
-                    if db.batcher.delete(tag):
-                        logger.success(f"Spent Batcher Input @ {tag}")
-                tag = sha3_256(batcher_info['txid'])
-                db.batcher.create(tag, batcher_info['txid'], batcher_info['value'])
-                logger.success(f"Batcher Output @ {batcher_info['txid']}")
+                # if submit was successful then batcher goes into the depth delay cooldown
+                logger.success(f"Auto Profit Batcher Output @ {batcher_info['txid']}")
+                #
+                # TODO Do we have to return here?
+                #
+                return
             else:
                 logger.warning("Batcher Profit Transaction Failed")
                 # attempt to get the db batcher utxo then
@@ -123,7 +126,7 @@ class Aggregate:
                     logger.critical("Batcher UTxO can not be found")
                     return
 
-        # reference
+        # reference info
         reference_info = db.reference.read()
 
         # create the UTxOManger
