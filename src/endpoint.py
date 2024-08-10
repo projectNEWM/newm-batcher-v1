@@ -591,7 +591,7 @@ class Endpoint:
         protocol_file_path = os.path.join(parent_dir, "tmp/protocol.json")
         out_file_path = os.path.join(parent_dir, "tmp/tx.draft")
 
-        fee = 350000
+        fee = 0
         fee_value = Value({"lovelace": fee})
 
         # send back 5 ada and the batcher token
@@ -605,30 +605,39 @@ class Endpoint:
         returning_batcher_info = None
         found_batcher_policy = False
         found_batcher_profit = False
+
+        # loop all the inputs
         for batcher_info in batcher_infos:
             # assume only one utxo has the batcher policy
             if batcher_info['value'].exists(config["batcher_policy"]):
-                # if it doesnt meet the threshold then fail
+
+                # if it doesnt meet the threshold then just return the utxo with the batcher policy
                 if not batcher_info['value'].meets_threshold():
                     return batcher_info, profit_success_flag
 
+                # it does meet the threshold
                 returning_batcher_info = copy.deepcopy(batcher_info)
                 found_batcher_policy = True
                 batcher_tkn = batcher_info['value'].get_token(config["batcher_policy"])
+
             else:
+
                 # only do the profit if some other utxo contains at least 5 ada
                 if batcher_info['value'].contains(Value({"lovelace": 5000000})):
                     found_batcher_profit = True
+
+            # sum all the values together
             total_batcher_value += copy.deepcopy(batcher_info['value'])
             tx_in_list.append("--tx-in")
             tx_in_list.append(batcher_info['txid'])
+
         # if the policy was never found then return
         if found_batcher_policy is False:
             return returning_batcher_info, profit_success_flag
+
         # if the policy was found but the profit payment utxo wasnt then return
         if found_batcher_policy is True and found_batcher_profit is False:
             return returning_batcher_info, profit_success_flag
-        # here we have the batcher policy and the profit payment utxo
 
         # the profit is the total value minus the fee and the default batcher value
         batcher_out_value = Value({"lovelace": 5000000, config["batcher_policy"]: {batcher_tkn: 1}})
@@ -647,6 +656,32 @@ class Endpoint:
             '--required-signer-hash', batcher_pkh,
             '--fee', str(fee)
         ]
+
+        # this saves to out file
+        p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.communicate()
+
+        # lets estimate the fee here
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        fee_value = Value({"lovelace": tx_fee})
+
+        batcher_profit_value = copy.deepcopy(total_batcher_value) - copy.deepcopy(batcher_out_value) - copy.deepcopy(fee_value)
+
+        # rebuild the tx with the correct fee
+        func = [
+            'cardano-cli', 'transaction', 'build-raw',
+            '--babbage-era',
+            '--protocol-params-file', protocol_file_path,
+            '--out-file', out_file_path,
+        ]
+        func += tx_in_list
+        func += [
+            "--tx-out", batcher_out_value.to_output(batcher_address),
+            "--tx-out", batcher_profit_value.to_output(config['profit_address']),
+            '--required-signer-hash', batcher_pkh,
+            '--fee', str(tx_fee)
+        ]
+
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.communicate()
