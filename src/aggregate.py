@@ -96,6 +96,7 @@ class Aggregate:
         # TODO
         #
         batcher_info, profit_success_flag = Endpoint.profit(batcher_infos, config)
+
         # no utxos or no batcher token
         if batcher_info is None:
             logger.critical("Batcher is returning None from profit endpoint")
