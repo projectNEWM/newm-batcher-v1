@@ -1,2 +1,4 @@
-*.keys
 *.skey
+*.vkey
+*.hash
+*.addr
