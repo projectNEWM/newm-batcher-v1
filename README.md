@@ -70,7 +70,9 @@ socket_path: ""
 
 If the `setup_keys.sh` script is used then follow the steps below.
 
-Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base 
+Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base address from the CIP03 wallet or any address of your choosing. The `collat_utxo` has the form `id#idx` and it holds 5 ADA. It will be used in every smart contract transaction as the collateral. The `network` variable is a string of either `--mainnet` or `--testnet-magic 1`. The batcher is designed to run on mainnet and pre-production only. The `socket_path` is the absolute path to the node socket of the fully synced cardano node.
+
+The batcher is ready to run after this information has been updated. Do not update any other variables as it may inhibit the batcher's ability to function.
 
 ## Running NEWM Batcher As A Service
 
@@ -104,3 +106,10 @@ Replace the `batcher_address` with value from the batcher.addr file and `collat_
     ```sh
     sudo systemctl status newm-batcher.service
     ```
+
+
+## Updating The NEWM Batcher
+
+There may be updates to the batcher from time to time. Below are instructions to update your current batcher to the newest version.
+
+- TODO
