@@ -16,8 +16,11 @@ profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9e
 collat_address: "addr_test1vrt9kdej3je8tatg4ag35tmlrhej6c30wfluzl248fe5j7s29jsna"
 collat_utxo: "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0"
 
-# Node And Network Information
+# Network Information
+# network: "--mainnet"
 network: "--testnet-magic 1"
+
+# Node And Network Information
 socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
 
 ###############################################################################

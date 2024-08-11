@@ -19,19 +19,58 @@ Run the batcher with `python3 batcher.py`. Run the tests with `pytest`. Some tes
 
 ## External Requirements
 
-The batcher will require full node socket access, cardano-cli, [Oura](https://github.com/txpipe/oura), python3, yq, and jq.
+The batcher requires a fully-synced cardano node, cardano-cli, cardano-address, [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq. Cardano-address is provided with the batcher inside the keys folder. The cardano-cli and cardano-node are assumed to be on path.
 
 ### Required CLI Keys
 
-- TODO
+The batcher comes with a setup helper file, `setup_keys.sh`, that will allow the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
 
-### Required API Keys
+```
+Press 1 to generate a wallet, 2 to load a wallet, or any other key to exit.
+```
 
-- TODO
+If the user wishes to generate a wallet then press 1. It will display a seed phrase for the user to write down then it will generate the required keys. If the user wishes to use an existing wallet then press 2. It will prompt the user to type in there seed phrase in a single line with single spaces between each word. If entered correctly then the script will generate the required keys. Any other key will exit the script. The script is designed to prevent overwriting.
+
+After successfully setting up the wallet, the keys folder will contain two sets of files, one for the batcher and the other for the collateral, corresponding to the zeroth and first key paths from the seed phrase.
+
+```bash
+# batcher keys
+batcher.addr
+batcher.hash
+batcher.skey
+batcher.vkey
+# collateral keys
+collat.addr
+collat.hash
+collat.skey
+collat.vkey
+```
+
+The batcher address will hold a UTxO with the batcher certificate token and 5 ADA and the collateral address will hold a UTxO with 5 ADA. The balances of these addresses can be view with the `balances.sh` script located in the keys folder as well as the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command.
+
+Using the setup script is not required as any valid cli keys can be used for the batcher. It is provided as a way to help secure the keys incase of failure or emergency.
 
 ## Configuration
 
-- TODO
+The `config.yaml` file is split into two parts. The user is expected to update just the top part that states `# Update Values For Your Batcher`. Configuring the batcher is placing the correct information into the fields below. The other information inside the `config.yaml` file does not need to be changed nor updated.
+
+```yaml
+# Batcher Information
+batcher_address: ""
+profit_address: ""
+
+# Collat Wallet Information
+collat_address: ""
+collat_utxo: ""
+
+# Node And Network Information
+network: ""
+socket_path: ""
+```
+
+If the `setup_keys.sh` script is used then follow the steps below.
+
+Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base 
 
 ## Running NEWM Batcher As A Service
 
