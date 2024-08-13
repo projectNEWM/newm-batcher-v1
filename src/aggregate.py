@@ -9,8 +9,7 @@ from src.datums import (data_validity, oracle_validity, sale_validity,
                         vault_validity)
 from src.db_manager import DbManager
 from src.endpoint import Endpoint
-from src.utility import (current_time, file_exists, parent_directory_path,
-                         sha3_256)
+from src.utility import current_time, file_exists, parent_directory_path
 from src.utxo_manager import UTxOManager
 
 
@@ -178,7 +177,7 @@ class Aggregate:
                     # then its not in the utxo set right now
                     continue
 
-                logger.debug(f"Queue: {order_hash}")
+                logger.debug(f"Queue: {queue_info['txid']}")
 
                 # set the queue now that we know it
                 utxo.set_queue(queue_info)
@@ -191,7 +190,7 @@ class Aggregate:
                 utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger=logger)
                 # if the flag is false then some valdation failed or build failed
                 if purchase_success_flag is False:
-                    logger.warning(f"Order: {order_hash}: Remove Only Or Refund")
+                    logger.warning(f"Order: {purchase_input}: Remove Only Or Refund")
 
                 # if the purchase was successful then sign it and update the info
                 if purchase_success_flag is True:
@@ -212,7 +211,7 @@ class Aggregate:
                 utxo, refund_success_flag = Endpoint.refund(utxo, config, logger=logger)
                 # if this fails then do not move forward
                 if refund_success_flag is False:
-                    logger.warning(f"Order: {order_hash}: Remove Only")
+                    logger.warning(f"Order: {refund_input}: Remove Only")
                     # skip the sign and submit as something didn't validate from the order
                     continue
 
@@ -231,22 +230,16 @@ class Aggregate:
                 # submit tx
                 if purchase_success_flag is True:
                     purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], logger)
+                    logger.success(f"Order: {purchase_input} Purchased: {purchase_result}")
                     if purchase_result is True:
-                        logger.success(f"Order: {order_hash} Purchased: {purchase_result}")
-                        tag = sha3_256(txid(signed_purchase_tx))
                         # saw something go into the mempool with this validity window
                         db.seen.create(purchase_input, start_time, end_time)
-                    else:
-                        logger.warning(f"Order: {order_hash} Purchased: Failed")
 
                 # submit tx
                 if refund_success_flag is True:
                     refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], logger)
-                    tag = sha3_256(txid(signed_refund_tx))
+                    logger.success(f"Order: {refund_input} Refund: {refund_result}")
                     if refund_result is True:
-                        logger.success(f"Order: {tag} Refund: {refund_result}")
                         # saw something go into the mempool with this validity window
                         db.seen.create(refund_input, start_time, end_time)
-                    else:
-                        logger.warning(f"Order: {tag} Refund: Failed")
         return
