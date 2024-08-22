@@ -52,10 +52,10 @@ tmp_folder = os.path.join(parent_dir, "tmp")
 create_folder_if_not_exists(tmp_folder)
 
 # get the current protocol parameters
-query_protocol_parameters(config["socket_path"], os.path.join(parent_dir, "tmp/protocol.json"), config["network"])
+query_protocol_parameters(config["socket_path"], os.path.join(parent_dir, "tmp/protocol.json"), config["network"], config["cli_path"])
 
 # the latest block at start time
-latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'])
+latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'], config['cli_path'])
 
 
 @app.route('/webhook', methods=['POST'])

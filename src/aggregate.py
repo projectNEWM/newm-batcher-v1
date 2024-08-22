@@ -36,7 +36,7 @@ class Aggregate:
 
         # does the batcher utxo actually exist still if the profit wasnt successful
         for info in batcher_infos:
-            if does_utxo_exist(config["socket_path"], info['txid'], config["network"]) is False:
+            if does_utxo_exist(config["socket_path"], info['txid'], config["network"], config["cli_path"]) is False:
                 logger.warning(f"Batcher: {info['txid']} does not exist on chain")
                 # then its not in the utxo set right now
                 return
@@ -58,7 +58,7 @@ class Aggregate:
                 use_this_vault_flag = False
                 continue
             # does the vault utxo actually exist still?
-            if does_utxo_exist(config["socket_path"], info['txid'], config["network"]) is False:
+            if does_utxo_exist(config["socket_path"], info['txid'], config["network"], config["cli_path"]) is False:
                 logger.warning(f"Vault: {info['txid']} does not exist on chain")
                 use_this_vault_flag = False
                 continue
@@ -80,7 +80,7 @@ class Aggregate:
             logger.critical("Oracle has failed the validity test")
             return
         # does the oracle utxo actually exist still?
-        if does_utxo_exist(config["socket_path"], oracle_info['txid'], config["network"]) is False:
+        if does_utxo_exist(config["socket_path"], oracle_info['txid'], config["network"], config["cli_path"]) is False:
             logger.warning(f"Oracle: {oracle_info['txid']} does not exist on chain")
             # then its not in the utxo set right now
             return
@@ -94,7 +94,7 @@ class Aggregate:
             logger.critical("Data has failed the validity test")
             return
         # does the data utxo actually exist still?
-        if does_utxo_exist(config["socket_path"], data_info['txid'], config["network"]) is False:
+        if does_utxo_exist(config["socket_path"], data_info['txid'], config["network"], config["cli_path"]) is False:
             logger.warning(f"Data: {data_info['txid']} does not exist on chain")
             # then its not in the utxo set right now
             return
@@ -109,8 +109,8 @@ class Aggregate:
 
         if profit_success_flag is True:
             # sign and submit tx here
-            sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path)
-            if submit(signed_profit_tx, config["socket_path"], config["network"], logger):
+            sign(out_file_path, signed_profit_tx, config['network'], batcher_skey_path, config["cli_path"])
+            if submit(signed_profit_tx, config["socket_path"], config["network"], config["cli_path"], logger):
                 # if submit was successful then batcher goes into the depth delay cooldown
                 logger.success(f"Auto Profit Batcher Output @ {batcher_info['txid']}")
                 #
@@ -143,7 +143,7 @@ class Aggregate:
                 continue
 
             # does the sale utxo actually exist still?
-            if does_utxo_exist(config["socket_path"], sale_info['txid'], config["network"]) is False:
+            if does_utxo_exist(config["socket_path"], sale_info['txid'], config["network"], config["cli_path"]) is False:
                 logger.warning(f"Sale: {sale_info['txid']} does not exist on chain")
                 # then its not in the utxo set right now
                 continue
@@ -167,7 +167,7 @@ class Aggregate:
                     continue
 
                 # does the queue utxo actually exist still?
-                if does_utxo_exist(config["socket_path"], queue_info['txid'], config["network"]) is False:
+                if does_utxo_exist(config["socket_path"], queue_info['txid'], config["network"], config["cli_path"]) is False:
                     logger.warning(f"Queue: {queue_info['txid']} does not exist on chain")
                     # then its not in the utxo set right now
                     continue
@@ -195,13 +195,13 @@ class Aggregate:
                 # if the purchase was successful then sign it and update the info
                 if purchase_success_flag is True:
                     # lets check if this tx was already submitted to the mempool
-                    intermediate_txid = txid(out_file_path)
-                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
+                    intermediate_txid = txid(out_file_path, config["cli_path"])
+                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"], config["cli_path"]):
                         logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
                         # skip the sign and submit since it was already submitted
                         continue
                     # sign tx
-                    sign(out_file_path, signed_purchase_tx, config['network'], batcher_skey_path, collat_skey_path)
+                    sign(out_file_path, signed_purchase_tx, config['network'], batcher_skey_path, config["cli_path"], collat_skey_path)
 
                 #
                 # The order may just be in the refund state
@@ -219,17 +219,17 @@ class Aggregate:
                 if refund_success_flag is True:
                     # refund was built correctly
                     # lets check if this tx was already submitted then
-                    intermediate_txid = txid(out_file_path)
-                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"]):
+                    intermediate_txid = txid(out_file_path, config["cli_path"])
+                    if does_tx_exists_in_mempool(config["socket_path"], intermediate_txid, mempool_file_path, config["network"], config["cli_path"]):
                         logger.warning(f"Transaction: {intermediate_txid} Is In Mempool")
                         # skip the sign and submit since it was already submitted
                         continue
                     # sign tx
-                    sign(out_file_path, signed_refund_tx, config['network'], batcher_skey_path, collat_skey_path)
+                    sign(out_file_path, signed_refund_tx, config['network'], batcher_skey_path, config["cli_path"], collat_skey_path)
 
                 # submit tx
                 if purchase_success_flag is True:
-                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], logger)
+                    purchase_result = submit(signed_purchase_tx, config['socket_path'], config['network'], config["cli_path"], logger)
                     logger.success(f"Order: {purchase_input} Purchased: {purchase_result}")
                     if purchase_result is True:
                         # saw something go into the mempool with this validity window
@@ -237,7 +237,7 @@ class Aggregate:
 
                 # submit tx
                 if refund_success_flag is True:
-                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], logger)
+                    refund_result = submit(signed_refund_tx, config['socket_path'], config['network'], config["cli_path"], logger)
                     logger.success(f"Order: {refund_input} Refund: {refund_result}")
                     if refund_result is True:
                         # saw something go into the mempool with this validity window

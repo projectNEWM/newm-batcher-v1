@@ -18,7 +18,7 @@ config = yaml_file.read("config.yaml")
 
 
 def status(db: DbManager):
-    latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'])
+    latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'], config["cli_path"])
     db_status = db.status.read()
 
     tip_difference = latest_block_number - int(db_status['block_number'])
