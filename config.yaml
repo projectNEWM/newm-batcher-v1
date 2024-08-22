@@ -20,8 +20,9 @@ collat_utxo: "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0
 # network: "--mainnet"
 network: "--testnet-magic 1"
 
-# Node And Network Information
+# Socket and Cardano CLI Information
 socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
+cli_path: "/usr/local/bin/cardano-cli"
 
 ###############################################################################
 # Do Not Update Values Below

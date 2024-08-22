@@ -2,7 +2,7 @@
 
 socket=$(yq '.socket_path' config.yaml)
 network=$(yq '.network' config.yaml)
-
+cli=$(yq '.cli_path' config.yaml)
 
 # Determine the magic value based on the network
 if [[ "$network" == "--mainnet" ]]; then
@@ -15,7 +15,7 @@ fi
 # Loop until the node is connected
 while true; do
     # Ping the node
-    output=$(cardano-cli ping \
+    output=$(${cli} ping \
     --count 1 \
     --port 6000 \
     --magic $magic \

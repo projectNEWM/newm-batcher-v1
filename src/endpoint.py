@@ -39,6 +39,9 @@ class Endpoint:
         # set success flag to false
         purchase_success_flag = False
 
+        # the cardano cli path
+        cli_path = config['cli_path']
+
         # reference UTxOs for the scripts
         data_ref_utxo = utxo.data.txid
         oracle_ref_utxo = utxo.oracle.txid
@@ -178,9 +181,9 @@ class Endpoint:
         start_time = oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int']
         end_time = oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int']
         # start and end slots
-        start_slot = query_slot_number(config['socket_path'], start_time, config['network'], delta)
-        end_slot = query_slot_number(config['socket_path'], end_time, config['network'], -delta)
-        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
+        start_slot = query_slot_number(config['socket_path'], start_time, config['network'], cli_path, delta)
+        end_slot = query_slot_number(config['socket_path'], end_time, config['network'], cli_path, -delta)
+        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'], cli_path)
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
@@ -192,7 +195,7 @@ class Endpoint:
         is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
         func = [
-            "cardano-cli", "transaction", "build-raw",
+            cli_path, "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
@@ -266,7 +269,7 @@ class Endpoint:
         ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
 
         # At this point we should be able to calculate the total fee
-        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path)
         total_fee = calculate_total_fee(tx_fee, execution_units)
 
         fee_value = Value({"lovelace": total_fee})
@@ -283,7 +286,7 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
 
         func = [
-            "cardano-cli", "transaction", "build-raw",
+            cli_path, "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
@@ -340,7 +343,7 @@ class Endpoint:
         # should be good to go
         purchase_success_flag = True
 
-        intermediate_txid = txid(out_file_path)
+        intermediate_txid = txid(out_file_path, cli_path)
 
         if usd_profit_margin != 0:
             utxo.vault.txid = intermediate_txid + "#0"
@@ -372,6 +375,9 @@ class Endpoint:
         """
         # usd policy id
         usd_policy_id = "555344"
+
+        # the cardano cli path
+        cli_path = config['cli_path']
 
         #
         refund_success_flag = False
@@ -439,9 +445,9 @@ class Endpoint:
 
         # time units
         delta = 60
-        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], delta)
-        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], -delta)
-        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'])
+        start_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][1]['v']['int'], config['network'], cli_path, delta)
+        end_slot = query_slot_number(config['socket_path'], oracle_datum['fields'][0]['fields'][0]['map'][2]['v']['int'], config['network'], cli_path, -delta)
+        latest_slot_number = get_latest_slot_number(config['socket_path'], 'tmp/tip.json', config['network'], cli_path)
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
@@ -450,7 +456,7 @@ class Endpoint:
             return utxo, refund_success_flag
 
         func = [
-            'cardano-cli', 'transaction', 'build-raw',
+            cli_path, 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -502,7 +508,7 @@ class Endpoint:
         ordered_list = sort_lexicographically(utxo.queue.txid)
 
         # At this point we should be able to calculate the total fee
-        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path)
         total_fee = calculate_total_fee(tx_fee, execution_units)
 
         fee_value = Value({"lovelace": total_fee})
@@ -516,7 +522,7 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
 
         func = [
-            'cardano-cli', 'transaction', 'build-raw',
+            cli_path, 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -552,7 +558,7 @@ class Endpoint:
         # everything should be good to go
         refund_success_flag = True
 
-        intermediate_txid = txid(out_file_path)
+        intermediate_txid = txid(out_file_path, cli_path)
 
         utxo.batcher.txid = intermediate_txid + "#0"
         utxo.batcher.value = batcher_out_value
@@ -572,6 +578,9 @@ class Endpoint:
             tuple[dict, bool]: The UTxO with the batcher token and a success flag
         """
         profit_success_flag = False
+
+        # the cardano cli path
+        cli_path = config['cli_path']
 
         # empty batcher utxos list
         if len(batcher_infos) == 0:
@@ -644,7 +653,7 @@ class Endpoint:
         batcher_profit_value = copy.deepcopy(total_batcher_value) - copy.deepcopy(batcher_out_value) - copy.deepcopy(fee_value)
 
         func = [
-            'cardano-cli', 'transaction', 'build-raw',
+            cli_path, 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -662,14 +671,14 @@ class Endpoint:
         p.communicate()
 
         # lets estimate the fee here
-        tx_fee = calculate_min_fee(out_file_path, protocol_file_path)
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path)
         fee_value = Value({"lovelace": tx_fee})
 
         batcher_profit_value = copy.deepcopy(total_batcher_value) - copy.deepcopy(batcher_out_value) - copy.deepcopy(fee_value)
 
         # rebuild the tx with the correct fee
         func = [
-            'cardano-cli', 'transaction', 'build-raw',
+            cli_path, 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -689,7 +698,7 @@ class Endpoint:
         # check output / errors, if all good assume true here
         profit_success_flag = True
 
-        intermediate_txid = txid(out_file_path)
+        intermediate_txid = txid(out_file_path, cli_path)
         tag = sha3_256(intermediate_txid + "#0")
         returning_batcher_info['tag'] = tag
         returning_batcher_info['txid'] = intermediate_txid + "#0"
