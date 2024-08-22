@@ -5,6 +5,7 @@ set -e
 chmod +x cardano-address
 
 network=$(yq '.network' ../config.yaml)
+cli=$(yq '.cli_path' ../config.yaml)
 
 if [ -e "batcher.skey" ]; then
   echo "Batcher Keys Exist."
@@ -28,20 +29,20 @@ if [[ "$input" == "1" ]]; then
     
     # batcher
     echo $root | ./cardano-address key child 1852H/1815H/0H/0/0 > batcher.xsk
-    cardano-cli key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
+    ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
     rm batcher.xsk
-    cardano-cli key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
-    cardano-cli address key-hash --payment-verification-key-file batcher.vkey > batcher.hash
-    cardano-cli address build --payment-verification-key-file batcher.vkey ${network} --out-file batcher.addr
+    ${cli} key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
+    ${cli} address key-hash --payment-verification-key-file batcher.vkey > batcher.hash
+    ${cli} address build --payment-verification-key-file batcher.vkey ${network} --out-file batcher.addr
     echo -e "\033[1;37m\nBatcher Address: $(cat batcher.addr)\n\033[0m"
     
     # collateral
     echo $root | ./cardano-address key child 1852H/1815H/0H/0/1 > collat.xsk
-    cardano-cli key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
+    ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
     rm collat.xsk
-    cardano-cli key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey
-    cardano-cli address key-hash --payment-verification-key-file collat.vkey > collat.hash
-    cardano-cli address build --payment-verification-key-file collat.vkey ${network} --out-file collat.addr
+    ${cli} key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey
+    ${cli} address key-hash --payment-verification-key-file collat.vkey > collat.hash
+    ${cli} address build --payment-verification-key-file collat.vkey ${network} --out-file collat.addr
     echo -e "\033[1;37m\nCollateral Address: $(cat collat.addr)\n\033[0m"
 elif [[ "$input" == "2" ]]; then
     echo -e "\033[1;35m\nLoading Wallet...\n\033[0m"
@@ -53,20 +54,20 @@ elif [[ "$input" == "2" ]]; then
     
     # batcher
     echo $root | ./cardano-address key child 1852H/1815H/0H/0/0 > batcher.xsk
-    cardano-cli key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
+    ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
     rm batcher.xsk
-    cardano-cli key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
-    cardano-cli address key-hash --payment-verification-key-file batcher.vkey > batcher.hash
-    cardano-cli address build --payment-verification-key-file batcher.vkey ${network} --out-file batcher.addr
+    ${cli} key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
+    ${cli} address key-hash --payment-verification-key-file batcher.vkey > batcher.hash
+    ${cli} address build --payment-verification-key-file batcher.vkey ${network} --out-file batcher.addr
     echo -e "\033[1;37m\nBatcher Address: $(cat batcher.addr)\n\033[0m"
     
     # collateral
     echo $root | ./cardano-address key child 1852H/1815H/0H/0/1 > collat.xsk
-    cardano-cli key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
+    ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
     rm collat.xsk
-    cardano-cli key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey
-    cardano-cli address key-hash --payment-verification-key-file collat.vkey > collat.hash
-    cardano-cli address build --payment-verification-key-file collat.vkey ${network} --out-file collat.addr
+    ${cli} key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey
+    ${cli} address key-hash --payment-verification-key-file collat.vkey > collat.hash
+    ${cli} address build --payment-verification-key-file collat.vkey ${network} --out-file collat.addr
     echo -e "\033[1;37m\nCollateral Address: $(cat collat.addr)\n\033[0m"
 
 else
