@@ -4,9 +4,9 @@ import subprocess
 import sys
 
 
-def calculate_min_fee(tx_body_file: str, protocol_params_file: str) -> int:
+def calculate_min_fee(tx_body_file: str, protocol_params_file: str, cli_path: str) -> int:
     func = [
-        'cardano-cli',
+        cli_path,
         'transaction',
         'calculate-min-fee',
         '--tx-body-file',
@@ -22,7 +22,7 @@ def calculate_min_fee(tx_body_file: str, protocol_params_file: str) -> int:
     return json_dict['fee']
 
 
-def does_utxo_exist(socket: str, txin: str, network: str) -> bool:
+def does_utxo_exist(socket: str, txin: str, network: str, cli_path: str) -> bool:
     """Query if a utxo exists given network and txin, id#idx.
 
     Args:
@@ -34,7 +34,7 @@ def does_utxo_exist(socket: str, txin: str, network: str) -> bool:
         bool: If the utxo exists then true else false
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'query',
         'utxo',
         '--socket-path',
@@ -56,7 +56,7 @@ def does_utxo_exist(socket: str, txin: str, network: str) -> bool:
     return len(json_dict) != 0
 
 
-def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0) -> int:
+def query_slot_number(socket: str, unix_time: int, network: str, cli_path: str, delta: int = 0) -> int:
     """Query the slot number for a given network and a given unix time.
 
     Args:
@@ -70,7 +70,7 @@ def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0)
     """
     timestamp = datetime.datetime.fromtimestamp((unix_time / 1000) + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     func = [
-        'cardano-cli',
+        cli_path,
         'query',
         'slot-number',
         '--socket-path',
@@ -87,7 +87,7 @@ def query_slot_number(socket: str, unix_time: int, network: str, delta: int = 0)
     return int(output.decode())
 
 
-def query_protocol_parameters(socket: str, file_path: str, network: str) -> None:
+def query_protocol_parameters(socket: str, file_path: str, network: str, cli_path: str) -> None:
     """Query the protocol parameters for a given network.
 
     Args:
@@ -96,7 +96,7 @@ def query_protocol_parameters(socket: str, file_path: str, network: str) -> None
         network (str): The network flag
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'query',
         'protocol-parameters',
         '--socket-path',
@@ -115,7 +115,7 @@ def query_protocol_parameters(socket: str, file_path: str, network: str) -> None
         sys.exit(1)
 
 
-def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> None:
+def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str, cli_path: str) -> None:
     """
     Query the tx mempool and check if a specific transaction exists inside of it.
 
@@ -126,7 +126,7 @@ def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> N
         network (str): The network flag
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'query',
         'tx-mempool',
         '--socket-path',
@@ -147,7 +147,7 @@ def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str) -> N
         sys.exit(1)
 
 
-def does_tx_exists_in_mempool(socket: str, tx_id: str, file_path: str, network: str) -> bool:
+def does_tx_exists_in_mempool(socket: str, tx_id: str, file_path: str, network: str, cli_path: str) -> bool:
     """
     Query the tx mempool and check if a specific transaction exists inside of it.
 
@@ -161,14 +161,14 @@ def does_tx_exists_in_mempool(socket: str, tx_id: str, file_path: str, network: 
         bool: If the transaction exists then true else false
     """
     # check the mempool
-    query_tx_mempool(socket, tx_id, file_path, network)
+    query_tx_mempool(socket, tx_id, file_path, network, cli_path)
     # get the block data
     with open(file_path, "r") as read_content:
         data = json.load(read_content)
     return data['exists']
 
 
-def query_tip(socket: str, file_path: str, network: str) -> None:
+def query_tip(socket: str, file_path: str, network: str, cli_path: str) -> None:
     """
     Query the tip of the blockchain then save to a file.
 
@@ -178,7 +178,7 @@ def query_tip(socket: str, file_path: str, network: str) -> None:
         network (str): The network flag
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'query',
         'tip',
         '--socket-path',
@@ -195,7 +195,7 @@ def query_tip(socket: str, file_path: str, network: str) -> None:
         sys.exit(1)
 
 
-def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
+def get_latest_block_number(socket: str, file_path: str, network: str, cli_path: str) -> int:
     """
     Query the tip of the blockchain and returns the latest block number.
 
@@ -208,7 +208,7 @@ def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
         int: The latest block number
     """
     # get current tip
-    query_tip(socket, file_path, network)
+    query_tip(socket, file_path, network, cli_path)
 
     # get the block data
     with open(file_path, "r") as read_content:
@@ -217,7 +217,7 @@ def get_latest_block_number(socket: str, file_path: str, network: str) -> int:
     return int(data['block'])
 
 
-def get_latest_slot_number(socket: str, file_path: str, network: str) -> int:
+def get_latest_slot_number(socket: str, file_path: str, network: str, cli_path: str) -> int:
     """
     Query the tip of the blockchain and returns the latest block number.
 
@@ -230,7 +230,7 @@ def get_latest_slot_number(socket: str, file_path: str, network: str) -> int:
         int: The latest block number
     """
     # get current tip
-    query_tip(socket, file_path, network)
+    query_tip(socket, file_path, network, cli_path)
 
     # get the block data
     with open(file_path, "r") as read_content:
@@ -239,7 +239,7 @@ def get_latest_slot_number(socket: str, file_path: str, network: str) -> int:
     return int(data['slot'])
 
 
-def txid(file_path: str) -> str:
+def txid(file_path: str, cli_path: str) -> str:
     """
     Get the tx id of a signed transactions.
 
@@ -250,7 +250,7 @@ def txid(file_path: str) -> str:
         str: The transaction id
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'transaction',
         'txid',
         '--tx-file',
@@ -265,11 +265,11 @@ def txid(file_path: str) -> str:
     return output.decode('utf-8').rstrip()
 
 
-def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str, collat_path: str = None) -> None:
+def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: str, cli_path: str, collat_path: str = None) -> None:
     """Sign a transaction with a list of payment keys.
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'transaction',
         'sign',
         '--tx-body-file',
@@ -292,11 +292,11 @@ def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: s
         sys.exit(1)
 
 
-def submit(signed_file_path: str, socket_path: str, network: str, logger=None) -> bool:
+def submit(signed_file_path: str, socket_path: str, network: str, cli_path: str, logger=None) -> bool:
     """Submit the transaction to the blockchain.
     """
     func = [
-        'cardano-cli',
+        cli_path,
         'transaction',
         'submit',
         '--socket-path', socket_path,

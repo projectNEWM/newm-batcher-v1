@@ -1,10 +1,10 @@
 import subprocess
 
 
-def is_node_live(socket, magic=1):
+def is_node_live(socket, magic=1, cli_path='cardano-cli'):
     try:
         func = [
-            'cardano-cli',
+            cli_path,
             'ping',
             '--count', '1',
             '--unixsock', socket,
