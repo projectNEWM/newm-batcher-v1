@@ -66,6 +66,7 @@ collat_utxo: ""
 # Node And Network Information
 network: ""
 socket_path: ""
+cli_path: ""
 ```
 
 If the `setup_keys.sh` script is used then follow the steps below.
