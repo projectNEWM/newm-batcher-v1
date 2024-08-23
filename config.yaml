@@ -21,6 +21,12 @@ collat_utxo: "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0
 network: "--testnet-magic 1"
 
 # Socket and Cardano CLI Information
+
+# Docker
+# socket_path: "/root/node-preprod/node.socket"
+# cli_path: "/root/bin/cardano-cli"
+
+# On Path
 socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
 cli_path: "/usr/local/bin/cardano-cli"
 
@@ -34,37 +40,37 @@ oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
-sale_address: "addr_test1xqac806wz4563gqwkcvrjx5ucls0zhr8eyjyqwptay5ljkg4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3qe2ty9j"
-queue_address: "addr_test1xqyreluem3sxfvyjfuslpspxexewjl8r8r3xydn39laaj6q4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3qur55w7"
-vault_address: "addr_test1xrwy3ylzjqvrshhfmh07w6wnm0hq23nrkjmyzlceqc3g5cc4nukc8gq26l6vx56r2xameewvj0kmqgszn4cegumc8d3q99p0qm"
+sale_address: "addr_test1xzsc88ldzuf9y244ccgkaxvf5jgnyz94t5jtpl96ch0zndqyjgfjgmu4hmdkeeuwyh370gfs94rjz5vakqn8dvff2hcsnl3v4t"
+queue_address: "addr_test1xrd2t4885kvekzcsufvf09sgerxcvnf9wcyww6fnnzfydgcyjgfjgmu4hmdkeeuwyh370gfs94rjz5vakqn8dvff2hcs0rl7u3"
+vault_address: "addr_test1xrh0fqjh6y2u0ykzves422pu5h5kyfyzs2a7p5mpdsrky2qyjgfjgmu4hmdkeeuwyh370gfs94rjz5vakqn8dvff2hcsqv2372"
 
 # Data Contract
-data_address: "addr_test1wze6szp52kupg2kcmwarqsqrntrqypwg94n77k4lm6eckts5yc34w"
-data_policy: "8a29411b61d4d4fc79090ac49ca7c384420476adb523694f7f110ff6"
-data_asset: "c65e8f235690f99453d7e02da594f2c180b3fe6af2236e676283fe61540e91eb"
+data_address: "addr_test1wzy7gftt4c0685hzry0c4f9az9pyn06xcswfvv4a6qxh0sc4qahfl"
+data_policy: "7d878696b149b529807aa01b8e20785e0a0d470c32c13f53f08a55e3"
+data_asset: "44455633393337"
 
 # Data, Sale, and Queue Contract Script Reference UTxOs
-reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
+reference_address: "addr_test1vpdhs4kp98kyagc5zy098yrhxn5tsc7d4z4g8vd8d32ez4cq6r27z"
 
-sale_ref_utxo: "9af67c86e6137d41915c0d0e554ad69ee86911c4c4d4f68fd0a2f4d384673ca9#1"
-sale_lovelace: 41901820
+sale_ref_utxo: "6b19610151abde605dae5618437c6650b4ac293d2fbdda4b56af6fd3e250cfc7#1"
+sale_lovelace: 41789760
 
-queue_ref_utxo: "098a3281a90809d9ee1df32efb2570fce45dab43894e4509181a05cee8a23e18#1"
-queue_lovelace: 57715210
+queue_ref_utxo: "d17bcc20fc3b9119122824de6de270a60c87322e1aeae0ee86dc8640815a4833#1"
+queue_lovelace: 57603150
 
-vault_ref_utxo: "d784249b5093460ad0e3ae9e57d80c5651e3046c029f091fd980f0b997e6ddba#1"
-vault_lovelace: 29570910
+vault_ref_utxo: "04fab56d0030f172256619d19449db1278ac579588328c5c58c73ba5831ece82#1"
+vault_lovelace: 29458850
 
 # The Newm Pointer Policy Id
-pointer_policy: "2fb0decb35c05da7528b1871fee58f875c54b74f61e1a44f270d2115"
+pointer_policy: "b3bb4a860d05b5d06cc45636950a02b6dd6c729111f0df844e711d27"
 
 # The Newm Batcher Policy Id
-batcher_policy: "32ede44e2939c30b7ee59eca6a680efdfc3510c4d63d0a197cb49257"
+batcher_policy: "1ada24cd8e945b000a0b2846b80f39def37385b81ccbb2dea09ed4d3"
 
 # Starting Block Information
-starting_block_number: 2557028
-starting_timestamp: 67293599
-starting_blockhash: "02e52b1b2bd0462a05906b670b3cad63c1f03f3df81e04da0f7d034ad04acad1"
+starting_block_number: 2616250
+starting_timestamp: 68668301
+starting_blockhash: "a17a5299f0b1da59e22ee2dbf7b776ce8aa245080454824dd7416f67cbe6b17f"
 delay_depth: 3
 
 # Logging Parameters
@@ -75,5 +81,5 @@ max_num_log_files: 1
 # TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
 logging_level: "TRACE"
 
-# Debug Mode; False is no debug
-debug_mode: False
+# True is debug; False is no debug
+debug_mode: True

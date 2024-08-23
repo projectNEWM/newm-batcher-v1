@@ -131,24 +131,41 @@ def run_daemon():
     """
     program_name = "oura"
     # The base directory where user home directories are typically located
-    search_directory = "/home"
 
     # List all subdirectories within the search directory
-    user_directories = [
+    user_directories = []
+    try:
+        search_directory = "/root"
+        user_directories += [
+            os.path.join(search_directory, user)
+            for user in os.listdir(search_directory)
+            if os.path.isdir(os.path.join(search_directory, user))]
+    except PermissionError:
+        pass
+    search_directory = "/home"
+    user_directories += [
         os.path.join(search_directory, user)
         for user in os.listdir(search_directory)
         if os.path.isdir(os.path.join(search_directory, user))]
-
     # Iterate through user home directories and check if the program exists
     program_path = ''
+    found = False
     for user_directory in user_directories:
         program_path = os.path.join(
-            user_directory, ".cargo", "bin", program_name)
+            user_directory, "bin", program_name)
         if os.path.exists(program_path):
+            found = True
             break
-        else:
-            logger.error("Oura Not Found On System")
-            sys.exit(1)
+
+        program_path = os.path.join(
+            user_directory, '.cargo', "bin", program_name)
+        if os.path.exists(program_path):
+            found = True
+            break
+
+    if found is False:
+        logger.error("Oura Not Found On System")
+        sys.exit(1)
     # run it
     subprocess.run([program_path, 'daemon', '--config', 'daemon.toml'])
 
