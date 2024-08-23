@@ -150,6 +150,7 @@ def run_daemon():
     # Iterate through user home directories and check if the program exists
     program_path = ''
     found = False
+    logger.debug(f"{user_directories}")
     for user_directory in user_directories:
         program_path = os.path.join(
             user_directory, "bin", program_name)

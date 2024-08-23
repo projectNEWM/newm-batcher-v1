@@ -23,12 +23,12 @@ network: "--testnet-magic 1"
 # Socket and Cardano CLI Information
 
 # Docker
-# socket_path: "/root/node-preprod/node.socket"
-# cli_path: "/root/bin/cardano-cli"
+socket_path: "/root/node/node.socket"
+cli_path: "/root/bin/cardano-cli"
 
 # On Path
-socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
-cli_path: "/usr/local/bin/cardano-cli"
+# socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
+# cli_path: "/usr/local/bin/cardano-cli"
 
 ###############################################################################
 # Do Not Update Values Below
@@ -82,4 +82,4 @@ max_num_log_files: 1
 logging_level: "TRACE"
 
 # True is debug; False is no debug
-debug_mode: True
+debug_mode: False
