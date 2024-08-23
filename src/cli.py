@@ -4,7 +4,32 @@ import subprocess
 import sys
 
 
-def calculate_min_fee(tx_body_file: str, protocol_params_file: str, cli_path: str) -> int:
+def query_ref_script_size(socket: str, network: str, inputs: list[str], cli_path: str) -> int:
+    func = [
+        cli_path,
+        'conway',
+        'query',
+        'ref-script-size',
+        '--socket-path',
+        socket,
+        '--output-json'
+    ]
+    func += network.split(" ")
+    for i in inputs:
+        func += ['--tx-in', i]
+
+    p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, errors = p.communicate()
+
+    # # exit application if node is not live
+    if "Connection refused" in errors.decode() or "Invalid argument" in errors.decode() or "Missing" in errors.decode():
+        sys.exit(1)
+
+    json_dict = json.loads(output.decode('utf-8'))
+    return json_dict['refInputScriptSize']
+
+
+def calculate_min_fee(tx_body_file: str, protocol_params_file: str, cli_path: str, script_sizes: int = 0) -> int:
     func = [
         cli_path,
         'transaction',
@@ -14,7 +39,8 @@ def calculate_min_fee(tx_body_file: str, protocol_params_file: str, cli_path: st
         '--protocol-params-file',
         protocol_params_file,
         '--output-json',
-        '--witness-count', '3'
+        '--witness-count', '3',
+        '--reference-script-size', str(script_sizes)
     ]
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, _ = p.communicate()

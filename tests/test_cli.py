@@ -212,3 +212,27 @@ def test_calculate_min_fee(test_protocol_file_path, test_draft_file_path, config
 def test_calculate_min_fee2(test_protocol_file_path, test_draft_file_path2, config):
     fee = cli.calculate_min_fee(test_draft_file_path2, test_protocol_file_path, config["cli"])
     assert fee == 319825
+
+
+def test_query_script_ref_size_no_inputs(config):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.query_ref_script_size(config["socket"], config["network"], [], config["cli"])
+        assert excinfo.value.code == 1
+
+
+def test_query_script_ref_size_single_input(config):
+    inputs = [
+        "6b19610151abde605dae5618437c6650b4ac293d2fbdda4b56af6fd3e250cfc7#1"
+    ]
+    size = cli.query_ref_script_size(config["socket"], config["network"], inputs, config["cli"])
+    assert size == 9486
+
+
+def test_query_script_ref_size_multiple_inputs(config):
+    inputs = [
+        "6b19610151abde605dae5618437c6650b4ac293d2fbdda4b56af6fd3e250cfc7#1",
+        "d17bcc20fc3b9119122824de6de270a60c87322e1aeae0ee86dc8640815a4833#1",
+        "04fab56d0030f172256619d19449db1278ac579588328c5c58c73ba5831ece82#1",
+    ]
+    size = cli.query_ref_script_size(config["socket"], config["network"], inputs, config["cli"])
+    assert size == 29266
