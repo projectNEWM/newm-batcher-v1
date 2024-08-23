@@ -110,14 +110,29 @@ The batcher is ready to run after this information has been updated. Do not upda
 
 ## Running NEWM Batcher With Docker
 
-Build the docker image
+Build, create, and run docker:
 ```bash
 docker build -t newm-batcher .
+
+docker volume create batcher-data
+
+docker run -it --rm \
+    -v /path/to/node/db-folder:/root/node \
+    -v batcher-data:/root/newm-batcher \
+    -v /path/to/newm-batcher-v1/config.yaml:/root/newm-batcher/config.yaml \
+    --name newm-batcher-container \
+    newm-batcher
 ```
 
-Run the docker container. The docker needs to access teh folder that the node socket is in.
+Accessing it via:
 ```bash
-docker run -it --rm -v /path/to/node/db-folder:/root/node newm-batcher
+docker exec -it newm-batcher-container /bin/bash
+```
+
+Use then analysis file while inside the container:
+```bash
+source venv/bin/activate
+python3 analysis.py --help
 ```
 
 
