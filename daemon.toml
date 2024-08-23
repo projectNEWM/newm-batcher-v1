@@ -12,7 +12,7 @@ error_policy = "Continue"
 
 [source.intersect]
 type = "Point"
-value = [ 67293599, "02e52b1b2bd0462a05906b670b3cad63c1f03f3df81e04da0f7d034ad04acad1",]
+value = [ 67364387, "4c89277dd801a4f82e549a8c2be2f3956130940b57afb0e18e7234f22c3c03cf",]
 
 [source.mapper]
 include_block_end_events = true
