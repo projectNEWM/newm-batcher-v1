@@ -66,6 +66,7 @@ collat_utxo: ""
 # Node And Network Information
 network: ""
 socket_path: ""
+cli_path: ""
 ```
 
 If the `setup_keys.sh` script is used then follow the steps below.
@@ -106,6 +107,18 @@ The batcher is ready to run after this information has been updated. Do not upda
     ```sh
     sudo systemctl status newm-batcher.service
     ```
+
+## Running NEWM Batcher With Docker
+
+Build the docker image
+```bash
+docker build -t newm-batcher .
+```
+
+Run the docker container. The docker needs to access teh folder that the node socket is in.
+```bash
+docker run -it --rm -v /path/to/node/db-folder:/root/node newm-batcher
+```
 
 
 ## Updating The NEWM Batcher
