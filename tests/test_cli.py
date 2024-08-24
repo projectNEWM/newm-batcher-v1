@@ -28,6 +28,11 @@ def test_draft_file_path2():
 
 
 @pytest.fixture
+def test_draft_file_path3():
+    return os.path.join(os.path.dirname(__file__), 'test_files', 'test_tx3.draft')
+
+
+@pytest.fixture
 def test_protocol_file_path():
     return os.path.join(os.path.dirname(__file__), 'test_files', 'test_protocol.json')
 
@@ -209,9 +214,28 @@ def test_calculate_min_fee(test_protocol_file_path, test_draft_file_path, config
     assert fee == 180681
 
 
-def test_calculate_min_fee2(test_protocol_file_path, test_draft_file_path2, config):
-    fee = cli.calculate_min_fee(test_draft_file_path2, test_protocol_file_path, config["cli"])
-    assert fee == 319825
+def test_calculate_min_fee2(test_protocol_file_path, test_draft_file_path3, config):
+    fee = cli.calculate_min_fee(test_draft_file_path3, test_protocol_file_path, config["cli"])
+    assert fee == 239245
+
+
+def test_calculate_min_fee_with_ref_size(test_protocol_file_path, test_draft_file_path3, config):
+    inputs = [
+        "0534fd807b786813014cf3e7f7478eea460bf37f05108694edf5a6ba368a60cc#0",
+        "9cf2e5ea6942fcf34adb049699db945c0baf6cb37fff1a3875081c28a9b671fe#0",
+        "aee974a4744b9b7efd78d9154efda137861f15c0e563322f501a4c04878a80f2#1",
+        "eabe0a455e57113019ff015861145214d90c96e7f6bc21f20d7d596c0320f881#0",
+        "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0",
+        "04fab56d0030f172256619d19449db1278ac579588328c5c58c73ba5831ece82#1",
+        "6b19610151abde605dae5618437c6650b4ac293d2fbdda4b56af6fd3e250cfc7#1",
+        "b25eafaa4a3b657c99a11dc82e776fb46199ddf96b825362e733e111f35dcd09#1",
+        "d17bcc20fc3b9119122824de6de270a60c87322e1aeae0ee86dc8640815a4833#1",
+        "e56c648b7d119ff5d4f564125c2676775b4110b330d67401f5a1248c8a9610a4#0",
+    ]
+    size = cli.query_ref_script_size(config["socket"], config["network"], inputs, config["cli"])
+    print(size)
+    fee = cli.calculate_min_fee(test_draft_file_path3, test_protocol_file_path, config["cli"], script_sizes=size)
+    assert fee == 689233
 
 
 def test_query_script_ref_size_no_inputs(config):

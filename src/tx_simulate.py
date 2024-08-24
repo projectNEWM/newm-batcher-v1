@@ -63,11 +63,12 @@ def resolve_inputs(tx_cbor: str) -> list[tuple[str, int]]:
     txBody = data[0]
 
     # all the types of inputs; tx inputs, collateral, and reference
-    inputs = txBody[0] + txBody[13] + txBody[18]
+    inputs = list(txBody[0]) + list(txBody[13]) + list(txBody[18])
 
     # convert into list of tuples
     inputs = [(utxo[0].hex(), int(utxo[1])) for utxo in inputs]
 
+    # return sorted(inputs)
     return inputs
 
 
@@ -242,7 +243,7 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     outputs_cbor = dumps(outputs).hex()
 
     network = True if "mainnet" in config['network'] else False
-    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=False)
+    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
     return execution_units
 
 
@@ -294,5 +295,5 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     outputs_cbor = dumps(outputs).hex()
 
     network = True if "mainnet" in config['network'] else False
-    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=False)
+    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
     return execution_units

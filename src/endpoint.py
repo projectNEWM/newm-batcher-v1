@@ -196,7 +196,6 @@ class Endpoint:
 
         func = [
             cli_path, 'conway', "transaction", "build-raw",
-            "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
@@ -270,11 +269,16 @@ class Endpoint:
 
         # At this point we should be able to calculate the total fee
         script_inputs = [
+            utxo.batcher.txid,
+            config['collat_utxo'],
+            utxo.vault.txid,
+            vault_ref_utxo,
+            utxo.sale.txid,
+            sale_ref_utxo,
+            utxo.queue.txid,
+            queue_ref_utxo,
             oracle_ref_utxo,
             data_ref_utxo,
-            sale_ref_utxo,
-            queue_ref_utxo,
-            vault_ref_utxo
         ]
         script_sizes = query_ref_script_size(config['socket_path'], config["network"], script_inputs, cli_path)
         tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path, script_sizes)
@@ -287,15 +291,18 @@ class Endpoint:
 
         if logger is not None:
             logger.debug(execution_units)
+            logger.debug(f"script sizes: {script_sizes}")
             logger.debug(f"tx fee: {tx_fee}")
             logger.debug(f"total fee: {total_fee}")
+            logger.debug(f"sale units: {sale_execution_units}")
+            logger.debug(f"queue units: {queue_execution_units}")
+            logger.debug(f"vault units: {vault_execution_units}")
 
         # At this point we should be able to rebuild the tx draft
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
 
         func = [
             cli_path, 'conway', "transaction", "build-raw",
-            "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
@@ -465,7 +472,6 @@ class Endpoint:
 
         func = [
             cli_path, 'conway', 'transaction', 'build-raw',
-            '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
@@ -517,10 +523,13 @@ class Endpoint:
 
         # At this point we should be able to calculate the total fee
         script_inputs = [
+            utxo.batcher.txid,
+            config['collat_utxo'],
             oracle_ref_utxo,
             data_ref_utxo,
             utxo.sale.txid,
-            queue_ref_utxo
+            utxo.queue.txid,
+            queue_ref_utxo,
         ]
         script_sizes = query_ref_script_size(config['socket_path'], config["network"], script_inputs, cli_path)
         tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path, script_sizes)
@@ -531,8 +540,10 @@ class Endpoint:
 
         if logger is not None:
             logger.debug(execution_units)
+            logger.debug(f"script sizes: {script_sizes}")
             logger.debug(f"tx fee: {tx_fee}")
             logger.debug(f"total fee: {total_fee}")
+
         # At this point we should be able to rebuild the tx draft
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
 
@@ -669,7 +680,6 @@ class Endpoint:
 
         func = [
             cli_path, 'conway', 'transaction', 'build-raw',
-            '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
         ]
@@ -694,7 +704,6 @@ class Endpoint:
         # rebuild the tx with the correct fee
         func = [
             cli_path, 'conway', 'transaction', 'build-raw',
-            '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
         ]
