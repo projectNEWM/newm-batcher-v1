@@ -124,6 +124,11 @@ docker run -it --rm \
     newm-batcher
 ```
 
+Removing the volume:
+```bash
+docker volume rm batcher-data
+```
+
 Accessing it via:
 ```bash
 docker exec -it newm-batcher-container /bin/bash

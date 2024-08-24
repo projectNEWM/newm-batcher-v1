@@ -4,7 +4,7 @@ import subprocess
 
 from src.address import pkh_from_address
 from src.cli import (calculate_min_fee, get_latest_slot_number,
-                     query_slot_number, txid)
+                     query_ref_script_size, query_slot_number, txid)
 from src.datums import (bundle_to_value, cost_to_value, get_number_of_bundles,
                         incentive_to_value, to_address)
 from src.json_file import write
@@ -195,7 +195,7 @@ class Endpoint:
         is_oracle_required = usd_profit_margin != 0 or sale_is_using_usd is True
 
         func = [
-            cli_path, "transaction", "build-raw",
+            cli_path, 'conway', "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
@@ -269,7 +269,15 @@ class Endpoint:
         ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
 
         # At this point we should be able to calculate the total fee
-        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path)
+        script_inputs = [
+            oracle_ref_utxo,
+            data_ref_utxo,
+            sale_ref_utxo,
+            queue_ref_utxo,
+            vault_ref_utxo
+        ]
+        script_sizes = query_ref_script_size(config['socket_path'], config["network"], script_inputs, cli_path)
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path, script_sizes)
         total_fee = calculate_total_fee(tx_fee, execution_units)
 
         fee_value = Value({"lovelace": total_fee})
@@ -286,7 +294,7 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
 
         func = [
-            cli_path, "transaction", "build-raw",
+            cli_path, 'conway', "transaction", "build-raw",
             "--babbage-era",
             "--protocol-params-file", protocol_file_path,
             "--out-file", out_file_path,
@@ -456,7 +464,7 @@ class Endpoint:
             return utxo, refund_success_flag
 
         func = [
-            cli_path, 'transaction', 'build-raw',
+            cli_path, 'conway', 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -508,7 +516,14 @@ class Endpoint:
         ordered_list = sort_lexicographically(utxo.queue.txid)
 
         # At this point we should be able to calculate the total fee
-        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path)
+        script_inputs = [
+            oracle_ref_utxo,
+            data_ref_utxo,
+            utxo.sale.txid,
+            queue_ref_utxo
+        ]
+        script_sizes = query_ref_script_size(config['socket_path'], config["network"], script_inputs, cli_path)
+        tx_fee = calculate_min_fee(out_file_path, protocol_file_path, cli_path, script_sizes)
         total_fee = calculate_total_fee(tx_fee, execution_units)
 
         fee_value = Value({"lovelace": total_fee})
@@ -522,7 +537,7 @@ class Endpoint:
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
 
         func = [
-            cli_path, 'transaction', 'build-raw',
+            cli_path, 'conway', 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -653,7 +668,7 @@ class Endpoint:
         batcher_profit_value = copy.deepcopy(total_batcher_value) - copy.deepcopy(batcher_out_value) - copy.deepcopy(fee_value)
 
         func = [
-            cli_path, 'transaction', 'build-raw',
+            cli_path, 'conway', 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
@@ -678,7 +693,7 @@ class Endpoint:
 
         # rebuild the tx with the correct fee
         func = [
-            cli_path, 'transaction', 'build-raw',
+            cli_path, 'conway', 'transaction', 'build-raw',
             '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,

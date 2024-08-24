@@ -236,3 +236,12 @@ def test_query_script_ref_size_multiple_inputs(config):
     ]
     size = cli.query_ref_script_size(config["socket"], config["network"], inputs, config["cli"])
     assert size == 29266
+
+
+def test_query_script_ref_size_not_ref_inputs(config):
+    inputs = [
+        "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0",  # no ref
+        "6b19610151abde605dae5618437c6650b4ac293d2fbdda4b56af6fd3e250cfc7#1",  # has ref
+    ]
+    size = cli.query_ref_script_size(config["socket"], config["network"], inputs, config["cli"])
+    assert size == 9486

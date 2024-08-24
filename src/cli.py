@@ -32,6 +32,7 @@ def query_ref_script_size(socket: str, network: str, inputs: list[str], cli_path
 def calculate_min_fee(tx_body_file: str, protocol_params_file: str, cli_path: str, script_sizes: int = 0) -> int:
     func = [
         cli_path,
+        'conway',
         'transaction',
         'calculate-min-fee',
         '--tx-body-file',
@@ -61,6 +62,7 @@ def does_utxo_exist(socket: str, txin: str, network: str, cli_path: str) -> bool
     """
     func = [
         cli_path,
+        'conway',
         'query',
         'utxo',
         '--socket-path',
@@ -97,6 +99,7 @@ def query_slot_number(socket: str, unix_time: int, network: str, cli_path: str, 
     timestamp = datetime.datetime.fromtimestamp((unix_time / 1000) + delta, tz=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     func = [
         cli_path,
+        'conway',
         'query',
         'slot-number',
         '--socket-path',
@@ -123,6 +126,7 @@ def query_protocol_parameters(socket: str, file_path: str, network: str, cli_pat
     """
     func = [
         cli_path,
+        'conway',
         'query',
         'protocol-parameters',
         '--socket-path',
@@ -153,6 +157,7 @@ def query_tx_mempool(socket: str, tx_id: str, file_path: str, network: str, cli_
     """
     func = [
         cli_path,
+        'conway',
         'query',
         'tx-mempool',
         '--socket-path',
@@ -205,6 +210,7 @@ def query_tip(socket: str, file_path: str, network: str, cli_path: str) -> None:
     """
     func = [
         cli_path,
+        'conway',
         'query',
         'tip',
         '--socket-path',
@@ -277,6 +283,7 @@ def txid(file_path: str, cli_path: str) -> str:
     """
     func = [
         cli_path,
+        'conway',
         'transaction',
         'txid',
         '--tx-file',
@@ -296,6 +303,7 @@ def sign(draft_file_path: str, signed_file_path: str, network: str, skey_path: s
     """
     func = [
         cli_path,
+        'conway',
         'transaction',
         'sign',
         '--tx-body-file',
@@ -323,6 +331,7 @@ def submit(signed_file_path: str, socket_path: str, network: str, cli_path: str,
     """
     func = [
         cli_path,
+        'conway',
         'transaction',
         'submit',
         '--socket-path', socket_path,
