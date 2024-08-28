@@ -234,7 +234,7 @@ threadpoolctl==3.2.0
 tomli==2.0.1
 toolz==0.12.1
 traitlets==5.9.0
-Twisted==22.1.0
+Twisted==24.7.0
 typeguard==2.13.3
 typing_extensions==4.7.1
 ubuntu-drivers-common==0.0.0
