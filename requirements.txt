@@ -1,4 +1,4 @@
-aiohttp==3.8.5
+aiohttp==3.10.2
 aiohttp-socks==0.8.4
 aiorpcX==0.22.1
 aiosignal==1.3.1
