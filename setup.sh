@@ -51,6 +51,13 @@ else
     exit 1;
 fi
 
+if dpkg -s python3-venv &> /dev/null; then
+    echo -e "\033[1;35m\npython3-venv is installed.\n\033[0m"
+else
+    echo -e "\033[1;31mpython3-venv is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y python3-venv \033[0m"
+fi
+
 echo -e "\033[1;34m\nSetup Virtual Environment\n\033[0m"
 
 # Create a Python virtual environment

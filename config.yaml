@@ -9,12 +9,12 @@
 ###############################################################################
 
 # Batcher Information
-batcher_address: "addr_test1vqzzzrr0tqft2dlxn47txnkvm9uvus70hade3cxk8m5pccsnespvn"
-profit_address: "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+batcher_address: ""
+profit_address: ""
 
 # Collat Wallet Information
-collat_address: "addr_test1vrt9kdej3je8tatg4ag35tmlrhej6c30wfluzl248fe5j7s29jsna"
-collat_utxo: "e1504e1debcb78b456f19ac10d749c74e2b981d0cc965e4515188e92c8c59769#0"
+collat_address: ""
+collat_utxo: ""
 
 # Network Information
 # network: "--mainnet"
@@ -22,19 +22,19 @@ network: "--testnet-magic 1"
 
 # Socket and Cardano CLI Information
 
-# Docker
+# Docker - Do Not Use Yet
 # socket_path: "/root/node/node.socket"
 # cli_path: "/root/bin/cardano-cli"
 
-# Bin Paths
-cli_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/cardano-cli"
-oura_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/oura"
-ogmios_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/ogmios"
-aiken_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/aiken"
+# Bin Paths; Need To be Absolute
+cli_path: "/newm-batcher-v1/bin/cardano-cli"
+oura_path: "/newm-batcher-v1/bin/oura"
+ogmios_path: "/newm-batcher-v1/bin/ogmios"
+aiken_path: "/newm-batcher-v1/bin/aiken"
 
-# File Paths
-socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
-node_config_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/config.json"
+# File Paths; Needs To Be Absolute
+socket_path: "/node.socket"
+node_config_path: "/config.json"
 
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
 use_ogmios: True
