@@ -1,10 +1,10 @@
 {
-    "block": 2632735,
+    "block": 2632874,
     "epoch": 163,
     "era": "Conway",
-    "hash": "9666ec70132364eb6a62b02c2bd6d52df0913451e3916220829b2be111d24561",
-    "slot": 69123568,
-    "slotInEpoch": 349168,
-    "slotsToEpochEnd": 82832,
+    "hash": "9084aa0f8648dd43cfeb3ba076f83778dd37f4673072f329461bffb448570cfa",
+    "slot": 69127862,
+    "slotInEpoch": 353462,
+    "slotsToEpochEnd": 78538,
     "syncProgress": "100.00"
 }
