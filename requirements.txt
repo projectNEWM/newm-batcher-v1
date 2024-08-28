@@ -211,7 +211,7 @@ rapidfuzz==3.2.0
 redis==4.5.1
 repath==0.9.0
 reportlab==3.6.8
-requests==2.25.1
+requests==2.32.2
 rich==13.5.1
 rsa==4.9
 ruptures==1.1.8
