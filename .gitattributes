@@ -1,0 +1,4 @@
+bin/aiken filter=lfs diff=lfs merge=lfs -text
+bin/cardano-cli filter=lfs diff=lfs merge=lfs -text
+bin/ogmios filter=lfs diff=lfs merge=lfs -text
+bin/oura filter=lfs diff=lfs merge=lfs -text
