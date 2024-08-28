@@ -371,9 +371,7 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[dic
     return execution_units
 
 
-def transaction_simulation_ogmios(cborHex: str, utxo: UTxOManager, config: dict):
-    # we need utxos for all the things
-    additionalUTxOSet = []
+def transaction_simulation_ogmios(cborHex: str, utxo: UTxOManager, config: dict, additionalUTxOSet: list = []):
 
     # batcher
     batcherSet = {
@@ -432,6 +430,21 @@ def transaction_simulation_ogmios(cborHex: str, utxo: UTxOManager, config: dict)
     additionalUTxOSet.append(vaultSet)
     #
     result = ogmios_simulate(cborHex, additionalUTxOSet)
+    try:
+        data = result['error']['data']['overlappingOutputReferences']
+        # Extract (transaction.id, index) pairs from list_to_check
+        pairs_to_check = {(item['transaction']['id'], item['index']) for item in data}
+
+        # Filter list_to_remove_from by removing items with (transaction.id, index) in pairs_to_check
+        filtered_list = [
+            item for item in additionalUTxOSet
+            if (item['transaction']['id'], item['index']) not in pairs_to_check
+        ]
+
+        # Print the result
+        result = ogmios_simulate(cborHex, filtered_list)
+    except KeyError:
+        pass
     execution_units = []
     try:
         for unit in result['result']:
