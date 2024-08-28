@@ -154,6 +154,7 @@ def simulate_purchase(db: DbManager, tkn: str, tag: str):
     utxo.set_sale(sale_info)
     queue_info = db.queue.read(tag)
     utxo.set_queue(queue_info)
+    logger.debug("Simulating Purchase")
     utxo, purchase_success_flag = Endpoint.purchase(utxo, config, logger)
 
 

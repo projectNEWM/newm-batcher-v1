@@ -83,3 +83,17 @@ def current_time() -> int:
         int: The integer value of unix time.
     """
     return int(1000 * time.time())
+
+
+def get_first_line(file_path: str) -> str:
+    """Get the first line from some file.
+
+    Args:
+        file_path (str): The file path to get the line.
+
+    Returns:
+        str: The string in the file.
+    """
+    with open(file_path, 'r') as file:
+        first_line = file.readline().strip()
+    return first_line

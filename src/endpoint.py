@@ -12,7 +12,8 @@ from src.redeemer import empty, token, tokens
 from src.tx_simulate import (calculate_total_fee, convert_execution_unit,
                              get_cbor_from_file, get_index_in_order,
                              purchase_simulation, refund_simulation,
-                             sort_lexicographically)
+                             sort_lexicographically,
+                             transaction_simulation_ogmios)
 from src.utility import parent_directory_path, sha3_256
 from src.utxo_manager import UTxOManager
 from src.value import Value
@@ -58,16 +59,6 @@ class Endpoint:
         collat_pkh = pkh_from_address(collat_address)
 
         # Lets assume this is the upper bound
-        # Sale Example: Mem 634386 Steps 239749112
-        # Queue Example: Mem 1651174 Steps 649844778
-        # Vault Example: Mem 284377 Steps 121918683
-        #
-        # fee = 505550
-        # fee_value = Value({"lovelace": fee})
-        # sale_execution_units = "(260000000, 695000)"
-        # queue_execution_units = "(690000000, 1750000)"
-        # vault_execution_units = "(145000000, 355000)"
-
         fee = 0
         fee_value = Value({"lovelace": fee})
         sale_execution_units = "(0, 0)"
@@ -142,36 +133,44 @@ class Endpoint:
             queue_datum, sale_datum, sale_value)
         # must have at least 1 bundle
         if number_of_bundles == 0:
+            logger.warning("Number of bundles left is zero") if logger is not None else None
             return utxo, purchase_success_flag
 
         # total cost being paid
         total_cost_value = number_of_bundles * copy.deepcopy(cost_value)
         # total bundle being recieived
         total_bundle_value = number_of_bundles * copy.deepcopy(bundle_value)
+
         # if total cost value not in queue then fail
         if queue_value.contains(total_cost_value) is False:
+            logger.warning("Queue value does not contain total cost") if logger is not None else None
             return utxo, purchase_success_flag
 
         # if incentive not in queue then fail
         if queue_value.contains(incentive_value) is False:
+            logger.warning("Queue value does not contain incentive") if logger is not None else None
             return utxo, purchase_success_flag
 
         combined_value = copy.deepcopy(incentive_value) + copy.deepcopy(total_cost_value) + copy.deepcopy(profit_value)
         if queue_value.contains(combined_value) is False:
+            logger.warning("Queue value does not contain incentive + cost + profit") if logger is not None else None
             return utxo, purchase_success_flag
 
         # if bundle not in sale then fail
         if sale_value.contains(total_bundle_value) is False:
+            logger.warning("Sale value does not contain total bundle") if logger is not None else None
             return utxo, purchase_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         sale_out_value = copy.deepcopy(sale_value) + copy.deepcopy(total_cost_value) - copy.deepcopy(total_bundle_value)
 
         if sale_out_value.has_negative_entries() is True:
+            logger.warning("Sale value has negative values") if logger is not None else None
             return utxo, purchase_success_flag
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(total_cost_value) + copy.deepcopy(total_bundle_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value) - copy.deepcopy(profit_value)
 
         if queue_out_value.has_negative_entries() is True:
+            logger.warning("Queue value has negative values") if logger is not None else None
             return utxo, purchase_success_flag
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
 
@@ -187,8 +186,7 @@ class Endpoint:
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
-            if logger is not None:
-                logger.warning(f"Purchase Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late")
+            logger.warning(f"Purchase Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late") if logger is not None else None
             return utxo, purchase_success_flag
 
         # if true then the oracle is required
@@ -246,24 +244,24 @@ class Endpoint:
 
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
+        _, errors = p.communicate()
 
-        if logger is not None:
-            logger.debug(f"Output: {output}")
-            logger.debug(f"Errors: {errors}")
+        logger.debug(f"Errors: {errors}") if logger is not None else None
 
         if "Command failed" in errors.decode():
             return utxo, purchase_success_flag
 
         # At this point we should be able to simulate the tx draft
         cborHex = get_cbor_from_file(out_file_path)
-        execution_units = purchase_simulation(cborHex, utxo, config)
-
+        if config['use_ogmios'] is True:
+            execution_units = transaction_simulation_ogmios(cborHex, utxo, config)
+        else:
+            execution_units = purchase_simulation(cborHex, utxo, config)
         if execution_units == [{}]:
-            if logger is not None:
-                logger.critical("Validation Failed!")
+            logger.critical(f"Purchase Validation Failed: {utxo.queue.txid}") if logger is not None else None
             return utxo, purchase_success_flag
 
+        # return utxo, purchase_success_flag
         # sort the inputs lexicograhpically so the execution units can be mapped
         ordered_list = sort_lexicographically(utxo.sale.txid, utxo.queue.txid, utxo.vault.txid)
 
@@ -290,7 +288,6 @@ class Endpoint:
         vault_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.vault.txid)])
 
         if logger is not None:
-            logger.debug(execution_units)
             logger.debug(f"script sizes: {script_sizes}")
             logger.debug(f"tx fee: {tx_fee}")
             logger.debug(f"total fee: {total_fee}")
@@ -353,7 +350,7 @@ class Endpoint:
 
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
+        _, _ = p.communicate()
 
         # should be good to go
         purchase_success_flag = True
@@ -412,8 +409,6 @@ class Endpoint:
 
         fee = 0
         fee_value = Value({"lovelace": fee})
-        # Refund Example: Mem 1231866 Steps 455696460
-        # execution_units = '(500000000, 1500000)'
         queue_execution_units = '(0, 0)'
 
         # The parent directory for relative pathing
@@ -449,11 +444,13 @@ class Endpoint:
 
         # if incentive not in queue then fail
         if queue_value.contains(incentive_value) is False:
+            logger.warning("Queue value does not contain incentive") if logger is not None else None
             return utxo, refund_success_flag
 
         # calculate the outbound values for sale, queue, and batcher
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
         if queue_out_value.has_negative_entries() is True:
+            logger.warning("Queue value has negative values") if logger is not None else None
             return utxo, refund_success_flag
 
         batcher_out_value = copy.deepcopy(batcher_value) + copy.deepcopy(incentive_value)
@@ -466,8 +463,7 @@ class Endpoint:
 
         # will fail due to time validation logic
         if end_slot - latest_slot_number <= 0:
-            if logger is not None:
-                logger.warning(f"Refund Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late")
+            logger.warning(f"Refund Oracle: {abs(end_slot - latest_slot_number) / 60:.2f} minutes late") if logger is not None else None
             return utxo, refund_success_flag
 
         func = [
@@ -503,19 +499,18 @@ class Endpoint:
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errors = p.communicate()
 
-        if logger is not None:
-            logger.debug(f"Output: {output}")
-            logger.debug(f"Errors: {errors}")
+        logger.debug(f"Errors: {errors}") if logger is not None else None
 
         if "Command failed" in errors.decode():
             return utxo, refund_success_flag
         # At this point we should be able to simulate the tx draft
         cborHex = get_cbor_from_file(out_file_path)
-        execution_units = refund_simulation(cborHex, utxo, config)
-
+        if config['use_ogmios'] is True:
+            execution_units = transaction_simulation_ogmios(cborHex, utxo, config)
+        else:
+            execution_units = refund_simulation(cborHex, utxo, config)
         if execution_units == [{}]:
-            if logger is not None:
-                logger.critical("Validation Failed!")
+            logger.critical(f"Refund Validation Failed: {utxo.queue.txid}") if logger is not None else None
             return utxo, refund_success_flag
 
         # sort the inputs lexicograhpically so the execution units can be mapped
@@ -539,17 +534,16 @@ class Endpoint:
         queue_execution_units = convert_execution_unit(execution_units[get_index_in_order(ordered_list, utxo.queue.txid)])
 
         if logger is not None:
-            logger.debug(execution_units)
             logger.debug(f"script sizes: {script_sizes}")
             logger.debug(f"tx fee: {tx_fee}")
             logger.debug(f"total fee: {total_fee}")
+            logger.debug(queue_execution_units)
 
         # At this point we should be able to rebuild the tx draft
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
 
         func = [
             cli_path, 'conway', 'transaction', 'build-raw',
-            '--babbage-era',
             '--protocol-params-file', protocol_file_path,
             '--out-file', out_file_path,
             "--tx-in-collateral", config['collat_utxo'],
@@ -579,7 +573,7 @@ class Endpoint:
 
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
+        _, _ = p.communicate()
 
         # everything should be good to go
         refund_success_flag = True

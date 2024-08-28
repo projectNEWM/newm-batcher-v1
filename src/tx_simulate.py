@@ -9,10 +9,10 @@ import subprocess
 import tempfile
 
 import cbor2
-from cbor2 import dumps
 
 from src.address import bech32_to_hex
 from src.cbor import convert_datum, tag, to_bytes
+from src.ogmios import ogmios_simulate
 from src.utility import find_index_of_target
 from src.utxo_manager import UTxOManager
 
@@ -73,6 +73,14 @@ def resolve_inputs(tx_cbor: str) -> list[tuple[str, int]]:
 
 
 def get_cbor_from_file(tx_draft_path: str) -> str:
+    """Open the transaction draft file and return the cbor hex.
+
+    Args:
+        tx_draft_path (str): The path to the draft transaction file.
+
+    Returns:
+        str: The cbor of the transaction.
+    """
     # get cborHex from tx draft
     with open(tx_draft_path, 'r') as file:
         data = json.load(file)
@@ -106,6 +114,18 @@ def inputs_from_cbor(cborHex: str) -> tuple[str, str] | None:
 
 
 def simulate(tx_cbor: str, input_cbor: str, output_cbor: str, network: bool = False, debug: bool = False) -> list[dict]:
+    """Simulate a transaction with aiken tx simulate.
+
+    Args:
+        tx_cbor (str): The transaction cbor
+        input_cbor (str): The proper input cbor.
+        output_cbor (str): The proper output cbor in order of the input cbor.
+        network (bool, optional): The network flag. Defaults to False.
+        debug (bool, optional): The debug flag. Defaults to False.
+
+    Returns:
+        list[dict]: The execution units in aiken simulate format.
+    """
     # try to simulate the tx and return the results else return an empty dict
     try:
 
@@ -174,15 +194,35 @@ def calculate_total_fee(tx_fee: int, execution_units: list[dict[str, int]]) -> i
     priceSteps = 7.21e-5
     computational_fee = 0
     for unit in execution_units:
-        computational_fee += unit['cpu'] * priceSteps + unit['mem'] * priceMemory
+        computational_fee += unit['cpu'] * \
+            priceSteps + unit['mem'] * priceMemory
     return int(tx_fee + computational_fee)
 
 
 def convert_execution_unit(execution_unit: dict[str, int]) -> str:
+    """Place a execution unit in proper cli formatting.
+
+    Args:
+        execution_unit (dict[str, int]): The execution units for some process.
+
+    Returns:
+        str: The proper cli string formatting for execution units.
+    """
     return f"({execution_unit['cpu']}, {execution_unit['mem']})"
 
 
-def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
+def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[dict]:
+    """Construct the proper cbor from the cbor hex and the utxo manager and
+    simulate the purchase transaction
+
+    Args:
+        cborHex (str): The purchase transaction cbor hex.
+        utxo (UTxOManager): The utxo manager
+        config (dict): The config file
+
+    Returns:
+        list[dict]: The execution units in Aiken format.
+    """
     inputs, inputs_cbor = inputs_from_cbor(cborHex)
 
     # initialize the outputs
@@ -192,29 +232,34 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     # batcher
     batcher_index = find_index_of_target(inputs, utxo.batcher.txid)
     batcher_bytes = to_bytes(bech32_to_hex(config['batcher_address']))
-    outputs[batcher_index] = {0: batcher_bytes, 1: utxo.batcher.value.simulate_form()}
+    outputs[batcher_index] = {0: batcher_bytes,
+                              1: utxo.batcher.value.simulate_form()}
     # sale
     sale_index = find_index_of_target(inputs, utxo.sale.txid)
     sale_bytes = to_bytes(bech32_to_hex(config['sale_address']))
     sale_datum_bytes = [1, tag(24, convert_datum(utxo.sale.datum))]
-    outputs[sale_index] = {0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
+    outputs[sale_index] = {
+        0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
     # queue
     queue_index = find_index_of_target(inputs, utxo.queue.txid)
     queue_bytes = to_bytes(bech32_to_hex(config['queue_address']))
     queue_datum_bytes = [1, tag(24, convert_datum(utxo.queue.datum))]
-    outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
+    outputs[queue_index] = {
+        0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
     # vault
     vault_index = find_index_of_target(inputs, utxo.vault.txid)
     if vault_index is not None:
         vault_bytes = to_bytes(bech32_to_hex(config['vault_address']))
         vault_datum_bytes = [1, tag(24, convert_datum(utxo.vault.datum))]
-        outputs[vault_index] = {0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
+        outputs[vault_index] = {
+            0: vault_bytes, 1: utxo.vault.value.simulate_form(), 2: vault_datum_bytes}
     # oracle
     oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
     if oracle_index is not None:
         oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
         oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
-        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
+        outputs[oracle_index] = {
+            0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
     # collateral; hardcoded
     collat_index = find_index_of_target(inputs, config['collat_utxo'])
     collat_bytes = to_bytes(bech32_to_hex(config['collat_address']))
@@ -223,31 +268,50 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     data_index = find_index_of_target(inputs, utxo.data.txid)
     data_bytes = to_bytes(bech32_to_hex(config['data_address']))
     data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
-    outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
+    outputs[data_index] = {
+        0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
     # reference stuff
     reference_bytes = to_bytes(bech32_to_hex(config['reference_address']))
     # sale ref
     sale_ref_index = find_index_of_target(inputs, utxo.reference.sale.txid)
-    sale_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.sale.cborHex)]).hex()))
-    outputs[sale_ref_index] = {0: reference_bytes, 1: utxo.reference.sale.value.simulate_form(), 3: sale_ref_bytes}
+    sale_ref_bytes = tag(24, to_bytes(cbor2.dumps(
+        [2, to_bytes(utxo.reference.sale.cborHex)]).hex()))
+    outputs[sale_ref_index] = {
+        0: reference_bytes, 1: utxo.reference.sale.value.simulate_form(), 3: sale_ref_bytes}
     # queue ref
     queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
-    queue_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
-    outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
+    queue_ref_bytes = tag(24, to_bytes(cbor2.dumps(
+        [2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
+    outputs[queue_ref_index] = {
+        0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
     # vault ref
     vault_ref_index = find_index_of_target(inputs, utxo.reference.vault.txid)
     if vault_ref_index is not None:
-        vault_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.vault.cborHex)]).hex()))
-        outputs[vault_ref_index] = {0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
+        vault_ref_bytes = tag(24, to_bytes(cbor2.dumps(
+            [2, to_bytes(utxo.reference.vault.cborHex)]).hex()))
+        outputs[vault_ref_index] = {
+            0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
 
-    outputs_cbor = dumps(outputs).hex()
+    outputs_cbor = cbor2.dumps(outputs).hex()
 
     network = True if "mainnet" in config['network'] else False
-    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
+    execution_units = simulate(
+        cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
     return execution_units
 
 
-def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict):
+def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[dict]:
+    """Construct the proper cbor from the cbor hex and the utxo manager and
+    simulate the refund transaction.
+
+    Args:
+        cborHex (str): The refund transaction cbor hex.
+        utxo (UTxOManager): The utxo manager
+        config (dict): The config file
+
+    Returns:
+        list[dict]: The execution units in Aiken format.
+    """
     inputs, inputs_cbor = inputs_from_cbor(cborHex)
 
     # initialize the outputs
@@ -257,23 +321,27 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     # batcher
     batcher_index = find_index_of_target(inputs, utxo.batcher.txid)
     batcher_bytes = to_bytes(bech32_to_hex(config['batcher_address']))
-    outputs[batcher_index] = {0: batcher_bytes, 1: utxo.batcher.value.simulate_form()}
+    outputs[batcher_index] = {0: batcher_bytes,
+                              1: utxo.batcher.value.simulate_form()}
     # sale
     sale_index = find_index_of_target(inputs, utxo.sale.txid)
     sale_bytes = to_bytes(bech32_to_hex(config['sale_address']))
     sale_datum_bytes = [1, tag(24, convert_datum(utxo.sale.datum))]
-    outputs[sale_index] = {0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
+    outputs[sale_index] = {
+        0: sale_bytes, 1: utxo.sale.value.simulate_form(), 2: sale_datum_bytes}
     # queue
     queue_index = find_index_of_target(inputs, utxo.queue.txid)
     queue_bytes = to_bytes(bech32_to_hex(config['queue_address']))
     queue_datum_bytes = [1, tag(24, convert_datum(utxo.queue.datum))]
-    outputs[queue_index] = {0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
+    outputs[queue_index] = {
+        0: queue_bytes, 1: utxo.queue.value.simulate_form(), 2: queue_datum_bytes}
     # oracle
     oracle_index = find_index_of_target(inputs, utxo.oracle.txid)
     if oracle_index is not None:
         oracle_bytes = to_bytes(bech32_to_hex(config['oracle_address']))
         oracle_datum_bytes = [1, tag(24, convert_datum(utxo.oracle.datum))]
-        outputs[oracle_index] = {0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
+        outputs[oracle_index] = {
+            0: oracle_bytes, 1: utxo.oracle.value.simulate_form(), 2: oracle_datum_bytes}
     # collateral; hardcoded
     collat_index = find_index_of_target(inputs, config['collat_utxo'])
     collat_bytes = to_bytes(bech32_to_hex(config['collat_address']))
@@ -282,18 +350,92 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict):
     data_index = find_index_of_target(inputs, utxo.data.txid)
     data_bytes = to_bytes(bech32_to_hex(config['data_address']))
     data_datum_bytes = [1, tag(24, convert_datum(utxo.data.datum))]
-    outputs[data_index] = {0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
+    outputs[data_index] = {
+        0: data_bytes, 1: utxo.data.value.simulate_form(), 2: data_datum_bytes}
 
     # reference stuff
     reference_bytes = to_bytes(bech32_to_hex(config['reference_address']))
     # queue ref
     queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
-    queue_ref_bytes = tag(24, to_bytes(dumps([2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
-    outputs[queue_ref_index] = {0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
+    queue_ref_bytes = tag(24, to_bytes(cbor2.dumps(
+        [2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
+    outputs[queue_ref_index] = {
+        0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
 
     # compute the output cbor
-    outputs_cbor = dumps(outputs).hex()
+    outputs_cbor = cbor2.dumps(outputs).hex()
 
     network = True if "mainnet" in config['network'] else False
-    execution_units = simulate(cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
+    execution_units = simulate(
+        cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
+    return execution_units
+
+
+def transaction_simulation_ogmios(cborHex: str, utxo: UTxOManager, config: dict):
+    # we need utxos for all the things
+    additionalUTxOSet = []
+
+    # batcher
+    batcherSet = {
+        "transaction": {
+            "id": utxo.batcher.txid.split('#')[0]
+        },
+        "index": int(utxo.batcher.txid.split('#')[1]),
+        "address": config['batcher_address'],
+        "value": {
+            "ada": {"lovelace": utxo.batcher.value.inner['lovelace']},
+            **utxo.batcher.value.remove_lovelace().inner
+        }
+    }
+    additionalUTxOSet.append(batcherSet)
+    # sale
+    saleSet = {
+        "transaction": {
+            "id": utxo.sale.txid.split('#')[0]
+        },
+        "index": int(utxo.sale.txid.split('#')[1]),
+        "address": config['sale_address'],
+        "value": {
+            "ada": {"lovelace": utxo.sale.value.inner['lovelace']},
+            **utxo.sale.value.remove_lovelace().inner
+        },
+        "datum": convert_datum(utxo.sale.datum).hex()
+    }
+    additionalUTxOSet.append(saleSet)
+    # queue
+    queueSet = {
+        "transaction": {
+            "id": utxo.queue.txid.split('#')[0]
+        },
+        "index": int(utxo.queue.txid.split('#')[1]),
+        "address": config['queue_address'],
+        "value": {
+            "ada": {"lovelace": utxo.queue.value.inner['lovelace']},
+            **utxo.queue.value.remove_lovelace().inner
+        },
+        "datum": convert_datum(utxo.queue.datum).hex()
+    }
+    additionalUTxOSet.append(queueSet)
+    # vault
+    vaultSet = {
+        "transaction": {
+            "id": utxo.vault.txid.split('#')[0]
+        },
+        "index": int(utxo.vault.txid.split('#')[1]),
+        "address": config['vault_address'],
+        "value": {
+            "ada": {"lovelace": utxo.vault.value.inner['lovelace']},
+            **utxo.vault.value.remove_lovelace().inner
+        },
+        "datum": convert_datum(utxo.vault.datum).hex()
+    }
+    additionalUTxOSet.append(vaultSet)
+    #
+    result = ogmios_simulate(cborHex, additionalUTxOSet)
+    execution_units = []
+    try:
+        for unit in result['result']:
+            execution_units.append({"mem": unit['budget']["memory"], "cpu": unit['budget']["cpu"]})
+    except KeyError:
+        return [{}]
     return execution_units

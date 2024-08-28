@@ -2,7 +2,6 @@ import logging
 import multiprocessing
 import os
 import subprocess
-import sys
 
 from flask import Flask, request
 from loguru import logger
@@ -15,6 +14,8 @@ from src.db_manager import DbManager
 from src.io_manager import IOManager
 from src.sorting import Sorting
 from src.utility import create_folder_if_not_exists, parent_directory_path
+
+# import sys
 
 ###############################################################################
 # Top level config required for the batcher to run
@@ -125,50 +126,18 @@ def webhook():
     return 'Webhook Successful'
 
 
-def run_daemon():
+def run_ogmios():
     """
-    Run the Oura daemon by searching for the bin in the home directory.
+    Run the Ogmios daemon.
     """
-    program_name = "oura"
-    # The base directory where user home directories are typically located
+    subprocess.run([config['ogmios_path'], '--node-socket', config['socket_path'], '--node-config', config['node_config_path'], '--log-level', 'Off'])
 
-    # List all subdirectories within the search directory
-    user_directories = []
-    try:
-        search_directory = "/root"
-        user_directories += [
-            os.path.join(search_directory, user)
-            for user in os.listdir(search_directory)
-            if os.path.isdir(os.path.join(search_directory, user))]
-    except PermissionError:
-        pass
-    search_directory = "/home"
-    user_directories += [
-        os.path.join(search_directory, user)
-        for user in os.listdir(search_directory)
-        if os.path.isdir(os.path.join(search_directory, user))]
-    # Iterate through user home directories and check if the program exists
-    program_path = ''
-    found = False
-    logger.debug(f"{user_directories}")
-    for user_directory in user_directories:
-        program_path = os.path.join(
-            user_directory, "bin", program_name)
-        if os.path.exists(program_path):
-            found = True
-            break
 
-        program_path = os.path.join(
-            user_directory, '.cargo', "bin", program_name)
-        if os.path.exists(program_path):
-            found = True
-            break
-
-    if found is False:
-        logger.error("Oura Not Found On System")
-        sys.exit(1)
-    # run it
-    subprocess.run([program_path, 'daemon', '--config', 'daemon.toml'])
+def run_oura():
+    """
+    Run the Oura daemon.
+    """
+    subprocess.run([config['oura_path'], 'daemon', '--config', 'daemon.toml'])
 
 
 def flask_process(start_event):
@@ -201,8 +170,13 @@ def start_processes():
     flask_proc.start()
 
     # start oura daemon
-    daemon_proc = multiprocessing.Process(target=run_daemon)
+    daemon_proc = multiprocessing.Process(target=run_oura)
     daemon_proc.start()
+
+    # start oura daemon
+    if config['use_ogmios'] is True:
+        ogmios_proc = multiprocessing.Process(target=run_ogmios)
+        ogmios_proc.start()
 
     # Set the start event to indicate that the Flask app is ready to run
     start_event.set()
@@ -210,6 +184,7 @@ def start_processes():
         # Wait for both processes to complete
         flask_proc.join()
         daemon_proc.join()
+        ogmios_proc.join() if config['use_ogmios'] is True else None
     except KeyboardInterrupt:
         # Handle KeyboardInterrupt (CTRL+C)
         logger.error("KeyboardInterrupt detected, terminating processes...")
@@ -218,8 +193,10 @@ def start_processes():
         # terminate and join
         flask_proc.terminate()
         daemon_proc.terminate()
+        ogmios_proc.terminate() if config['use_ogmios'] is True else None
         flask_proc.join()
         daemon_proc.join()
+        ogmios_proc.join() if config['use_ogmios'] is True else None
 
 
 if __name__ == '__main__':

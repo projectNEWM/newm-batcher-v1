@@ -209,3 +209,8 @@ class Value:
             for asset, quantity in assets.items():
                 obj[to_bytes(policy)][to_bytes(asset)] = int(quantity)
         return [int(lovelace), obj]
+
+    def remove_lovelace(self):
+        inner_copy = self.inner.copy()  # create a copy so we can delete
+        del inner_copy["lovelace"]
+        return Value(inner_copy)

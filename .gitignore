@@ -5,3 +5,5 @@ batcher.db-journal
 .pytest_cache/
 reset.sh
 docker.sh
+estimate.sh
+.env

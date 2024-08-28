@@ -179,3 +179,10 @@ def test_has_no_negative_values():
 def test_has_negative_values():
     v1 = Value({"lovelace": 3, "acab": {"beef": -2}, "cafe": {"fade": 1}})
     assert v1.has_negative_entries() is True
+
+
+def test_remove_lovelace():
+    v1 = Value({'lovelace': 5000000, '20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9': {'5ca1ab1e000affab1e000ca11ab1e0005e77ab1e': 1}})
+    v2 = Value({'20053b53f8f381892dc2fe8a2562f6b4a2fe076143b7d9c6558c98f9': {'5ca1ab1e000affab1e000ca11ab1e0005e77ab1e': 1}})
+    assert v1.remove_lovelace() == v2
+    assert v1.inner['lovelace'] == 5000000

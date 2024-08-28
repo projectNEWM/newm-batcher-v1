@@ -26,9 +26,18 @@ network: "--testnet-magic 1"
 # socket_path: "/root/node/node.socket"
 # cli_path: "/root/bin/cardano-cli"
 
-# On Path
+# Bin Paths
+cli_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/cardano-cli"
+oura_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/oura"
+ogmios_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/ogmios"
+aiken_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/aiken"
+
+# File Paths
 socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
-cli_path: "/usr/local/bin/cardano-cli"
+node_config_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/config.json"
+
+# True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
+use_ogmios: True
 
 ###############################################################################
 # Do Not Update Values Below
