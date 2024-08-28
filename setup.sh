@@ -1,5 +1,67 @@
 #!/usr/bin/env bash
 
+echo -e "\033[1;34m\nChecking For Required Binaries\n\033[0m"
+
+if command -v tar &> /dev/null; then
+    echo -e "\033[1;35m\ntar is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mtar is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y tar \033[0m"
+    exit 1;
+fi
+
+if command -v zip &> /dev/null; then
+    echo -e "\033[1;35m\nzip is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mzip is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y zip unzip \033[0m"
+    exit 1;
+fi
+
+if command -v wget &> /dev/null; then
+    echo -e "\033[1;35m\nwget is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mwget is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y wget \033[0m"
+    exit 1;
+fi
+
+if command -v jq &> /dev/null; then
+    echo -e "\033[1;35m\njq is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mjq is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y jq \033[0m"
+    exit 1;
+fi
+
+if command -v yq &> /dev/null; then
+    echo -e "\033[1;35m\nyq is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31myq is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \033[0m"
+    echo -e "\033[1;33m sudo chmod a+x /usr/local/bin/yq \033[0m"
+    exit 1;
+fi
+
+if command -v python3 &> /dev/null; then
+    echo -e "\033[1;35m\npython3 is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mpython3 is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y python3 python3-venv \033[0m"
+    exit 1;
+fi
+
+echo -e "\033[1;34m\nSetup Virtual Environment\n\033[0m"
+
+# Create a Python virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Install required Python packages
+pip install -r requirements.txt
+
 echo -e "\033[1;34m\nDownloading Required Binaries\n\033[0m"
 
 if [ -x "bin/oura" ]; then
@@ -40,4 +102,5 @@ else
     ./bin/cardano-cli --version
 fi
 
-
+echo -e "\033[1;37m\nPlease Update config.yaml\n\033[0m"
+echo -e "\033[1;32m\nBatcher Is Ready!\n\033[0m"

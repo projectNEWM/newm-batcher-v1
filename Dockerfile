@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     build-essential \
     pkg-config \
-    libssl-dev
+    libssl-dev \
+    yq
 
 RUN curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/bin/yq && chmod +x /usr/bin/yq
 

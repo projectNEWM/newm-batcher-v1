@@ -343,8 +343,8 @@ def submit(signed_file_path: str, socket_path: str, network: str, cli_path: str,
     p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, errors = p.communicate()
     if logger is not None:
-        logger.debug(output)
-        logger.debug(errors)
+        logger.debug(f"Submit Output: {output}")
+        logger.debug(f"Submit Errors: {errors}")
     if "Connection refused" in errors.decode():
         sys.exit(1)
     if "Command failed" in errors.decode():

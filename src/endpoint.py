@@ -246,7 +246,7 @@ class Endpoint:
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, errors = p.communicate()
 
-        logger.debug(f"Errors: {errors}") if logger is not None else None
+        logger.debug(f"Purchase Build Errors: {errors}") if logger is not None else None
 
         if "Command failed" in errors.decode():
             return utxo, purchase_success_flag
@@ -497,9 +497,9 @@ class Endpoint:
 
         # this saves to out file
         p = subprocess.Popen(func, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
+        _, errors = p.communicate()
 
-        logger.debug(f"Errors: {errors}") if logger is not None else None
+        logger.debug(f"Refund Build Errors: {errors}") if logger is not None else None
 
         if "Command failed" in errors.decode():
             return utxo, refund_success_flag
@@ -537,7 +537,7 @@ class Endpoint:
             logger.debug(f"script sizes: {script_sizes}")
             logger.debug(f"tx fee: {tx_fee}")
             logger.debug(f"total fee: {total_fee}")
-            logger.debug(queue_execution_units)
+            logger.debug(f"queue units: {queue_execution_units}")
 
         # At this point we should be able to rebuild the tx draft
         queue_out_value = copy.deepcopy(queue_value) - copy.deepcopy(incentive_value) - copy.deepcopy(fee_value)
