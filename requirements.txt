@@ -256,5 +256,5 @@ Werkzeug==2.3.6
 xdg==5
 xkit==0.0.0
 yarl==1.9.2
-zipp==1.0.0
+zipp==3.19.1
 zope.interface==5.4.0
