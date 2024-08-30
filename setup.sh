@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Check if running on Linux
+if [[ "$(uname -s)" == "Linux" ]]; then
+    echo -e "\033[1;33m\nRunning on Linux. Proceeding...\n\033[0m"
+else
+    echo -e "\033[1;31m\nOnly Linux Is Supported. Exiting script.\n\033[0m"
+    exit 1;
+fi
+
 echo -e "\033[1;34m\nChecking For Required Binaries\n\033[0m"
 
 if command -v git &> /dev/null; then
@@ -110,7 +118,7 @@ else
 fi
 
 if [ -x "bin/cardano-cli" ]; then
-    echo -e "\033[1;31mCLI Exists!\033[0m"
+    echo -e "\033[1;31mCli Exists!\033[0m"
 else
     wget -P bin https://github.com/IntersectMBO/cardano-node/releases/download/9.1.0/cardano-node-9.1.0-linux.tar.gz
     tar -xzf bin/cardano-node-9.1.0-linux.tar.gz -C bin --strip-components=2 ./bin/cardano-cli
@@ -119,7 +127,7 @@ else
 fi
 
 if [ -x "bin/cardano-address" ]; then
-    echo -e "\033[1;31mCLI Exists!\033[0m"
+    echo -e "\033[1;31mAddr Exists!\033[0m"
 else
     wget -P bin https://github.com/IntersectMBO/cardano-addresses/releases/download/3.12.0/cardano-addresses-3.12.0-linux64.tar.gz
     tar -xzf bin/cardano-addresses-3.12.0-linux64.tar.gz -C bin --strip-components=1 bin/cardano-address
@@ -128,5 +136,4 @@ else
     echo -e "\033[1;37mCardano Address: $(./bin/cardano-address --version)\033[0m"
 fi
 
-echo -e "\033[1;36m\nCreate The Batcher and Collateral Keys\n\033[0m"
-echo -e "\033[1;36m\nThen Update config.yaml\n\033[0m"
+echo -e "\033[1;36m\nCreate The Batcher and Collateral Keys Then Update The config.yaml File\n\033[0m"

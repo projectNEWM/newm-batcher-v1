@@ -1,6 +1,6 @@
 # NEWM Market Batcher v1
 
-This is the first version of the [NEWM Marketplace](https://github.com/projectNEWM/newm-market) order batcher. This lightweight tool processes and matches orders using the sale and query contract, prioritizing queue entries by increasing incentive. It features automatic profit accumulation, multi-asset incentive list, and arbitrary transaction simulation. Fulfilling orders with the batcher requires a batcher certificate, obtained by locking a complete NEWM Monster set into the band-lock-up contract. The batcher is designed to run alongside a fully synced node.
+This is the first version of the [NEWM Marketplace](https://github.com/projectNEWM/newm-market) order batcher. This lightweight tool processes orders using the sale and query contracts, prioritizing queue entries with larger incentive. It features automatic profit accumulation, multi-asset incentive list, and arbitrary transaction simulation. Fulfilling orders with the batcher requires a batcher certificate, obtained by locking a complete NEWM Monster set into the band-lock-up contract in the marketplace. The batcher is designed to run alongside a fully-synced node.
 
 ## Setup
 
@@ -16,7 +16,7 @@ The batcher requires a fully-synced cardano node, cardano-cli, cardano-address, 
 
 The batcher comes with a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the python virtual environment and install the required modules. It is assume the cardano-node is already running and is fully-synced.
 
-After the setup is completed create the batcher and collateral keys then update the `config.yaml` file.
+After the setup is completed, create the batcher and collateral keys using the `keys/setup_keys.sh` script then update the `config.yaml` file.
 
 ### Required CLI Keys
 
@@ -43,7 +43,7 @@ collat.skey
 collat.vkey
 ```
 
-The batcher address will hold a UTxO with the batcher certificate token and 5 ADA and the collateral address will hold a UTxO with 5 ADA. The balances of these addresses can be view with the `balances.sh` script located in the keys folder as well as the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command.
+The batcher address will hold a single UTxO with the batcher certificate token and 5 ADA. The collateral address will hold a single UTxO with 5 ADA. The balances of these addresses can be view with the `balances.sh` script located in the `keys` folder as well as with the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command.
 
 Using the setup script is not required as any valid cli keys can be used for the batcher. It is provided as a way to help secure the keys incase of failure or emergency.
 
@@ -124,6 +124,39 @@ It is suggested to run the NEWM batcher as a service on your server. Below are i
     ```
 
 The service can be followed with the `follow_batcher.sh` script.
+
+## Using DB Analysis Tool
+
+The NEWM batcher comes with an db analysis tool to query the batcher db without stopping the batcher. This can be very useful for debugging, checking balances, batcher status, and getting the current marketplace state.
+
+```bash
+# Activate the virtual environment
+source venv/bin/activate
+
+# Run the batcher
+python3 analysis.py --help
+```
+
+```
+usage: analysis.py [-h] [-s] [--batcher] [--oracle] [--data] [--sales] [--vault] [--references] [--query-sale TKN] [--query-order TAG] [--sorted-queue] [--simulate-purchase TKN TAG] [--simulate-refund TKN TAG]
+
+NEWM-Batcher Database Analysis Tool
+
+options:
+  -h, --help                  show this help message and exit
+  -s, --status                return the current sync status
+  --batcher                   return the batcher UTxOs
+  --oracle                    return the oracle UTxO
+  --data                      return the data UTxO
+  --sales                     return the sale UTxOs and queue entries
+  --vault                     return the vault UTxOs
+  --references                return the reference UTxOs
+  --query-sale TKN            return the queue entries for a sale
+  --query-order TAG           return the queue info for a queue entry
+  --sorted-queue              return the sorted sale UTxOs and queue entries
+  --simulate-purchase TKN TAG simulate the purchase endpoint
+  --simulate-refund TKN TAG   simulate the purchase endpoint
+```
 
 ## Updating The NEWM Batcher
 
