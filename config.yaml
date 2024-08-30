@@ -20,17 +20,12 @@ collat_utxo: ""
 # network: "--mainnet"
 network: "--testnet-magic 1"
 
-# Socket and Cardano CLI Information
-
-# Docker - Do Not Use Yet
-# socket_path: "/root/node/node.socket"
-# cli_path: "/root/bin/cardano-cli"
-
 # Bin Paths; Need To be Absolute
 cli_path: "/newm-batcher-v1/bin/cardano-cli"
 oura_path: "/newm-batcher-v1/bin/oura"
 ogmios_path: "/newm-batcher-v1/bin/ogmios"
 aiken_path: "/newm-batcher-v1/bin/aiken"
+addr_path: "/newm-batcher-v1/bin/cardano-address"
 
 # File Paths; Needs To Be Absolute
 socket_path: "/node.socket"
@@ -38,6 +33,12 @@ node_config_path: "/config.json"
 
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
 use_ogmios: True
+
+# Socket and Cardano CLI Information
+
+# Docker - Do Not Use Yet
+# socket_path: "/root/node/node.socket"
+# cli_path: "/root/bin/cardano-cli"
 
 ###############################################################################
 # Do Not Update Values Below

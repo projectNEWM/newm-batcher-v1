@@ -1,29 +1,26 @@
 # NEWM Market Batcher v1
 
-This is the first version of the NEWM Market Batcher.
+This is the first version of the [NEWM Marketplace](https://github.com/projectNEWM/newm-market) order batcher. This lightweight tool processes and matches orders using the sale and query contract, prioritizing queue entries by increasing incentive. It features automatic profit accumulation, multi-asset incentive list, and arbitrary transaction simulation. Fulfilling orders with the batcher requires a batcher certificate, obtained by locking a complete NEWM Monster set into the band-lock-up contract. The batcher is designed to run alongside a fully synced node.
 
 ## Setup
 
+Clone the repo and create your own personal branch for the batcher.
+
 ```bash
-# Create a Python virtual environment
-python3 -m venv venv
-
-# Activate the virtual environment
-source venv/bin/activate
-
-# Install required Python packages
-pip install -r requirements.txt
+git clone https://github.com/newm-batcher-v1.git
+cd newm-batcher-v1
+git checkout -b your-personal-branch
 ```
 
-Run the batcher with `python3 batcher.py`. Run the tests with `pytest`. Some tests require access to a full node.
+The batcher requires a fully-synced cardano node, cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq.
 
-## External Requirements
+The batcher comes with a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the python virtual environment and install the required modules. It is assume the cardano-node is already running and is fully-synced.
 
-The batcher requires a fully-synced cardano node, cardano-cli, cardano-address, [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq. Cardano-address is provided with the batcher inside the keys folder. The cardano-cli and cardano-node are assumed to be on path.
+After the setup is completed create the batcher and collateral keys then update the `config.yaml` file.
 
 ### Required CLI Keys
 
-The batcher comes with a setup helper file, `setup_keys.sh`, that will allow the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
+The batcher comes with a wallet setup helper file, `setup_keys.sh`, inside the `keys` folder that will allow the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
 
 ```
 Press 1 to generate a wallet, 2 to load a wallet, or any other key to exit.
@@ -50,7 +47,7 @@ The batcher address will hold a UTxO with the batcher certificate token and 5 AD
 
 Using the setup script is not required as any valid cli keys can be used for the batcher. It is provided as a way to help secure the keys incase of failure or emergency.
 
-## Configuration
+### Configuration
 
 The `config.yaml` file is split into two parts. The user is expected to update just the top part that states `# Update Values For Your Batcher`. Configuring the batcher is placing the correct information into the fields below. The other information inside the `config.yaml` file does not need to be changed nor updated.
 
@@ -63,36 +60,54 @@ profit_address: ""
 collat_address: ""
 collat_utxo: ""
 
-# Node And Network Information
-network: ""
-socket_path: ""
-cli_path: ""
+# Network Information
+# network: "--mainnet"
+network: "--testnet-magic 1"
+
+# Bin Paths; Need To be Absolute
+cli_path: "/newm-batcher-v1/bin/cardano-cli"
+oura_path: "/newm-batcher-v1/bin/oura"
+ogmios_path: "/newm-batcher-v1/bin/ogmios"
+aiken_path: "/newm-batcher-v1/bin/aiken"
+addr_path: "/newm-batcher-v1/bin/cardano-address"
+
+# File Paths; Needs To Be Absolute
+socket_path: "/node.socket"
+node_config_path: "/config.json"
 ```
 
-If the `setup_keys.sh` script is used then follow the steps below.
-
-Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base address from the CIP03 wallet or any address of your choosing. The `collat_utxo` has the form `id#idx` and it holds 5 ADA. It will be used in every smart contract transaction as the collateral. The `network` variable is a string of either `--mainnet` or `--testnet-magic 1`. The batcher is designed to run on mainnet and pre-production only. The `socket_path` is the absolute path to the node socket of the fully synced cardano node.
+Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base address from the CIP03 wallet or any address of your choosing. The `collat_utxo` has the form `id#idx` and it holds 5 ADA. It will be used in every smart contract transaction as the collateral. The `network` variable is a string of either `--mainnet` or `--testnet-magic 1`. The batcher is designed to run on mainnet and pre-production only. The required paths need to be absolute and complete.
 
 The batcher is ready to run after this information has been updated. Do not update any other variables as it may inhibit the batcher's ability to function.
 
+### Running The Batcher
+
+Running the batcher is as simple as entering the virtual environment and executing the `batcher.py` script.
+
+```bash
+# Activate the virtual environment
+source venv/bin/activate
+
+# Run the batcher
+python3 batcher.py
+```
+
+Run the tests with `pytest`. Some tests require access to a full node.
+
 ## Running NEWM Batcher As A Service
 
+It is suggested to run the NEWM batcher as a service on your server. Below are instructions to modifying the `newm-batcher.service` file.
 
-1. Clone the repository and navigate to the project directory:
-
-    ```sh
-    git clone https://github.com/newm-batcher-v1.git
-    cd newm-batcher-v1
-    ```
-
-2. Update newm-batcher.service file with correct absolute paths to the repo directory.
+1. Update newm-batcher.service file with correct absolute paths to the repo directory. The User and Group need to be updated your information.
 
     ```
+    User              = your_username
+    Group             = your_groupname
     Environment       = REPO_PATH=/absolute/path/to/your/application
     WorkingDirectory  = /absolute/path/to/your/application
     ```
 
-3. Create the service file and enable the service:
+2. Save the service file, copy it to the correct location, and enable the service\.
 
     ```sh
     sudo cp newm-batcher.service /etc/systemd/system/newm-batcher.service
@@ -102,13 +117,54 @@ The batcher is ready to run after this information has been updated. Do not upda
     sudo systemctl start newm-batcher.service
     ```
 
-4. Verify the service status:
+3. Verify the service status:
 
     ```sh
     sudo systemctl status newm-batcher.service
     ```
 
+The service can be followed with the `follow_batcher.sh` script.
+
+## Updating The NEWM Batcher
+
+There may be updates to the batcher from time to time. Below are instructions to update your current batcher to the newest version.
+
+```bash
+# Step 1: Checkout their personal branch
+git checkout your-personal-branch
+
+# Step 2: Pull the latest changes from the main branch
+git pull origin master
+
+# Step 3: Stash the config.yaml file to preserve it
+git stash push -m "Save config.yaml" config.yaml
+
+# Step 4: Merge the main branch into their personal branch
+git merge master
+
+# Step 5: Apply the stashed config.yaml file to restore it
+git stash pop
+
+# Step 6: Stage and commit the changes
+git add .
+
+git commit -m "Merged main branch while keeping config.yaml unchanged"
+```
+
+The goal of an update is to perserve the config.yaml file while updating everything else.
+
+### Resetting The NEWM Batcher DB
+
+If a complete db reset is required use the command below.
+
+```bash
+rm *.log
+rm batcher.db
+```
+
 ## Running NEWM Batcher With Docker
+
+**Docker is not support as of right now**
 
 Build, create, and run docker:
 ```bash
@@ -141,8 +197,3 @@ python3 analysis.py --help
 ```
 
 
-## Updating The NEWM Batcher
-
-There may be updates to the batcher from time to time. Below are instructions to update your current batcher to the newest version.
-
-- TODO
