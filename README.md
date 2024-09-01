@@ -1,8 +1,8 @@
 # NEWM Market Batcher v1
 
-This is the first version of the [NEWM Marketplace](https://github.com/projectNEWM/newm-market) order batcher. This lightweight tool processes orders using the sale and query contracts, prioritizing queue entries with larger incentive. It features automatic profit accumulation, multi-asset incentive list, and arbitrary transaction simulation. Fulfilling orders with the batcher requires a batcher certificate, obtained by locking a complete NEWM Monster set into the band-lock-up contract in the marketplace. The batcher is designed to run alongside a fully-synced node.
+This is the first version of the [NEWM Marketplace](https://github.com/projectNEWM/newm-market) order batcher. This lightweight tool processes orders using the sale and query contracts, prioritizing queue entries with larger incentives. It features automatic profit accumulation, multi-asset incentive list, and arbitrary transaction simulation. Fulfilling orders with the batcher requires a batcher certificate, obtained by locking a complete NEWM Monster set into the band-lock-up contract in the marketplace. The batcher is designed to run alongside a fully-synced node.
 
-## Setup
+## Batcher Setup
 
 Clone the repo and create your own personal branch for the batcher.
 
@@ -12,9 +12,9 @@ cd newm-batcher-v1
 git checkout -b your-personal-branch
 ```
 
-The batcher requires a fully-synced cardano node, cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq.
+The batcher requires a fully-synced cardano node and requires cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq.
 
-The batcher comes with a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the python virtual environment and install the required modules. It is assume the cardano-node is already running and is fully-synced.
+The batcher comes with a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the python virtual environment and install the required modules. It is assumed the cardano-node is already running and is fully-synced.
 
 After the setup is completed, create the batcher and collateral keys using the `keys/setup_keys.sh` script then update the `config.yaml` file.
 
@@ -28,7 +28,7 @@ Press 1 to generate a wallet, 2 to load a wallet, or any other key to exit.
 
 If the user wishes to generate a wallet then press 1. It will display a seed phrase for the user to write down then it will generate the required keys. If the user wishes to use an existing wallet then press 2. It will prompt the user to type in there seed phrase in a single line with single spaces between each word. If entered correctly then the script will generate the required keys. Any other key will exit the script. The script is designed to prevent overwriting.
 
-After successfully setting up the wallet, the keys folder will contain two sets of files, one for the batcher and the other for the collateral, corresponding to the zeroth and first key paths from the seed phrase.
+After successfully setting up the wallet, the keys folder will contain two sets of files, one for the batcher and the other for the collateral, corresponding to the zeroth and first key paths from the root key.
 
 ```bash
 # batcher keys
@@ -61,7 +61,6 @@ collat_address: ""
 collat_utxo: ""
 
 # Network Information
-# network: "--mainnet"
 network: "--testnet-magic 1"
 
 # Bin Paths; Need To be Absolute
@@ -76,11 +75,19 @@ socket_path: "/node.socket"
 node_config_path: "/config.json"
 ```
 
-Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base address from the CIP03 wallet or any address of your choosing. The `collat_utxo` has the form `id#idx` and it holds 5 ADA. It will be used in every smart contract transaction as the collateral. The `network` variable is a string of either `--mainnet` or `--testnet-magic 1`. The batcher is designed to run on mainnet and pre-production only. The required paths need to be absolute and complete.
+Replace the `batcher_address` with value from the batcher.addr file and `collat_address` with value from the collat.addr. The profit address can be another base address from the CIP03 wallet or any address of your choosing. The `collat_utxo` has the form `id#idx` and it holds 5 ADA. It will be used in every smart contract transaction as the collateral. The batcher is designed to run pre-production only. The required paths need to be absolute and complete.
 
 The batcher is ready to run after this information has been updated. Do not update any other variables as it may inhibit the batcher's ability to function.
 
-### Running The Batcher
+### Setting Up The Vaults
+
+The final step for the batcher requires creating vault UTxOs inside the newm marketplace vault contract. These UTxOs are batcher specific and provide a method for NEWM to collect profit from successful purchase transactions. We suggest having at least 2 vault UTxOs for your batcher but as many as `delay_depth` + 1 UTxOs may be optimal.
+
+The UTxOs are automatically tracked by the batcher. The only requirement is that the value of `batcher.hash` is inside the datum of these UTxOs.
+
+Please refer to the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md) about setting up these UTxOs.
+
+## Running The Batcher
 
 Running the batcher is as simple as entering the virtual environment and executing the `batcher.py` script.
 
@@ -199,7 +206,7 @@ rm batcher.db
 
 **Docker is not support as of right now**
 
-Build, create, and run docker:
+<!-- Build, create, and run docker:
 ```bash
 docker build -t newm-batcher .
 
@@ -227,6 +234,6 @@ Use then analysis file while inside the container:
 ```bash
 source venv/bin/activate
 python3 analysis.py --help
-```
+``` -->
 
 
