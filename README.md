@@ -47,6 +47,14 @@ The batcher address will hold a single UTxO with the batcher certificate token a
 
 Using the setup script is not required as any valid cli keys can be used for the batcher. It is provided as a way to help secure the keys incase of failure or emergency.
 
+### Obtaining A Batcher Certificate
+
+A batcher certificate is issued when a user obtains a complete set of NEWM monsters and locks the entire band into a contract. The locking transaction mints a complete assets token that lives on the band lock UTxO and mints one batcher certificate to the user. The batcher certificate is sellable and tradable. It can be burned at any time to unlock the NEWM monsters that created it but can only unlock with the matching completed assets token. This perserves ownership even after trading.
+
+After minting a batcher certificate, send the token with at least 5 ADA to the batcher address. A batcher will be unable to batch without the token.
+
+Please refer to the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md) about minting a batcher certificate token.
+
 ### Configuration
 
 The `config.yaml` file is split into two parts. The user is expected to update just the top part that states `# Update Values For Your Batcher`. Configuring the batcher is placing the correct information into the fields below. The other information inside the `config.yaml` file does not need to be changed nor updated.
@@ -98,6 +106,8 @@ source venv/bin/activate
 # Run the batcher
 python3 batcher.py
 ```
+
+If the batcher can successfully start syncing blocks then it is working correctly.
 
 Run the tests with `pytest`. Some tests require access to a full node.
 
