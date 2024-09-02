@@ -33,7 +33,7 @@ socket_path: "/node.socket"
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
 use_ogmios: True
 
-# Docker - Do Not Use Yet
+# Docker - Not Supported - Do Not Use
 # socket_path: "/root/node/node.socket"
 # cli_path: "/root/bin/cardano-cli"
 
