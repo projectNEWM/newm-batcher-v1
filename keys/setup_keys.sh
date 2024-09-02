@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 set -e
 
-# cardano-address needs to be executable
-chmod +x cardano-address
-
 network=$(yq '.network' ../config.yaml)
 cli=$(yq '.cli_path' ../config.yaml)
+addr=$(yq '.addr_path' ../config.yaml)
 
 if [ -e "batcher.skey" ]; then
-  echo "Batcher Keys Exist."
+  echo -e "\033[1;31m\nBatcher Keys Exists\n\033[0m"
+  if [ -e "collat.skey" ]; then
+    echo -e "\033[1;31m\nCollateral Keys Exists\n\033[0m"
+    exit 1;
+  fi
   exit 1;
 fi
 
 if [ -e "collat.skey" ]; then
-  echo "Collateral Keys Exist."
+  echo -e "\033[1;31m\nCollateral Keys Exists\n\033[0m"
   exit 1;
 fi
 
@@ -23,12 +25,12 @@ read -rsn1 input
 if [[ "$input" == "1" ]]; then
     echo -e "\033[1;35m\nGenerating Wallet...\n\033[0m"
     echo -e "\033[1;36m\nWrite Down These Words\n\033[0m"
-    seed_phrase=$(./cardano-address recovery-phrase generate --size 24)
+    seed_phrase=$(${addr} recovery-phrase generate --size 24)
     echo $seed_phrase
-    root=$(echo $seed_phrase | ./cardano-address key from-recovery-phrase Shelley)
+    root=$(echo $seed_phrase | ${addr} key from-recovery-phrase Shelley)
     
     # batcher
-    echo $root | ./cardano-address key child 1852H/1815H/0H/0/0 > batcher.xsk
+    echo $root | ${addr} key child 1852H/1815H/0H/0/0 > batcher.xsk
     ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
     rm batcher.xsk
     ${cli} key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
@@ -37,7 +39,7 @@ if [[ "$input" == "1" ]]; then
     echo -e "\033[1;37m\nBatcher Address: $(cat batcher.addr)\n\033[0m"
     
     # collateral
-    echo $root | ./cardano-address key child 1852H/1815H/0H/0/1 > collat.xsk
+    echo $root | ${addr} key child 1852H/1815H/0H/0/1 > collat.xsk
     ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
     rm collat.xsk
     ${cli} key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey
@@ -50,10 +52,10 @@ elif [[ "$input" == "2" ]]; then
 
     read -r seed_phrase
 
-    root=$(echo $seed_phrase | ./cardano-address key from-recovery-phrase Shelley)
+    root=$(echo $seed_phrase | ${addr} key from-recovery-phrase Shelley)
     
     # batcher
-    echo $root | ./cardano-address key child 1852H/1815H/0H/0/0 > batcher.xsk
+    echo $root | ${addr} key child 1852H/1815H/0H/0/0 > batcher.xsk
     ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file batcher.xsk --out-file batcher.skey
     rm batcher.xsk
     ${cli} key verification-key --signing-key-file batcher.skey --verification-key-file batcher.vkey
@@ -62,7 +64,7 @@ elif [[ "$input" == "2" ]]; then
     echo -e "\033[1;37m\nBatcher Address: $(cat batcher.addr)\n\033[0m"
     
     # collateral
-    echo $root | ./cardano-address key child 1852H/1815H/0H/0/1 > collat.xsk
+    echo $root | ${addr} key child 1852H/1815H/0H/0/1 > collat.xsk
     ${cli} key convert-cardano-address-key --shelley-payment-key --signing-key-file collat.xsk --out-file collat.skey
     rm collat.xsk
     ${cli} key verification-key --signing-key-file collat.skey --verification-key-file collat.vkey

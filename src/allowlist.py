@@ -27,13 +27,6 @@ allowed = {
             "threshold": 10000000,
         },
     },
-    # tDRIP
-    "698a6ea0ca99f315034072af31eaac6ec11fe8558d3f48e9775aab9d": {
-        "7444524950": {
-            "priority": 2,
-            "threshold": 10000000,
-        },
-    },
 }
 
 
