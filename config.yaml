@@ -20,11 +20,11 @@ collat_utxo: ""
 network: "--testnet-magic 1"
 
 # Bin Paths; Need To be Absolute
-aiken_path: "/newm-batcher-v1/bin/aiken"
-addr_path: "/newm-batcher-v1/bin/cardano-address"
-cli_path: "/newm-batcher-v1/bin/cardano-cli"
-ogmios_path: "/newm-batcher-v1/bin/ogmios"
-oura_path: "/newm-batcher-v1/bin/oura"
+aiken_path: "/bin/aiken"
+addr_path: "/bin/cardano-address"
+cli_path: "/bin/cardano-cli"
+ogmios_path: "/bin/ogmios"
+oura_path: "/bin/oura"
 
 # Node File Paths; Needs To Be Absolute
 node_config_path: "/config.json"
