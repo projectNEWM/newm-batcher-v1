@@ -275,20 +275,20 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[d
     # sale ref
     sale_ref_index = find_index_of_target(inputs, utxo.reference.sale.txid)
     sale_ref_bytes = tag(24, to_bytes(cbor2.dumps(
-        [2, to_bytes(utxo.reference.sale.cborHex)]).hex()))
+        [3, to_bytes(utxo.reference.sale.cborHex)]).hex()))
     outputs[sale_ref_index] = {
         0: reference_bytes, 1: utxo.reference.sale.value.simulate_form(), 3: sale_ref_bytes}
     # queue ref
     queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
     queue_ref_bytes = tag(24, to_bytes(cbor2.dumps(
-        [2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
+        [3, to_bytes(utxo.reference.queue.cborHex)]).hex()))
     outputs[queue_ref_index] = {
         0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
     # vault ref
     vault_ref_index = find_index_of_target(inputs, utxo.reference.vault.txid)
     if vault_ref_index is not None:
         vault_ref_bytes = tag(24, to_bytes(cbor2.dumps(
-            [2, to_bytes(utxo.reference.vault.cborHex)]).hex()))
+            [3, to_bytes(utxo.reference.vault.cborHex)]).hex()))
         outputs[vault_ref_index] = {
             0: reference_bytes, 1: utxo.reference.vault.value.simulate_form(), 3: vault_ref_bytes}
 
@@ -358,7 +358,7 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[dic
     # queue ref
     queue_ref_index = find_index_of_target(inputs, utxo.reference.queue.txid)
     queue_ref_bytes = tag(24, to_bytes(cbor2.dumps(
-        [2, to_bytes(utxo.reference.queue.cborHex)]).hex()))
+        [3, to_bytes(utxo.reference.queue.cborHex)]).hex()))
     outputs[queue_ref_index] = {
         0: reference_bytes, 1: utxo.reference.queue.value.simulate_form(), 3: queue_ref_bytes}
 
