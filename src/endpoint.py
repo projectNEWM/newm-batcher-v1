@@ -59,7 +59,7 @@ class Endpoint:
         collat_pkh = pkh_from_address(collat_address)
 
         # Lets assume this is the upper bound
-        fee = 0
+        fee = 1000000
         fee_value = Value({"lovelace": fee})
         sale_execution_units = "(0, 0)"
         queue_execution_units = "(0, 0)"
@@ -407,7 +407,7 @@ class Endpoint:
         collat_address = config['collat_address']
         collat_pkh = pkh_from_address(collat_address)
 
-        fee = 0
+        fee = 1000000
         fee_value = Value({"lovelace": fee})
         queue_execution_units = '(0, 0)'
 
@@ -620,7 +620,7 @@ class Endpoint:
         protocol_file_path = os.path.join(parent_dir, "tmp/protocol.json")
         out_file_path = os.path.join(parent_dir, "tmp/tx.draft")
 
-        fee = 0
+        fee = 1000000
         fee_value = Value({"lovelace": fee})
 
         # send back 5 ada and the batcher token
