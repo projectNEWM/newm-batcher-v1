@@ -16,7 +16,22 @@ The batcher requires a fully synced cardano node and requires cardano-cli, carda
 
 The batcher has a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the Python virtual environment and install the required modules. It is assumed that the cardano-node is already running and is fully synced.
 
-After the setup, create the batcher and collateral keys using the `keys/setup_keys.sh` script, then update the `config.yaml` file.
+The `config.yaml` file needs to have have absolute paths for all the binaries and required files. Find the complete path to the newm-batcher-v1 folder and prepend the bin and file paths.
+
+```yaml
+# Bin Paths; Need To be Absolute
+cli_path: "/bin/cardano-cli"
+oura_path: "/bin/oura"
+ogmios_path: "/bin/ogmios"
+aiken_path: "/bin/aiken"
+addr_path: "/bin/cardano-address"
+
+# File Paths; Needs To Be Absolute
+socket_path: "/node.socket"
+node_config_path: "/config.json"
+```
+
+After the setup, create the batcher and collateral keys using the `keys/setup_keys.sh` script, then continue the update to the `config.yaml` file.
 
 ### Required CLI Keys
 
@@ -67,23 +82,11 @@ profit_address: ""
 # Collat Wallet Information
 collat_address: ""
 collat_utxo: ""
-
-# Network Information
-network: "--testnet-magic 1"
-
-# Bin Paths; Need To be Absolute
-cli_path: "/newm-batcher-v1/bin/cardano-cli"
-oura_path: "/newm-batcher-v1/bin/oura"
-ogmios_path: "/newm-batcher-v1/bin/ogmios"
-aiken_path: "/newm-batcher-v1/bin/aiken"
-addr_path: "/newm-batcher-v1/bin/cardano-address"
-
-# File Paths; Needs To Be Absolute
-socket_path: "/node.socket"
-node_config_path: "/config.json"
 ```
 
-Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction. The batcher is designed to run pre-production only. The required paths need to be absolute and complete.
+Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction. 
+
+**The current version of the batcher is designed to run pre-production only.**
 
 Do not update any other variables, as it may inhibit the batcher's ability to function.
 
