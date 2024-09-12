@@ -16,7 +16,7 @@ receiver_address=$(yq '.profit_address' ../config.yaml)
 # exit
 #
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
-${cli} query utxo \
+${cli} conway query utxo \
     --socket-path ${socket_path} \
     ${network} \
     --address ${sender_address} \
@@ -35,7 +35,7 @@ echo Sender UTxO: ${sender_tx_in}
 # exit
 #
 echo -e "\033[0;36m Building Tx \033[0m"
-FEE=$(${cli} transaction build \
+FEE=$(${cli} conway transaction build \
     --socket-path ${socket_path} \
     --babbage-era \
     --out-file ../tmp/tx.draft \
@@ -51,7 +51,7 @@ echo -e "\033[1;32m Fee: \033[0m" $FEE
 # exit
 #
 echo -e "\033[0;36m Signing \033[0m"
-${cli} transaction sign \
+${cli} conway transaction sign \
     --signing-key-file ${sender_path}.skey \
     --tx-body-file ../tmp/tx.draft \
     --out-file ../tmp/tx.signed \
@@ -64,7 +64,7 @@ read -rsn1 input
 
 if [[ "$input" == "1" ]]; then
     echo -e "\033[0;36m Submitting \033[0m"
-    ${cli} transaction submit \
+    ${cli} conway transaction submit \
         --socket-path ${socket_path} \
         ${network} \
         --tx-file ../tmp/tx.signed
@@ -73,5 +73,5 @@ else
     exit 0;
 fi
 
-tx=$(${cli} transaction txid --tx-file ../tmp/tx.signed)
+tx=$(${cli} conway transaction txid --tx-file ../tmp/tx.signed)
 echo "Tx Hash:" $tx
