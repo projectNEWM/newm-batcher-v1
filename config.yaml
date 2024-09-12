@@ -29,6 +29,7 @@ oura_path: "/bin/oura"
 # Node File Paths; Needs To Be Absolute
 node_config_path: "/config.json"
 socket_path: "/node.socket"
+node_port: 6000
 
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
 use_ogmios: True
