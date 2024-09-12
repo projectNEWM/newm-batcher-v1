@@ -3,6 +3,7 @@
 socket=$(yq '.socket_path' config.yaml)
 network=$(yq '.network' config.yaml)
 cli=$(yq '.cli_path' config.yaml)
+port=$(yq '.node_port' config.yaml)
 
 # Determine the magic value based on the network
 if [[ "$network" == "--mainnet" ]]; then
@@ -17,7 +18,7 @@ while true; do
     # Ping the node
     output=$(${cli} ping \
     --count 1 \
-    --port 6000 \
+    --port ${port} \
     --magic $magic \
     --unixsock $socket \
     --json \
