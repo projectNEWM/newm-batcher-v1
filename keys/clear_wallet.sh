@@ -37,7 +37,6 @@ echo Sender UTxO: ${sender_tx_in}
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} conway transaction build \
     --socket-path ${socket_path} \
-    --babbage-era \
     --out-file ../tmp/tx.draft \
     --change-address ${receiver_address} \
     --tx-in ${sender_tx_in} \
