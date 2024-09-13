@@ -159,7 +159,9 @@ def start_processes():
     # start log
     logger.info(f"Loading Block {sync_status['block_number']} @ Slot {sync_status['timestamp']} With Hash {sync_status['block_hash']}")
 
-    create_toml_file('daemon.toml', config['socket_path'], sync_status['timestamp'], sync_status['block_hash'], config['delay_depth'])
+    # set the daemon magic based on the network config, preprod or mainnet only
+    magic = "preprod" if "testnet-magic" in config["network"] else "mainnet"
+    create_toml_file('daemon.toml', config['socket_path'], sync_status['timestamp'], sync_status['block_hash'], config['delay_depth'], magic=magic)
 
     # start the processes as events in order
     start_event = multiprocessing.Event()
