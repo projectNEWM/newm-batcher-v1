@@ -86,7 +86,7 @@ collat_utxo: ""
 
 Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction. 
 
-**The current version of the batcher is designed to run pre-production only.**
+**The current version of the batcher is designed to run on pre-production or mainnet only.**
 
 Do not update any other variables, as it may inhibit the batcher's ability to function.
 
