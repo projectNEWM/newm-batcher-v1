@@ -45,15 +45,15 @@ class ReferenceDbManager(BaseDbManager):
 
         try:
             conn.execute(
-                'INSERT OR IGNORE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
                 ("sale_reference", config["sale_ref_utxo"], sale_cbor, Value({"lovelace": config["sale_lovelace"]}).dump())
             )
             conn.execute(
-                'INSERT OR IGNORE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
                 ("queue_reference", config["queue_ref_utxo"], queue_cbor, Value({"lovelace": config["queue_lovelace"]}).dump())
             )
             conn.execute(
-                'INSERT OR IGNORE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO reference (id, txid, cborHex, value) VALUES (?, ?, ?, ?)',
                 ("vault_reference", config["vault_ref_utxo"], vault_cbor, Value({"lovelace": config["vault_lovelace"]}).dump())
             )
             conn.commit()
