@@ -17,7 +17,10 @@ collat_address: ""
 collat_utxo: ""
 
 # Network Information
-network: "--testnet-magic 1"
+#
+# Options: --testnet-magic 1
+# Options: --mainnet
+network: ""
 
 # Bin Paths; Need To be Absolute
 aiken_path: "/bin/aiken"
@@ -34,7 +37,7 @@ socket_path: "/node.socket"
 node_port: 6000
 
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
-use_ogmios: True
+use_ogmios: False
 
 # Docker - Not Supported - Do Not Use
 # socket_path: "/root/node/node.socket"
@@ -44,7 +47,7 @@ use_ogmios: True
 # Do Not Update Values Below
 ###############################################################################
 
-# Oracle Feed Address
+# Oracle Feed Information
 oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw"
 oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
@@ -54,14 +57,15 @@ sale_address: "addr_test1xre7es08zmgc32mf3axyuwm2vt9wx74at3alptx3rwqegjw3f70mddk
 queue_address: "addr_test1xpf6jnsq4jrrqa0x7xjkkfk0zg378738mqjxq0rmr25gcyx3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66sqeuwhw"
 vault_address: "addr_test1xrwvnefc6jekaudmlh553n29kxufu432d0j2g4wytfv7jdk3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66swq0drg"
 
-# Data Contract
+# Data Contract Information
 data_address: "addr_test1wr2ptny2g27zfmrseuk73yqynm5tq743qkyt8zkga2ck8yqvkqyv2"
 data_policy: "fad686017bf0c5042b776dc4bfa67c2a524f7a0632067e8ce265b801"
 data_asset: "bfc2bb2863e1d6b3ef196be79b15fc5c9d8826f869723b6d318bd0acf17bd78d"
 
-# Data, Sale, and Queue Contract Script Reference UTxOs
+# Address Holding Script References UTxOs
 reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
 
+# vault, Sale, and Queue Contract Script Reference UTxOs
 sale_ref_utxo: "ecc4f7a79c0648ec35329593fe86915246b8f304c6f824f5a8939952ac615c66#1"
 sale_lovelace: 37074620
 
@@ -88,7 +92,8 @@ max_log_file_size: "1 MB"
 max_num_log_files: 1
 
 # Available logging levels
-# TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
+#
+# Options: TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
 logging_level: "TRACE"
 
 # True is debug; False is no debug
