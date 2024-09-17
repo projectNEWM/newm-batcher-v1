@@ -20,7 +20,7 @@ collat_utxo: ""
 #
 # Options: --testnet-magic 1
 # Options: --mainnet
-network: ""
+network: "--testnet-magic 1"
 
 # Bin Paths; Need To be Absolute
 aiken_path: "/bin/aiken"
@@ -53,33 +53,33 @@ oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
-sale_address: "addr_test1xre7es08zmgc32mf3axyuwm2vt9wx74at3alptx3rwqegjw3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66szs8tre"
-queue_address: "addr_test1xpf6jnsq4jrrqa0x7xjkkfk0zg378738mqjxq0rmr25gcyx3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66sqeuwhw"
-vault_address: "addr_test1xrwvnefc6jekaudmlh553n29kxufu432d0j2g4wytfv7jdk3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66swq0drg"
+sale_address: ""
+queue_address: ""
+vault_address: ""
 
 # Data Contract Information
-data_address: "addr_test1wr2ptny2g27zfmrseuk73yqynm5tq743qkyt8zkga2ck8yqvkqyv2"
-data_policy: "fad686017bf0c5042b776dc4bfa67c2a524f7a0632067e8ce265b801"
-data_asset: "bfc2bb2863e1d6b3ef196be79b15fc5c9d8826f869723b6d318bd0acf17bd78d"
+data_address: ""
+data_policy: ""
+data_asset: ""
 
 # Address Holding Script References UTxOs
-reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
+reference_address: ""
 
 # vault, Sale, and Queue Contract Script Reference UTxOs
-sale_ref_utxo: "ecc4f7a79c0648ec35329593fe86915246b8f304c6f824f5a8939952ac615c66#1"
-sale_lovelace: 37074620
+sale_ref_utxo: "#1"
+sale_lovelace: 0
 
-queue_ref_utxo: "00f439321a071f1a3c43cf1e50ea91a4c13084559bc17e5e1a811e82fdbcdf45#1"
-queue_lovelace: 50379590
+queue_ref_utxo: "#1"
+queue_lovelace: 0
 
-vault_ref_utxo: "f6ca0777b605e2365e99fffc48c8b2e386c9d23f96bf1b1b0bb9c9c1ffd75cc1#1"
-vault_lovelace: 25377280
+vault_ref_utxo: "#1"
+vault_lovelace: 0
 
 # The Newm Pointer Policy Id
-pointer_policy: "b911d080881da943b3a1fd26cd4567cb8d0ad5df56e656c06df928e6"
+pointer_policy: ""
 
 # The Newm Batcher Policy Id
-batcher_policy: "37041ab8ab3ac53751387290d9b8c2d69b03d827fbf82551670d565e"
+batcher_policy: ""
 
 # Starting Block Information
 starting_block_number: 2654276
