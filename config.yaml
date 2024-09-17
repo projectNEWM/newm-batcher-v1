@@ -20,7 +20,7 @@ collat_utxo: ""
 #
 # Options: --testnet-magic 1
 # Options: --mainnet
-network: "--testnet-magic 1"
+network: "--mainnet"
 
 # Bin Paths; Need To be Absolute
 aiken_path: "/bin/aiken"
@@ -48,8 +48,8 @@ use_ogmios: False
 ###############################################################################
 
 # Oracle Feed Information
-oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw"
-oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
+oracle_address: "addr1wy32q7067yt9c2em8kx5us4vhxzv4xve24u6j8ptlc5mzqcahrwzt"
+oracle_policy: "f155a26044efe91b3c44f87a7536d2d631c847717930ff547ae9d05c"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
@@ -82,9 +82,9 @@ pointer_policy: ""
 batcher_policy: ""
 
 # Starting Block Information
-starting_block_number: 2654276
-starting_timestamp: 69717210
-starting_blockhash: "cffb66e7e9dd9baca2f117966b5faae6c2bcaf98c3477bb5665cebf50cd9860e"
+starting_block_number: 10848000
+starting_timestamp: 135031945
+starting_blockhash: "d303aa7bed199d968cb6675de6630289bbedc26b2b0dd3467404d6aec428266a"
 delay_depth: 3
 
 # Logging Parameters
