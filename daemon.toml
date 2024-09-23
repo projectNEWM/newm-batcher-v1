@@ -1,6 +1,6 @@
 [source]
 type = "N2C"
-address = [ "Unix", "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket",]
+address = [ "Unix", "/home/westbam/haskell/newmpp/db/socket",]
 magic = "preprod"
 min_depth = 3
 
@@ -12,7 +12,7 @@ error_policy = "Continue"
 
 [source.intersect]
 type = "Point"
-value = [ 69181671, "97269a68749be38e148879abd52680edc77aa521bf2cde172c9095d7b4771516",]
+value = [ 71432318, "c06babd2e90af7c951d9fa864f135b5e8b66e867deeafe3261c7e3f4bd096a38",]
 
 [source.mapper]
 include_block_end_events = true
