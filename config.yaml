@@ -20,7 +20,7 @@ collat_utxo: ""
 #
 # Options: --testnet-magic 1
 # Options: --mainnet
-network: ""
+network: "--testnet-magic 1"
 
 # Bin Paths; Need To be Absolute
 aiken_path: "/bin/aiken"
@@ -53,38 +53,38 @@ oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
 # Sale & Queue & Vault Contract Addresses
-sale_address: "addr_test1xre7es08zmgc32mf3axyuwm2vt9wx74at3alptx3rwqegjw3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66szs8tre"
-queue_address: "addr_test1xpf6jnsq4jrrqa0x7xjkkfk0zg378738mqjxq0rmr25gcyx3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66sqeuwhw"
-vault_address: "addr_test1xrwvnefc6jekaudmlh553n29kxufu432d0j2g4wytfv7jdk3f70mddkhml5dk844pjyqcffvzlt5jyh2vruw6z2gw66swq0drg"
+sale_address: "addr_test1xpt8jvvr3mtnmww67f0k3f6dxm3rnjnpgwz8r3w96cjmt7q8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes7svklv"
+queue_address: "addr_test1xzmjnfslyfxkdz9qt6pc3nel773qw82rvxxrsv6untk2ags8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekesy7p4l6"
+vault_address: "addr_test1xqpss9de3wxpkw5dav4yefc6ekzf2s7jlx058s8ajtyk8kq8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes2330ln"
 
 # Data Contract Information
-data_address: "addr_test1wr2ptny2g27zfmrseuk73yqynm5tq743qkyt8zkga2ck8yqvkqyv2"
-data_policy: "fad686017bf0c5042b776dc4bfa67c2a524f7a0632067e8ce265b801"
-data_asset: "bfc2bb2863e1d6b3ef196be79b15fc5c9d8826f869723b6d318bd0acf17bd78d"
+data_address: "addr_test1wzlps40lp5yf3e34znhvz05rcpsqy38uftgfr7txnvu5j4q2qa3sw"
+data_policy: "74946c67d2a6afbdfd9450eb9818f202ba26143f821990d7a45b515c"
+data_asset: "4472697070793233303431393830313337"
 
 # Address Holding Script References UTxOs
-reference_address: "addr_test1vzdhln27vnwxsz87htp8kynvxl62j0kygs8myk0a5qeu50sh5pfu7"
+reference_address: "addr_test1vpdhs4kp98kyagc5zy098yrhxn5tsc7d4z4g8vd8d32ez4cq6r27z"
 
 # vault, Sale, and Queue Contract Script Reference UTxOs
-sale_ref_utxo: "ecc4f7a79c0648ec35329593fe86915246b8f304c6f824f5a8939952ac615c66#1"
-sale_lovelace: 37074620
+sale_ref_utxo: "eb225cf611bb6c4d275538d25dbca328c724292218ec81293ff8a047868cd699#1"
+sale_lovelace: 22282700
 
-queue_ref_utxo: "00f439321a071f1a3c43cf1e50ea91a4c13084559bc17e5e1a811e82fdbcdf45#1"
-queue_lovelace: 50379590
+queue_ref_utxo: "3790bab3ddfe7e2db9463dc1809bc47c536fad80add7f168fdd41ebe206220e0#1"
+queue_lovelace: 30437220
 
-vault_ref_utxo: "f6ca0777b605e2365e99fffc48c8b2e386c9d23f96bf1b1b0bb9c9c1ffd75cc1#1"
-vault_lovelace: 25377280
+vault_ref_utxo: "40b75766a29e25ba8247801ed424c1bc776fcf1d4a1d1a5c97e50b3d6ed5d3ae#1"
+vault_lovelace: 15011730
 
 # The Newm Pointer Policy Id
-pointer_policy: "b911d080881da943b3a1fd26cd4567cb8d0ad5df56e656c06df928e6"
+pointer_policy: "f5cb10641e282c4a18084e51bd717475d6984978b0e32d624b4b1c32"
 
 # The Newm Batcher Policy Id
-batcher_policy: "37041ab8ab3ac53751387290d9b8c2d69b03d827fbf82551670d565e"
+batcher_policy: "e3e627b248fb56ed39587febf11fee95a01f2b39349ae9beb76c1f5c"
 
 # Starting Block Information
-starting_block_number: 2654276
-starting_timestamp: 69717210
-starting_blockhash: "cffb66e7e9dd9baca2f117966b5faae6c2bcaf98c3477bb5665cebf50cd9860e"
+starting_block_number: 2718273
+starting_timestamp: 71432318
+starting_blockhash: "c06babd2e90af7c951d9fa864f135b5e8b66e867deeafe3261c7e3f4bd096a38"
 delay_depth: 3
 
 # Logging Parameters
