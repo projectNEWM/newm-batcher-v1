@@ -62,6 +62,8 @@ The batcher address in `batcher.addr` will hold a single UTxO with the batcher c
 
 The setup script is not required, as any valid cli keys can be used for the batcher. It is provided to help secure the keys in case of failure or emergency. The only requirement is that the skeys have the `batcher` and `collat` naming scheme.
 
+
+
 ### Obtaining A Batcher Certificate
 
 A batcher certificate is issued when a user obtains a complete set of NEWM monsters and locks the entire band into a contract. The locking transaction mints a complete assets token that lives on the band lock UTxO and mints one batcher certificate to the user. The batcher certificate is tradable, allowing anyone who holds it to earn the ability to run a batcher. It can be burned at any time to unlock the NEWM monsters that created it, but it can only unlock the band with the matching completed assets token. This preserves ownership even after trading.
@@ -84,7 +86,7 @@ collat_address: ""
 collat_utxo: ""
 ```
 
-Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction. 
+Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction.  The profit address is whatever address you wish to recieve batcher profit.
 
 **The current version of the batcher is designed to run on pre-production or mainnet only.**
 

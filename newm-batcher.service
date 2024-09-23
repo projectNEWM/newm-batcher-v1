@@ -12,7 +12,7 @@ Group             = your_groupname
 Environment       = REPO_PATH=/absolute/path/to/your/application
 WorkingDirectory  = /absolute/path/to/your/application
 ExecStartPre      = /bin/bash -c '${REPO_PATH}/check_cardano_node.sh'
-ExecStart         = /bin/bash -c 'source ${REPO_PATH}/venv/bin/activate && exec ${REPO_PATH}/venv/bin/python ${REPO_PATH}/batcher.py'
+ExecStart         = /bin/bash -c 'source ${REPO_PATH}/venv/bin/activate && exec ${REPO_PATH}/venv/bin/python3 ${REPO_PATH}/batcher.py'
 Restart           = always
 RestartSec        = 10
 Environment       = PYTHONUNBUFFERED=1
