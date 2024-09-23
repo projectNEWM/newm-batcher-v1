@@ -110,7 +110,7 @@ fi
 if [ -x "bin/aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.1/aiken-x86_64-unknown-linux-gnu.tar.gz
+    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.3/aiken-x86_64-unknown-linux-gnu.tar.gz
     tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
     rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
