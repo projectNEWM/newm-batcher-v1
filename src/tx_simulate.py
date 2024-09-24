@@ -113,7 +113,7 @@ def inputs_from_cbor(cborHex: str) -> tuple[str, str] | None:
     return inputs, inputs_cbor
 
 
-def simulate(tx_cbor: str, input_cbor: str, output_cbor: str, network: bool = False, debug: bool = False) -> list[dict]:
+def simulate(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: str, network: bool = False, debug: bool = False,) -> list[dict]:
     """Simulate a transaction with aiken tx simulate.
 
     Args:
@@ -142,7 +142,7 @@ def simulate(tx_cbor: str, input_cbor: str, output_cbor: str, network: bool = Fa
 
         # aiken must be on path
         func = [
-            'aiken', 'tx', 'simulate',
+            aiken_path, 'tx', 'simulate',
             temp_tx_file_path,
             temp_input_file_path,
             temp_output_file_path
@@ -296,7 +296,7 @@ def purchase_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[d
 
     network = True if "mainnet" in config['network'] else False
     execution_units = simulate(
-        cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
+        cborHex, inputs_cbor, outputs_cbor, config['aiken_path'], network=network, debug=config['debug_mode'])
     return execution_units
 
 
@@ -367,7 +367,7 @@ def refund_simulation(cborHex: str, utxo: UTxOManager, config: dict) -> list[dic
 
     network = True if "mainnet" in config['network'] else False
     execution_units = simulate(
-        cborHex, inputs_cbor, outputs_cbor, network=network, debug=config['debug_mode'])
+        cborHex, inputs_cbor, outputs_cbor, config['aiken_path'], network=network, debug=config['debug_mode'])
     return execution_units
 
 
