@@ -4,6 +4,212 @@
 #########################           FUNCTION          #########################
 ###############################################################################
 
+confirm_batcher_readiness() {
+    echo -e "\033[1;37mChecking If Batcher Address: $(cat keys/batcher.addr) Is Ready\n\033[0m"
+
+    network=$(yq '.network' config.yaml)
+    cli=$(yq '.cli_path' config.yaml)
+    socket_path=$(yq '.socket_path' config.yaml)
+    batcher_address=$(cat keys/batcher.addr)
+    batcher_policy=$(yq '.batcher_policy' config.yaml)
+
+    while true; do
+        # Execute the query and get the length of the result
+        result=$(${cli} conway query utxo --socket-path ${socket_path} --address ${batcher_address} ${network} --output-json |  jq --arg pid "${batcher_policy}" -r 'to_entries[] | if .value.value[$pid] != null then true else false end')
+
+        if [ "$result" = "true" ]; then
+            echo "Batcher Is Ready"
+            break
+        else
+            echo "No UTXO found. Sleeping for 5 seconds..."
+            sleep 5
+        fi
+    done
+}
+
+create_vault_and_cert() {
+    local batcher_utxo=$1  # Assign the first argument to a local variable
+    local batcher_assets=$2  # Assign the first argument to a local variable
+    echo "Batcher UTxO: $batcher_utxo"
+    # echo "Batcher Assets: $batcher_assets"
+
+    batcher_address=$(cat keys/batcher.addr)
+    batcher_pkh=$(cat keys/batcher.hash)
+    collat_pkh=$(cat keys/collat.hash)
+    collat_utxo=$(yq '.collat_utxo' config.yaml)
+
+    profit_address=$(yq '.profit_address' config.yaml)
+
+    jq --arg var "${batcher_pkh}" '.fields[0].bytes=$var' tmp/wallet-datum.json | sponge tmp/wallet-datum.json
+
+    network=$(yq '.network' config.yaml)
+    cli=$(yq '.cli_path' config.yaml)
+    socket_path=$(yq '.socket_path' config.yaml)
+
+    vault_address=$(yq '.vault_address' config.yaml)
+    band_address=$(yq '.band_address' config.yaml)
+
+    assets=$(python3 -c "from src.utility import generate_token_string; assets = generate_token_string(${batcher_assets});print(assets);")
+    min_utxo=$(${cli} conway transaction calculate-min-required-utxo \
+        --protocol-params-file tmp/protocol.json \
+        --tx-out-inline-datum-file tmp/wallet-datum.json \
+        --tx-out="${band_address} + 5000000 + ${assets}" | tr -dc '0-9')
+
+    vault_address_output="${vault_address} + 10000000"
+    band_address_output="${band_address} + ${min_utxo} + ${assets}"
+
+    # create two vault utxos and send the back into the band contract
+    echo -e "\033[0;36m Building Tx \033[0m"
+    FEE=$(${cli} conway transaction build \
+        --socket-path ${socket_path} \
+        --out-file tmp/tx.draft \
+        --tx-in ${batcher_utxo} \
+        --change-address ${batcher_address} \
+        --tx-out="${vault_address_output}" \
+        --tx-out-inline-datum-file tmp/wallet-datum.json  \
+        --tx-out="${vault_address_output}" \
+        --tx-out-inline-datum-file tmp/wallet-datum.json  \
+        --tx-out="${band_address_output}" \
+        --tx-out-inline-datum-file tmp/wallet-datum.json  \
+    ${network})
+
+    IFS=':' read -ra VALUE <<< "${FEE}"
+    IFS=' ' read -ra FEE <<< "${VALUE[1]}"
+    echo -e "\033[1;32m Fee:\033[0m" $FEE
+
+    echo -e "\033[0;36m Signing \033[0m"
+    ${cli} conway transaction sign \
+        --signing-key-file keys/batcher.skey \
+        --tx-body-file tmp/tx.draft \
+        --out-file tmp/tx.signed \
+        ${network}
+    
+    echo -e "\033[0;36m Submitting \033[0m"
+    ${cli} conway transaction submit \
+        --socket-path ${socket_path} \
+        ${network} \
+        --tx-file tmp/tx.signed
+    
+    txid=$(${cli} conway transaction txid --tx-body-file tmp/tx.draft)
+
+    while true; do
+        # Execute the query and get the length of the result
+        len=$(${cli} conway query utxo --socket-path ${socket_path} --tx-in ${txid}#0 ${network} --output-json | jq 'length')
+
+        if [ "$len" -eq 0 ]; then
+            echo "No UTXO found. Sleeping for 5 seconds..."
+            sleep 5
+        else
+            echo "UTXO found! Length: $len"
+            break  # Exit the loop when a non-zero length is found
+        fi
+    done
+
+    batcher_utxo=${txid}#3
+    band_utxo=${txid}#2
+
+    IFS='#' read -ra array <<< "${band_utxo}"
+
+    batcher_token_prefix="affab1e0005e77ab1e"
+    complete_token_prefix="c011ec7ed000a55e75"
+    batcher_policy=$(yq '.batcher_policy' config.yaml)
+    batcher_token_name=$(python3 -c "from src.utility import generate_token_name; tkn=generate_token_name('${array[0]}', ${array[1]}, '${batcher_token_prefix}'); print(tkn)")
+    complete_token_name=$(python3 -c "from src.utility import generate_token_name; tkn=generate_token_name('${array[0]}', ${array[1]}, '${complete_token_prefix}'); print(tkn)")
+
+    complete_token="1 ${batcher_policy}.${complete_token_name}"
+
+    batcher_token="1 ${batcher_policy}.${batcher_token_name}"
+
+    min_utxo=$(${cli} conway transaction calculate-min-required-utxo \
+        --protocol-params-file tmp/protocol.json \
+        --tx-out-inline-datum-file tmp/wallet-datum.json \
+        --tx-out="${band_address} + 5000000 + ${assets} + ${complete_token}" | tr -dc '0-9')
+
+    band_address_output="${band_address} + ${min_utxo} + ${assets} + ${complete_token}"
+    batcher_address_out="${batcher_address} + 5000000 + ${batcher_token}"
+
+    band_ref_utxo=$(yq '.band_ref_utxo' config.yaml)
+    batcher_ref_utxo=$(yq '.batcher_ref_utxo' config.yaml)
+
+    data_address=$(yq '.data_address' config.yaml)
+    data_policy=$(yq '.data_policy' config.yaml)
+    data_asset=$(yq '.data_asset' config.yaml)
+    data_ref_utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address ${data_address} ${network} --output-json | jq --arg pid "${data_policy}"  --arg tkn "${data_asset}" -r 'to_entries[] | select(.value.value[$pid][$tkn] == 1) | .key' )
+
+    echo -e "\033[0;36m Building Tx \033[0m"
+    FEE=$(${cli} conway transaction build \
+        --socket-path ${socket_path} \
+        --out-file tmp/tx.draft \
+        --change-address ${profit_address} \
+        --read-only-tx-in-reference="${data_ref_utxo}" \
+        --tx-in-collateral="${collat_utxo}" \
+        --tx-in ${batcher_utxo} \
+        --tx-in ${band_utxo} \
+        --spending-tx-in-reference="${band_ref_utxo}" \
+        --spending-plutus-script-v3 \
+        --spending-reference-tx-in-inline-datum-present \
+        --spending-reference-tx-in-redeemer-file tmp/mint-band-redeemer.json \
+        --tx-out="${batcher_address_out}" \
+        --tx-out="${band_address_output}" \
+        --tx-out-inline-datum-file tmp/wallet-datum.json  \
+        --required-signer-hash ${batcher_pkh} \
+        --required-signer-hash ${collat_pkh} \
+        --mint="${batcher_token} + ${complete_token}" \
+        --mint-tx-in-reference="${batcher_ref_utxo}" \
+        --mint-plutus-script-v3 \
+        --policy-id="${batcher_policy}" \
+        --mint-reference-tx-in-redeemer-file tmp/mint-batcher-redeemer.json \
+        ${network})
+
+    IFS=':' read -ra VALUE <<< "${FEE}"
+    IFS=' ' read -ra FEE <<< "${VALUE[1]}"
+    echo -e "\033[1;32m Fee:\033[0m" $FEE
+
+    echo -e "\033[0;36m Signing \033[0m"
+    ${cli} conway transaction sign \
+        --signing-key-file keys/batcher.skey \
+        --signing-key-file keys/collat.skey \
+        --tx-body-file tmp/tx.draft \
+        --out-file tmp/tx.signed \
+        ${network}
+    
+    echo -e "\033[0;36m Submitting \033[0m"
+    ${cli} conway transaction submit \
+        --socket-path ${socket_path} \
+        ${network} \
+        --tx-file tmp/tx.signed
+    # now chain this together witht he cert mint
+}
+
+get_batcher_utxo() {
+    echo
+    echo -e "\033[1;36m\nSend Exactly 50 ADA And Band Tokens To:\n\033[0m"
+    echo -e "\033[1;37mBatcher Address: $(cat keys/batcher.addr)\n\033[0m"
+
+    network=$(yq '.network' config.yaml)
+    cli=$(yq '.cli_path' config.yaml)
+    socket_path=$(yq '.socket_path' config.yaml)
+
+    # Loop until the node is connected
+    while true; do
+        utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address $(cat keys/batcher.addr) ${network} --output-json | jq -r 'to_entries[] | select(.value.value.lovelace == 50000000) | .key' )
+        assets=$(${cli} conway query utxo --socket-path ${socket_path} --address $(cat keys/batcher.addr) ${network} --output-json | jq -c 'to_entries[] | .value.value')
+        
+        # Check the result
+        if [ -z "$utxo" ]; then
+            echo "Waiting For Batcher Wallet To Be Funded..."
+            sleep 5
+        else
+            echo "Batcher Is Ready"
+            # run the tx scripts here
+            create_vault_and_cert $utxo $assets
+            break
+        fi
+    done
+
+
+}
+
 update_collat_utxo() {
     local yaml_file="config.yaml"  # Change this to your YAML file name
 
@@ -310,6 +516,14 @@ fi
 
 echo -e "\033[1;34m\nChecking For Required Binaries\n\033[0m"
 
+if command -v sponge &> /dev/null; then
+    echo -e "\033[1;35m\nsponge is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31msponge is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y moreutils \033[0m"
+    exit 1;
+fi
+
 if command -v git &> /dev/null; then
     echo -e "\033[1;35m\ngit is installed and available on the PATH.\n\033[0m"
 else
@@ -471,3 +685,29 @@ fi
 update_profit_address
 
 update_collat_utxo
+
+batcher_address=$(cat keys/batcher.addr)
+batcher_policy=$(yq '.batcher_policy' config.yaml)
+result=$(${cli} conway query utxo --socket-path ${socket_path} --address ${batcher_address} ${network} --output-json |  jq --arg pid "${batcher_policy}" -r 'to_entries[] | if .value.value[$pid] != null then true else false end')
+
+if [ "$result" = "true" ]; then
+    echo "Batcher Is Ready"
+    exit 0;
+fi
+
+
+get_batcher_utxo
+
+confirm_batcher_readiness
+
+echo
+echo /
+echo //
+echo ///
+echo ////
+printf "%s" $(echo "Enjoy" | fold -w1  | awk '{ printf "\033[1;%dm%s", 31+int(rand()*6), $1 }' | tr -d '\n') && echo -ne "\033[0m" && echo
+echo ////
+echo ///
+echo //
+echo /
+echo

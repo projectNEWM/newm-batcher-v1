@@ -88,10 +88,6 @@ pointer_policy: "f5cb10641e282c4a18084e51bd717475d6984978b0e32d624b4b1c32"
 # The Newm Batcher Policy Id
 batcher_policy: "e3e627b248fb56ed39587febf11fee95a01f2b39349ae9beb76c1f5c"
 
-# Newm Batcher Cert Information For Auto Setup
-policy_id_a: "916c03c8f98c44a176de6660e6e45ac0cd59aa4fe6c332bed1e8d79d"
-policy_id_b: "e4d33c4f86ac40278cdd80572abfa7e91b01fbba68d8fa258bf7ef46"
-
 # Starting Block Information
 starting_block_number: 2718273
 starting_timestamp: 71432318
