@@ -89,3 +89,7 @@ debug_mode: False
 
 
 # Batcher Cert Information For Auto Setup
+#
+#
+policy_id_a: ""
+policy_id_b: ""

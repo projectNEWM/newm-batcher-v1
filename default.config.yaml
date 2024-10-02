@@ -52,10 +52,11 @@ oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw
 oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
 
-# Sale & Queue & Vault Contract Addresses
+# Contract Addresses
 sale_address: "addr_test1xpt8jvvr3mtnmww67f0k3f6dxm3rnjnpgwz8r3w96cjmt7q8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes7svklv"
 queue_address: "addr_test1xzmjnfslyfxkdz9qt6pc3nel773qw82rvxxrsv6untk2ags8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekesy7p4l6"
 vault_address: "addr_test1xqpss9de3wxpkw5dav4yefc6ekzf2s7jlx058s8ajtyk8kq8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes2330ln"
+band_address: "addr_test1xzjwacyv3g62q5fxzxkrdl0z8gzuhj95ujvcqjzeat6xths8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekesc3xcvp"
 
 # Data Contract Information
 data_address: "addr_test1wzlps40lp5yf3e34znhvz05rcpsqy38uftgfr7txnvu5j4q2qa3sw"
@@ -75,11 +76,21 @@ queue_lovelace: 30437220
 vault_ref_utxo: "40b75766a29e25ba8247801ed424c1bc776fcf1d4a1d1a5c97e50b3d6ed5d3ae#1"
 vault_lovelace: 15011730
 
+band_ref_utxo: "767ca84484ed3c9caedfa091034043d75703881c506919268a6befeffb5bf4d0#1"
+band_lovelace: 20537150
+
+batcher_ref_utxo: "458187f22a32146cd4800422fb52b7f43921e883bdc48fce8d4df768322abeae#1"
+batcher_lovelace: 7167530
+
 # The Newm Pointer Policy Id
 pointer_policy: "f5cb10641e282c4a18084e51bd717475d6984978b0e32d624b4b1c32"
 
 # The Newm Batcher Policy Id
 batcher_policy: "e3e627b248fb56ed39587febf11fee95a01f2b39349ae9beb76c1f5c"
+
+# Newm Batcher Cert Information For Auto Setup
+policy_id_a: "916c03c8f98c44a176de6660e6e45ac0cd59aa4fe6c332bed1e8d79d"
+policy_id_b: "e4d33c4f86ac40278cdd80572abfa7e91b01fbba68d8fa258bf7ef46"
 
 # Starting Block Information
 starting_block_number: 2718273
