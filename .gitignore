@@ -7,3 +7,4 @@ reset.sh
 docker.sh
 estimate.sh
 .env
+backup-keys/
