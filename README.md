@@ -14,7 +14,7 @@ git checkout -b your-personal-branch
 
 The batcher requires a fully synced cardano node and requires cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq.
 
-The batcher has a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the Python virtual environment and install the required modules. It is assumed that the cardano-node is already running and is fully synced.
+The batcher has a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the Python virtual environment and install the required modules. It is assumed that the cardano-node is already running and is fully synced. This file will auto-setup the entire batcher step-by-step.
 
 The `config.yaml` file needs to have have absolute paths for all the binaries and required files. Find the complete path to the newm-batcher-v1 folder and prepend the bin and file paths.
 
@@ -35,7 +35,7 @@ After the setup, create the batcher and collateral keys using the `keys/setup_ke
 
 ### Required CLI Keys
 
-The batcher comes with a wallet setup helper file, `setup_keys.sh`, inside the `keys` folder, allowing the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
+The batcher comes with a wallet setup inside the helper file, `setup.sh`, allowing the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
 
 ```
 Press 1 to generate a wallet, 2 to load a wallet, or any other key to exit.
@@ -61,8 +61,6 @@ collat.vkey
 The batcher address in `batcher.addr` will hold a single UTxO with the batcher certificate token and at least 5 ADA. The collateral address in `collat.addr` will have a single UTxO with at least 5 ADA. The balances of these addresses can be viewed with the `balances.sh` script located in the `keys` folder and the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command.
 
 The setup script is not required, as any valid cli keys can be used for the batcher. It is provided to help secure the keys in case of failure or emergency. The only requirement is that the skeys have the `batcher` and `collat` naming scheme.
-
-
 
 ### Obtaining A Batcher Certificate
 
@@ -230,39 +228,3 @@ If a complete db reset is required, use the command below. Be sure to stop the b
 rm *.log
 rm batcher.db
 ```
-
-## Running NEWM Batcher With Docker
-
-**Docker is not support as of right now**
-
-<!-- Build, create, and run docker:
-```bash
-docker build -t newm-batcher .
-
-docker volume create batcher-data
-
-docker run -it --rm \
-    -v /path/to/node/db-folder:/root/node \
-    -v batcher-data:/root/newm-batcher \
-    -v /path/to/newm-batcher-v1/config.yaml:/root/newm-batcher/config.yaml \
-    --name newm-batcher-container \
-    newm-batcher
-```
-
-Removing the volume:
-```bash
-docker volume rm batcher-data
-```
-
-Accessing it via:
-```bash
-docker exec -it newm-batcher-container /bin/bash
-```
-
-Use then analysis file while inside the container:
-```bash
-source venv/bin/activate
-python3 analysis.py --help
-``` -->
-
-

@@ -9,78 +9,92 @@
 ###############################################################################
 
 # Batcher Information
-batcher_address: "addr_test1vrhktvhh6zu97sfms9wy9sfjrdtx0nx5fnm4h554yz5h85c72n8ve"
-profit_address: "addr_test1qqvvxvn948sgkr0u3gkjf3rwppkan7288qxmytjqp3e6u3qnjyf7z9dwy0ael9m0jxlsvm9n8tzar9qlum52szk42h9szjvecr"
-# Collat Wallet Information
-collat_address: "addr_test1vp28um2cecpuq6e8ktl3adm20a3wcckx3kymwyxpmjefz2cc344ex"
-collat_utxo: "997723f01446c318bf13586c544afc507d0c1affb0225065e1d9f9bf984297b9#0"
-# Network Information
+batcher_address: ""
+profit_address: ""
 #
-# Options: --testnet-magic 1
-# Options: --mainnet
+# Collat Wallet Information
+collat_address: ""
+collat_utxo: ""
+#
+# Network Information
 network: "--testnet-magic 1"
+#
 # Bin Paths; Need To be Absolute
-aiken_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/aiken"
-addr_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/cardano-address"
-cli_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/cardano-cli"
-ogmios_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/ogmios"
-oura_path: "/home/logic/Documents/Work/ProjectNewm/newm-batcher-v1/bin/oura"
+aiken_path: "/bin/aiken"
+addr_path: "/bin/cardano-address"
+cli_path: "/bin/cardano-cli"
+ogmios_path: "/bin/ogmios"
+oura_path: "/bin/oura"
+#
 # Node File Paths; Needs To Be Absolute
-node_config_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/config.json"
-socket_path: "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
+node_config_path: "/config.json"
+socket_path: "/node.socket"
+#
 # Node Port
 node_port: 6000
+#
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
-use_ogmios: false
-# Docker - Not Supported - Do Not Use
-# socket_path: "/root/node/node.socket"
-# cli_path: "/root/bin/cardano-cli"
-
+use_ogmios: False
+#
 ###############################################################################
 # Do Not Update Values Below
 ###############################################################################
-
+#
 # Oracle Feed Information
 oracle_address: "addr_test1wzc86g4ym366hkaphryqqvaptwznqkmk2gdqz9930u534pcx58ahw"
 oracle_policy: "362e3f869c98ce971ead0e2705c56df467ddd2aecb44f6f216c3e1d5"
 oracle_asset: "4f7261636c6546656564"
+#
 # Contract Addresses
 sale_address: "addr_test1xpt8jvvr3mtnmww67f0k3f6dxm3rnjnpgwz8r3w96cjmt7q8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes7svklv"
 queue_address: "addr_test1xzmjnfslyfxkdz9qt6pc3nel773qw82rvxxrsv6untk2ags8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekesy7p4l6"
 vault_address: "addr_test1xqpss9de3wxpkw5dav4yefc6ekzf2s7jlx058s8ajtyk8kq8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekes2330ln"
 band_address: "addr_test1xzjwacyv3g62q5fxzxkrdl0z8gzuhj95ujvcqjzeat6xths8raw5xxstf3uuv2h9zd32rdzfmvwf0ydda2c8gnt0ekesc3xcvp"
+#
 # Data Contract Information
 data_address: "addr_test1wzlps40lp5yf3e34znhvz05rcpsqy38uftgfr7txnvu5j4q2qa3sw"
 data_policy: "74946c67d2a6afbdfd9450eb9818f202ba26143f821990d7a45b515c"
 data_asset: "4472697070793233303431393830313337"
+#
 # Address Holding Script References UTxOs
 reference_address: "addr_test1vpdhs4kp98kyagc5zy098yrhxn5tsc7d4z4g8vd8d32ez4cq6r27z"
+#
 # vault, Sale, and Queue Contract Script Reference UTxOs
 sale_ref_utxo: "eb225cf611bb6c4d275538d25dbca328c724292218ec81293ff8a047868cd699#1"
 sale_lovelace: 22282700
+#
 queue_ref_utxo: "3790bab3ddfe7e2db9463dc1809bc47c536fad80add7f168fdd41ebe206220e0#1"
 queue_lovelace: 30437220
+#
 vault_ref_utxo: "40b75766a29e25ba8247801ed424c1bc776fcf1d4a1d1a5c97e50b3d6ed5d3ae#1"
 vault_lovelace: 15011730
+#
 band_ref_utxo: "767ca84484ed3c9caedfa091034043d75703881c506919268a6befeffb5bf4d0#1"
 band_lovelace: 20537150
+#
 batcher_ref_utxo: "458187f22a32146cd4800422fb52b7f43921e883bdc48fce8d4df768322abeae#1"
 batcher_lovelace: 7167530
+#
 # The Newm Pointer Policy Id
 pointer_policy: "f5cb10641e282c4a18084e51bd717475d6984978b0e32d624b4b1c32"
+#
 # The Newm Batcher Policy Id
 batcher_policy: "e3e627b248fb56ed39587febf11fee95a01f2b39349ae9beb76c1f5c"
+#
 # Starting Block Information
 starting_block_number: 2718273
 starting_timestamp: 71432318
 starting_blockhash: "c06babd2e90af7c951d9fa864f135b5e8b66e867deeafe3261c7e3f4bd096a38"
 delay_depth: 3
+#
 # Logging Parameters
 max_log_file_size: "1 MB"
 max_num_log_files: 1
+#
 # Available logging levels
 #
 # Options: TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
 logging_level: "TRACE"
+#
 # True is debug; False is no debug
 debug_mode: False

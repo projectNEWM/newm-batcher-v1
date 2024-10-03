@@ -8,3 +8,4 @@ docker.sh
 estimate.sh
 .env
 backup-keys/
+copy.config.yaml
