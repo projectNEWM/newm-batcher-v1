@@ -5,7 +5,8 @@
 ###############################################################################
 
 confirm_batcher_readiness() {
-    echo -e "\033[1;37mChecking If Batcher Address: $(cat keys/batcher.addr) Is Ready\n\033[0m"
+    echo
+    echo -e "\033[1;37mChecking If Batcher Is Ready\n\033[0m"
 
     network=$(yq '.network' config.yaml)
     cli=$(yq '.cli_path' config.yaml)
@@ -21,8 +22,8 @@ confirm_batcher_readiness() {
             echo "Batcher Is Ready"
             break
         else
-            echo "No UTXO found. Sleeping for 5 seconds..."
-            sleep 5
+            echo "No UTXO found. Sleeping for 10 seconds..."
+            sleep 10
         fi
     done
 }
@@ -97,10 +98,10 @@ create_vault_and_cert() {
         len=$(${cli} conway query utxo --socket-path ${socket_path} --tx-in ${txid}#0 ${network} --output-json | jq 'length')
 
         if [ "$len" -eq 0 ]; then
-            echo "No UTXO found. Sleeping for 5 seconds..."
-            sleep 5
+            echo "No UTXO found. Sleeping for 10 seconds..."
+            sleep 10
         else
-            echo "UTXO found! Length: $len"
+            echo "UTXO found!"
             break  # Exit the loop when a non-zero length is found
         fi
     done
@@ -198,9 +199,9 @@ get_batcher_utxo() {
         # Check the result
         if [ -z "$utxo" ]; then
             echo "Waiting For Batcher Wallet To Be Funded..."
-            sleep 5
+            sleep 10
         else
-            echo "Batcher Is Ready"
+            echo "Creating Vault UTxOs and Minting Certificate Token"
             # run the tx scripts here
             create_vault_and_cert $utxo $assets
             break
@@ -217,6 +218,16 @@ update_collat_utxo() {
     cli=$(yq '.cli_path' config.yaml)
     socket_path=$(yq '.socket_path' config.yaml)
 
+    utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address $(cat keys/collat.addr) ${network} --output-json | jq -r 'to_entries[] | select(.value.value.lovelace == 5000000) | .key')
+    # Check the result
+    if [ -z "$utxo" ]; then
+        echo "Waiting For Collateral Wallet To Be Funded..."
+        sleep 10
+    else
+        echo "Collateral Is Ready"
+        yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
+        return
+    fi
     echo
     echo -e "\033[1;36m\nSend Exactly 5 ADA To:\n\033[0m"
     echo -e "\033[1;37mCollateral Address: $(cat keys/collat.addr)\n\033[0m"
@@ -228,7 +239,7 @@ update_collat_utxo() {
         # Check the result
         if [ -z "$utxo" ]; then
             echo "Waiting For Collateral Wallet To Be Funded..."
-            sleep 5
+            sleep 10
         else
             echo "Collateral Is Ready"
             yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
@@ -241,7 +252,8 @@ update_collat_utxo() {
 update_profit_address() {
     local yaml_file="config.yaml"  # Change this to your YAML file name
     local address
-
+    
+    echo
     while true; do
         # Prompt for the address
         read -r -p "Enter the profit address: " address
@@ -499,6 +511,7 @@ echo -e "\033[5;37m\nPress Enter To Setup The NEWM Batcher, Or Any Other Key To 
 read -rsn1 input
 
 if [[ "$input" == "" ]]; then
+    clear
     echo -e "\033[37;33m\nContinuing...\n\033[0m"
     # Add your code here that should execute if Enter is pressed
 else
@@ -625,7 +638,7 @@ fi
 if [ -x "bin/aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.3/aiken-x86_64-unknown-linux-gnu.tar.gz
+    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.4/aiken-x86_64-unknown-linux-gnu.tar.gz
     tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
     rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
@@ -653,14 +666,21 @@ else
     echo -e "\033[1;37mCardano Address: $(./bin/cardano-address --version)\033[0m"
 fi
 
+sleep 1
+clear
+echo -e "\033[1;34m\nSetup The Configuration\n\033[0m"
+
 update_network
 update_use_ogmios
 update_node_port
 update_file_paths
 update_bin_paths
+update_profit_address
 
+sleep 1
+clear
 echo -e "\033[1;36m\nCreating The Batcher and Collateral Keys Then Update The config.yaml File\n\033[0m"
-echo -e "\033[31;33mChecking For Live Cardano Node...\n\033[0m"
+echo -e "\033[5;33mChecking For Live Cardano Node...\n\033[0m"
 
 ./check_cardano_node.sh
 
@@ -682,7 +702,9 @@ else
     create_wallet_keys
 fi
 
-update_profit_address
+sleep 1
+clear
+echo -e "\033[1;31m\nEach Wallet Requires A Single UTxO Only\n\033[0m"
 
 update_collat_utxo
 
@@ -692,20 +714,20 @@ result=$(${cli} conway query utxo --socket-path ${socket_path} --address ${batch
 
 if [ "$result" = "true" ]; then
     echo "Batcher Is Ready"
-    exit 0;
+else
+    get_batcher_utxo
+    confirm_batcher_readiness
 fi
 
-
-get_batcher_utxo
-
-confirm_batcher_readiness
-
+sleep 1
+clear
 echo
 echo /
 echo //
 echo ///
 echo ////
-printf "%s" $(echo "Enjoy" | fold -w1  | awk '{ printf "\033[1;%dm%s", 31+int(rand()*6), $1 }' | tr -d '\n') && echo -ne "\033[0m" && echo
+printf "%s" $(echo "Enjoy" | fold -w1  | awk '{ printf "\033[1;%dm%s", 31+int(rand()*6), $1 }' | tr -d '\n') && echo -ne "\033[0m"
+echo -e "\033[3;37m The NEWM Marketplace Order Batcher!\033[0m"
 echo ////
 echo ///
 echo //
