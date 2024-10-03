@@ -9,3 +9,5 @@ estimate.sh
 .env
 backup-keys/
 copy.config.yaml
+metadata.hex
+batcher_token.cbor

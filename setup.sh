@@ -137,6 +137,11 @@ create_vault_and_cert() {
     data_asset=$(yq '.data_asset' config.yaml)
     data_ref_utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address ${data_address} ${network} --output-json | jq --arg pid "${data_policy}"  --arg tkn "${data_asset}" -r 'to_entries[] | select(.value.value[$pid][$tkn] == 1) | .key' )
 
+    cp batcher_token.cbor.hex metadata.hex
+    sed -i "s/policy_here000000000000000000000000000000000000000000000/$batcher_policy/g" metadata.hex
+    sed -i "s/affab1e000000000000000000000000000000000000000000000000000000000/$batcher_token_name/g" metadata.hex
+    xxd -r -p metadata.hex > batcher_token.cbor
+
     echo -e "\033[0;36m Building Tx \033[0m"
     FEE=$(${cli} conway transaction build \
         --socket-path ${socket_path} \
@@ -160,6 +165,7 @@ create_vault_and_cert() {
         --mint-plutus-script-v3 \
         --policy-id="${batcher_policy}" \
         --mint-reference-tx-in-redeemer-file tmp/mint-batcher-redeemer.json \
+        --metadata-cbor-file batcher_token.cbor \
         ${network})
 
     IFS=':' read -ra VALUE <<< "${FEE}"
@@ -179,7 +185,6 @@ create_vault_and_cert() {
         --socket-path ${socket_path} \
         ${network} \
         --tx-file tmp/tx.signed
-    # now chain this together witht he cert mint
 }
 
 get_batcher_utxo() {
@@ -244,6 +249,7 @@ update_collat_utxo() {
         else
             echo "Collateral Is Ready"
             yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
+            yq eval ".collat_address = \"$(cat keys/collat.addr)\"" -i "$yaml_file"
             break
         fi
     done
