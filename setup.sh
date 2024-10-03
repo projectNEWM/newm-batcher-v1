@@ -224,8 +224,9 @@ update_collat_utxo() {
         echo "Waiting For Collateral Wallet To Be Funded..."
         sleep 10
     else
-        echo "Collateral Is Ready"
+        echo -e "\033[1;37mCollateral Is Ready\033[0m"
         yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
+        yq eval ".collat_address = \"$(cat keys/collat.addr)\"" -i "$yaml_file"
         return
     fi
     echo
@@ -253,9 +254,9 @@ update_profit_address() {
     local yaml_file="config.yaml"  # Change this to your YAML file name
     local address
     
-    echo
     while true; do
         # Prompt for the address
+        echo
         read -r -p "Enter the profit address: " address
 
         # Validate the address format (general regex for Cardano addresses)
@@ -363,7 +364,7 @@ update_file_paths() {
 
     # Prompt user for directory
     echo
-    read -e -p "Please enter the node directory where the files config.json and node.socket are located: " directory
+    read -e -p "Please enter the parent directory where the node config.json and node.socket files are located: " directory
 
     # Expand tilde to home directory
     directory="${directory/#\~/$HOME}"
@@ -379,11 +380,11 @@ update_file_paths() {
     local file1_path
     local file2_path
 
-    # file1_path=$(find "$directory" -type f -name "$file1" -print -quit)
-    # file2_path=$(find "$directory" -type f -name "$file2" -print -quit)
+    file1_path=$(find "$directory" -type f -name "$file1" -print -quit)
+    file2_path=$(find "$directory" -type s -name "$file2" -print -quit)
 
-    file1_path=$(find "$directory" -type f -name "$file1" 2>/dev/null)
-    file2_path=$(find "$directory" -type s -name "$file2" 2>/dev/null)
+    # file1_path=$(find "$directory" -type f -name "$file1" 2>/dev/null)
+    # file2_path=$(find "$directory" -type s -name "$file2" 2>/dev/null)
 
     # Check if the files were found
     if [[ -z "$file1_path" ]]; then
@@ -443,20 +444,20 @@ update_use_ogmios() {
 
     # Prompt for using Ogmois or AIken
     echo
-    read -p "Do you want to use Ogmois for Tx simulation? (yes/no) [No Uses Aiken] " use_ogmios
+    read -p "Do you want to use Ogmois for tx simulation? (yes/no) [No Uses Aiken] " use_ogmios
 
     # Validate input
     if [[ "$use_ogmios" == "yes" ]]; then
         yq eval ".use_ogmios = true" -i "$yaml_file"
+        echo "Updated use_ogmios to true in $yaml_file"
     elif [[ "$use_ogmios" == "no" ]]; then
         yq eval ".use_ogmios = false" -i "$yaml_file"
+        echo "Updated use_ogmios to false in $yaml_file"
     else
         echo "Error: Please enter 'yes' or 'no'."
         update_use_ogmios
         return
     fi
-
-    echo "Updated use_ogmios to $use_ogmios in $yaml_file"
 }
 
 update_network() {
@@ -465,7 +466,7 @@ update_network() {
 
     # Prompt for using Mainnet or Testnet
     echo
-    read -p "Is this on Mainnet or Testnet? (mainnet/testnet) [Testnet Is Pre-Production] " network
+    read -p "Is this on mainnet or testnet? (mainnet/testnet) [Testnet Is Pre-Production] " network
 
     # Validate input
     if [[ "$network" == "mainnet" ]]; then
@@ -510,14 +511,20 @@ echo
 echo -e "\033[5;37m\nPress Enter To Setup The NEWM Batcher, Or Any Other Key To Exit.\n\033[0m"
 read -rsn1 input
 
+sleep 1
+clear
 if [[ "$input" == "" ]]; then
-    clear
     echo -e "\033[37;33m\nContinuing...\n\033[0m"
     # Add your code here that should execute if Enter is pressed
 else
-    clear
     exit 0
 fi
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+echo -e "\033[1;34m\nChecking For Required Binaries\n\033[0m"
 
 # Check if running on Linux
 if [[ "$(uname -s)" == "Linux" ]]; then
@@ -526,8 +533,6 @@ else
     echo -e "\033[1;31m\nOnly Linux Is Supported. Exiting script.\n\033[0m"
     exit 1;
 fi
-
-echo -e "\033[1;34m\nChecking For Required Binaries\n\033[0m"
 
 if command -v sponge &> /dev/null; then
     echo -e "\033[1;35m\nsponge is installed and available on the PATH.\n\033[0m"
@@ -581,8 +586,7 @@ if command -v yq &> /dev/null; then
     echo -e "\033[1;35m\nyq is installed and available on the PATH.\n\033[0m"
 else
     echo -e "\033[1;31myq is not installed or not available on the PATH.\033[0m"
-    echo -e "\033[1;33m sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \033[0m"
-    echo -e "\033[1;33m sudo chmod a+x /usr/local/bin/yq \033[0m"
+    echo -e "\033[1;33m sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq \033[0m"
     exit 1;
 fi
 
@@ -601,9 +605,15 @@ else
     echo -e "\033[1;33m sudo apt install -y python3-venv \033[0m"
     exit 1;
 fi
+echo -e "\033[1;34m\nBinaries Are Ready\n\033[0m"
 
+###############################################################################
+###############################################################################
+###############################################################################
+
+sleep 1
+clear
 echo -e "\033[1;34m\nSetup Virtual Environment\n\033[0m"
-
 # Create a Python virtual environment
 python3 -m venv venv
 
@@ -611,8 +621,15 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install required Python packages
-pip install -r requirements.txt
+pip install -r requirements.txt --progress-bar=on
+echo -e "\033[1;34m\nVirtual Environment Is Ready\n\033[0m"
 
+###############################################################################
+###############################################################################
+###############################################################################
+
+sleep 1
+clear
 echo -e "\033[1;34m\nDownloading Required Binaries\n\033[0m"
 
 if [ -x "bin/oura" ]; then
@@ -634,7 +651,6 @@ else
     echo -e "\033[1;37mOgmios: $(./bin/ogmios --version)\033[0m"
 fi
 
-
 if [ -x "bin/aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
@@ -642,7 +658,6 @@ else
     tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
     rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
-
 fi
 
 if [ -x "bin/cardano-cli" ]; then
@@ -666,6 +681,10 @@ else
     echo -e "\033[1;37mCardano Address: $(./bin/cardano-address --version)\033[0m"
 fi
 
+###############################################################################
+###############################################################################
+###############################################################################
+
 sleep 1
 clear
 echo -e "\033[1;34m\nSetup The Configuration\n\033[0m"
@@ -677,9 +696,15 @@ update_file_paths
 update_bin_paths
 update_profit_address
 
+echo -e "\033[1;34m\nConfiguration Is Ready\n\033[0m"
+
+###############################################################################
+###############################################################################
+###############################################################################
+
 sleep 1
 clear
-echo -e "\033[1;36m\nCreating The Batcher and Collateral Keys Then Update The config.yaml File\n\033[0m"
+echo -e "\033[1;36m\nCreating The Batcher and Collateral Keys\n\033[0m"
 echo -e "\033[5;33mChecking For Live Cardano Node...\n\033[0m"
 
 ./check_cardano_node.sh
@@ -697,14 +722,15 @@ addr=$(yq '.addr_path' config.yaml)
 socket_path=$(yq '.socket_path' config.yaml)
 
 if [ -e "keys/batcher.skey" ] || [ -e "keys/collat.skey" ]; then
-    echo -e "\033[1;31m\nKeys Exists\n\033[0m"
+    echo -e "\033[1;37m\nKeys Exists\n\033[0m"
 else
     create_wallet_keys
 fi
 
 sleep 1
 clear
-echo -e "\033[1;31m\nEach Wallet Requires A Single UTxO Only\n\033[0m"
+echo -e "\033[1;31m\nEach Wallet Requires A Single UTxO Only\033[0m"
+echo -e "\033[1;31mBe Patient And Follow Directions\n\033[0m"
 
 update_collat_utxo
 
@@ -713,7 +739,8 @@ batcher_policy=$(yq '.batcher_policy' config.yaml)
 result=$(${cli} conway query utxo --socket-path ${socket_path} --address ${batcher_address} ${network} --output-json |  jq --arg pid "${batcher_policy}" -r 'to_entries[] | if .value.value[$pid] != null then true else false end')
 
 if [ "$result" = "true" ]; then
-    echo "Batcher Is Ready"
+    yq eval ".batcher_address = \"$(cat keys/batcher.addr)\"" -i "config.yaml"
+    echo -e "\033[1;37mBatcher Is Ready\033[0m"
 else
     get_batcher_utxo
     confirm_batcher_readiness

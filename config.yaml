@@ -3,11 +3,11 @@
 # hardcoded values that should not be changed and batcher specific values that
 # need to be updated. Follow the README for detailed directions.
 ###############################################################################
-
+#
 ###############################################################################
 # Update Values For Your Batcher
 ###############################################################################
-
+#
 # Batcher Information
 batcher_address: ""
 profit_address: ""
@@ -17,6 +17,7 @@ collat_address: ""
 collat_utxo: ""
 #
 # Network Information
+#
 network: "--testnet-magic 1"
 #
 # Bin Paths; Need To be Absolute
