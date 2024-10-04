@@ -22,7 +22,7 @@ confirm_batcher_readiness() {
             echo "Batcher Is Ready"
             break
         else
-            echo "No UTXO found. Sleeping for 10 seconds..."
+            echo "Transaction Pending. Sleeping for 10 seconds..."
             sleep 10
         fi
     done
@@ -42,6 +42,22 @@ create_vault_and_cert() {
     profit_address=$(yq '.profit_address' config.yaml)
 
     jq --arg var "${batcher_pkh}" '.fields[0].bytes=$var' tmp/wallet-datum.json | sponge tmp/wallet-datum.json
+
+    # visually confirm the datum
+    echo -e "\033[1;37m\nDoes the Batcher Hash Match?\n\033[0m"
+    echo -e "\033[1;36m$(cat keys/batcher.hash)\n\033[0m"
+    cat tmp/wallet-datum.json | jq
+    echo -e "\033[1;31m\nThe Hashes Must Match\n\033[0m"
+
+    echo -e "\033[5;37m\nPress Enter To Confirm The Hashes, Or Any Other Key To Exit.\n\033[0m"
+    read -rsn1 input
+
+    if [[ "$input" == "" ]]; then
+        echo -e "\033[37;33m\nContinuing...\n\033[0m"
+        # Add your code here that should execute if Enter is pressed
+    else
+        exit 0
+    fi
 
     network=$(yq '.network' config.yaml)
     cli=$(yq '.cli_path' config.yaml)
@@ -98,7 +114,7 @@ create_vault_and_cert() {
         len=$(${cli} conway query utxo --socket-path ${socket_path} --tx-in ${txid}#0 ${network} --output-json | jq 'length')
 
         if [ "$len" -eq 0 ]; then
-            echo "No UTXO found. Sleeping for 10 seconds..."
+            echo "Transaction Pending. Sleeping for 10 seconds..."
             sleep 10
         else
             echo "UTXO found!"
@@ -388,9 +404,6 @@ update_file_paths() {
 
     file1_path=$(find "$directory" -type f -name "$file1" -print -quit)
     file2_path=$(find "$directory" -type s -name "$file2" -print -quit)
-
-    # file1_path=$(find "$directory" -type f -name "$file1" 2>/dev/null)
-    # file2_path=$(find "$directory" -type s -name "$file2" 2>/dev/null)
 
     # Check if the files were found
     if [[ -z "$file1_path" ]]; then
