@@ -1,4 +1,4 @@
-from src.utility import find_index_of_target, sha3_256
+from src.utility import find_index_of_target, generate_token_name, sha3_256
 
 
 def test_empty_string_hash():
@@ -58,3 +58,7 @@ def test_cant_find_index():
     # Find and print the index
     index = find_index_of_target(lst, target)
     assert index is None
+
+
+def test_generate_name_from_empty_strings():
+    assert generate_token_name("ab69aab2efe96149ca2fc045f8cdfadaa2213e5f71f7f427632ac1216bd6106d", 0, "000643b0") == "000643b00001f1ca8bb6ed0bd798019448bf8b5b9a539958477b53fd86c6d27e"

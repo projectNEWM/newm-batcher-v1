@@ -1,3 +1,4 @@
+import binascii
 import hashlib
 import os
 import time
@@ -97,3 +98,51 @@ def get_first_line(file_path: str) -> str:
     with open(file_path, 'r') as file:
         first_line = file.readline().strip()
     return first_line
+
+
+def generate_token_name(tx_id: str, tx_idx: int, prefix: str) -> str:
+    """Generates a token name following the assist library standard.
+
+    Args:
+        tx_id (str): The transaction id
+        tx_idx (int): The transaction index
+        prefix (str): The token prefix. This may be an empty string
+
+    Returns:
+        str: The token name.
+    """
+    tx_id_bytes = binascii.unhexlify(tx_id)
+    # use sha3_256 to hex the bytes of tx id
+    hash_func = hashlib.new('sha3_256')
+    hash_func.update(tx_id_bytes)
+    tx_id_hash = hash_func.hexdigest()
+    # we need the index in hex form but without x as the odd digit
+    tx_idx_hex = hex(tx_idx)[-2:]
+    # if it exists then replace with 0
+    if "x" in tx_idx_hex:
+        tx_idx_hex = tx_idx_hex.replace("x", "0")
+    # smash it together then trim the first 64 characters
+    tx_id = prefix + tx_idx_hex + tx_id_hash
+    return tx_id[0:64]
+
+
+def generate_token_string(tokens: dict) -> str:
+    """Generates a cardano-cli friend token string of the form `quantity policy_id.token_name`.
+
+    Args:
+        tokens (dict): The token dictionary from the utxo.
+
+    Returns:
+        str: The token string.
+    """
+    string = ""
+    for pid in tokens:
+        if pid == "lovelace":
+            continue
+        for tkn in tokens[pid]:
+            token = f"{tokens[pid][tkn]} {pid}.{tkn}"
+            if string == "":
+                string += token
+            else:
+                string += " + " + token
+    return string

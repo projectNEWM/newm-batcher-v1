@@ -12,11 +12,17 @@ cd newm-batcher-v1
 git checkout -b your-personal-branch
 ```
 
-The batcher requires a fully synced cardano node and requires cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, and jq.
+The batcher requires a fully synced cardano node and requires cardano-cli, cardano-address, [Ogmios](https://github.com/CardanoSolutions/ogmios), [Oura](https://github.com/txpipe/oura), [Aiken](https://github.com/aiken-lang/aiken), python3, yq, jq, and sponge.
 
-The batcher has a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the Python virtual environment and install the required modules. It is assumed that the cardano-node is already running and is fully synced.
+The batcher has a setup helper file, `setup.sh`. This file will check and download all required external binaries. It will create the Python virtual environment and install the required modules. The setup script requires that the cardano node is already running and is fully synced. This file will auto-setup the entire batcher step-by-step.
 
-The `config.yaml` file needs to have have absolute paths for all the binaries and required files. Find the complete path to the newm-batcher-v1 folder and prepend the bin and file paths.
+The `config.yaml` file is split into two parts. The user is expected to run the `setup.sh` script to update the top part, which states `# Update Values For Your Batcher`. Configuring the batcher means entering the correct information into the fields below. The other information inside the `config.yaml` file does not need to be changed or updated.
+
+**The current version of the batcher is designed to run on pre-production or mainnet only.**
+
+### Binary Paths
+
+The `config.yaml` file needs to have have absolute paths for all the binaries and required files.
 
 ```yaml
 # Bin Paths; Need To be Absolute
@@ -31,17 +37,15 @@ socket_path: "/node.socket"
 node_config_path: "/config.json"
 ```
 
-After the setup, create the batcher and collateral keys using the `keys/setup_keys.sh` script, then continue the update to the `config.yaml` file.
-
 ### Required CLI Keys
 
-The batcher comes with a wallet setup helper file, `setup_keys.sh`, inside the `keys` folder, allowing the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
+The setup helper file, `setup.sh`, has a wallet generator inside of it, allowing the batcher to use a CIP03 wallet to generate the required cardano-cli keys. The script will prompt the user with the message below.
 
-```
+```bash
 Press 1 to generate a wallet, 2 to load a wallet, or any other key to exit.
 ```
 
-If the user wishes to generate a wallet, press 1. It will display a seed phrase for the user to write down, and then it will generate the required keys. If the user wishes to use an existing wallet, press 2. It will prompt the user to type in their seed phrase in a single line with single spaces between each word. If entered correctly, the script will generate the required keys. Any other key will exit the script. The script is designed to prevent overwriting.
+If the user wishes to generate a wallet, press 1. It will display a seed phrase for the user to write down, and then it will generate the required keys. If the user wishes to use an existing wallet, press 2. It will prompt the user to type in their seed phrase in a single line with single spaces between each word. If entered correctly, the script will generate the required keys.
 
 After successfully setting up the wallet, the keys folder will contain two sets of files, one for the batcher and the other for the collateral, corresponding to the zeroth and first key paths from the root key.
 
@@ -58,47 +62,25 @@ collat.skey
 collat.vkey
 ```
 
-The batcher address in `batcher.addr` will hold a single UTxO with the batcher certificate token and at least 5 ADA. The collateral address in `collat.addr` will have a single UTxO with at least 5 ADA. The balances of these addresses can be viewed with the `balances.sh` script located in the `keys` folder and the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command.
+The batcher address in `batcher.addr` will hold a single UTxO with the batcher certificate token and at least 5 ADA. The collateral address in `collat.addr` will have a single UTxO with at least 5 ADA. The balances of these addresses can be viewed with the `balances.sh` script located in the `keys` folder and the `analysis.py` file in the parent directory using the `python3 analysis.py --batcher` command. If using the `setup.sh` script then the UTxOs will be auto-generated.
 
 The setup script is not required, as any valid cli keys can be used for the batcher. It is provided to help secure the keys in case of failure or emergency. The only requirement is that the skeys have the `batcher` and `collat` naming scheme.
-
-
 
 ### Obtaining A Batcher Certificate
 
 A batcher certificate is issued when a user obtains a complete set of NEWM monsters and locks the entire band into a contract. The locking transaction mints a complete assets token that lives on the band lock UTxO and mints one batcher certificate to the user. The batcher certificate is tradable, allowing anyone who holds it to earn the ability to run a batcher. It can be burned at any time to unlock the NEWM monsters that created it, but it can only unlock the band with the matching completed assets token. This preserves ownership even after trading.
 
-After minting a batcher certificate, send the token with at least 5 ADA to the batcher address. A batcher cannot batch without the token.
+A batcher cannot batch without the token.
 
-Please refer to the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md) about minting a batcher certificate token.
-
-### Configuration
-
-The `config.yaml` file is split into two parts. The user is expected to update the top part, which states `# Update Values For Your Batcher`. Configuring the batcher means entering the correct information into the fields below. The other information inside the `config.yaml` file does not need to be changed or updated.
-
-```yaml
-# Batcher Information
-batcher_address: ""
-profit_address: ""
-
-# Collat Wallet Information
-collat_address: ""
-collat_utxo: ""
-```
-
-Replace the `batcher_address` with the value from the `batcher.addr` file and `collat_address` with the value from the `collat.addr`. The profit address can be another derived address from the CIP03 wallet or any address you choose. The `collat_utxo` has the form `id#idx,` which should hold at least 5 ADA. It will be used as collateral in every smart contract transaction.  The profit address is whatever address you wish to recieve batcher profit.
-
-**The current version of the batcher is designed to run on pre-production or mainnet only.**
-
-Do not update any other variables, as it may inhibit the batcher's ability to function.
+Please refer to the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md#newm-monster-band-lock-up) about locking up the band.
 
 ### Setting Up The Vaults
 
-The final step for the batcher requires creating vault UTxOs inside the newm marketplace vault contract. These UTxOs are batcher-specific and provide a method for NEWM to collect profit from successful purchase transactions. We suggest having at least two vault UTxOs for your batcher, but as many as `delay_depth` + 1 UTxOs may be optimal.
+The `setup.sh` script creates the vault UTxOs inside the newm vault contract. These UTxOs are batcher-specific and provide a method for NEWM to collect profit from successful purchase transactions. We suggest having at least two vault UTxOs for your batcher, but as many as `delay_depth` + 1 UTxOs may be optimal.
 
 The batcher automatically tracks the UTxOs. The only requirement is that the value of `batcher.hash` is inside the datum of these UTxOs.
 
-Please use the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md) to set up these UTxOs.
+Please use the [NEWM Marketplace Documentation](https://github.com/projectNEWM/newm-market/blob/master/README.md#setting-up-vault-utxos) to set up these UTxOs.
 
 ## Running The Batcher
 
@@ -230,39 +212,3 @@ If a complete db reset is required, use the command below. Be sure to stop the b
 rm *.log
 rm batcher.db
 ```
-
-## Running NEWM Batcher With Docker
-
-**Docker is not support as of right now**
-
-<!-- Build, create, and run docker:
-```bash
-docker build -t newm-batcher .
-
-docker volume create batcher-data
-
-docker run -it --rm \
-    -v /path/to/node/db-folder:/root/node \
-    -v batcher-data:/root/newm-batcher \
-    -v /path/to/newm-batcher-v1/config.yaml:/root/newm-batcher/config.yaml \
-    --name newm-batcher-container \
-    newm-batcher
-```
-
-Removing the volume:
-```bash
-docker volume rm batcher-data
-```
-
-Accessing it via:
-```bash
-docker exec -it newm-batcher-container /bin/bash
-```
-
-Use then analysis file while inside the container:
-```bash
-source venv/bin/activate
-python3 analysis.py --help
-``` -->
-
-
