@@ -442,7 +442,7 @@ update_node_port() {
 
     # Prompt for the node port
     echo
-    read -p "What is the node port (1-65535)? " node_port
+    read -p "What is the Cardano node port (1-65535)? " node_port
 
     # Check if the input is a valid integer and within the port range
     if ! [[ "$node_port" =~ ^[0-9]+$ ]] || [ "$node_port" -lt 1 ] || [ "$node_port" -gt 65535 ]; then
