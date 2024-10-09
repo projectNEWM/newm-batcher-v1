@@ -242,8 +242,7 @@ update_collat_utxo() {
     utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address $(cat keys/collat.addr) ${network} --output-json | jq -r 'to_entries[] | select(.value.value.lovelace == 5000000) | .key')
     # Check the result
     if [ -z "$utxo" ]; then
-        echo "Waiting For Collateral Wallet To Be Funded..."
-        sleep 10
+        sleep 1
     else
         echo -e "\033[1;37mCollateral Is Ready\033[0m"
         yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
