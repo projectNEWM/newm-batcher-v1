@@ -98,6 +98,16 @@ If the batcher can successfully start syncing blocks, it works correctly.
 
 Tests can be run with `pytest`. Some tests require access to a full node.
 
+If `ModuleNotFoundError: No module named 'pkg_resources'` appears then the setuptools needs to be upgraded.
+
+```bash
+# Activate the virtual environment
+source venv/bin/activate
+
+# Update setup tools
+pip install --upgrade setuptools
+```
+
 ## Running NEWM Batcher As A Service
 
 It would be best to run the NEWM batcher as a service on your server. Below are instructions for modifying the `newm-batcher.service` file.
