@@ -304,6 +304,18 @@ create_wallet_keys() {
         echo -e "\033[1;36m\nWrite Down These Words\n\033[0m"
         seed_phrase=$(${addr} recovery-phrase generate --size 24)
         echo $seed_phrase
+
+        echo -e "\033[1;37m\nPress Enter To Continue, Or Any Other Key To Exit.\n\033[0m"
+        read -rsn1 input
+
+        if [[ "$input" == "" ]]; then
+            echo -e "\033[37;33m\nContinuing...\n\033[0m"
+            # Add your code here that should execute if Enter is pressed
+        else
+            clear
+            exit 1
+        fi
+
         root=$(echo $seed_phrase | ${addr} key from-recovery-phrase Shelley)
         
         # batcher

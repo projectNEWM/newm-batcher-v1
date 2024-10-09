@@ -30,6 +30,7 @@ while true; do
         echo "Cardano node is connected and ready."
         exit 0
     else
+        echo
         echo "Waiting for Cardano node to connect..."
         sleep 5
     fi
