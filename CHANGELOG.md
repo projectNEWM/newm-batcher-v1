@@ -8,6 +8,7 @@
 - Cardano-cli updated to 10.1.1.0
 - All cardano-cli code should be using conway specific commands
 - Removed unnecessary code
+- Added update-binaries.sh script to the bin folder for a quick update
 
 # v1.0.0
 
