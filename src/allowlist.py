@@ -13,14 +13,14 @@ The lower the priority number, the higher the priority. The threshold number
 is in the base unit of the token.
 """
 allowed = {
-    # tNEWM
-    "769c4c6e9bc3ba5406b9b89fb7beb6819e638ff2e2de63f008d5bcff": {
-        "744e45574d": {
+    # NEWM
+    "682fe60c9918842b3323c43b5144bc3d52a23bd2fb81345560d73f63": {
+        "4e45574d": {
             "priority": 0,
             "threshold": 10000000,
         },
     },
-    # tADA
+    # ADA
     "": {
         "": {
             "priority": 1,

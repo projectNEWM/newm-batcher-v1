@@ -242,8 +242,7 @@ update_collat_utxo() {
     utxo=$(${cli} conway query utxo --socket-path ${socket_path} --address $(cat keys/collat.addr) ${network} --output-json | jq -r 'to_entries[] | select(.value.value.lovelace == 5000000) | .key')
     # Check the result
     if [ -z "$utxo" ]; then
-        echo "Waiting For Collateral Wallet To Be Funded..."
-        sleep 10
+        sleep 1
     else
         echo -e "\033[1;37mCollateral Is Ready\033[0m"
         yq eval ".collat_utxo = \"$utxo\"" -i "$yaml_file"
@@ -305,6 +304,18 @@ create_wallet_keys() {
         echo -e "\033[1;36m\nWrite Down These Words\n\033[0m"
         seed_phrase=$(${addr} recovery-phrase generate --size 24)
         echo $seed_phrase
+
+        echo -e "\033[1;37m\nPress Enter To Continue, Or Any Other Key To Exit.\n\033[0m"
+        read -rsn1 input
+
+        if [[ "$input" == "" ]]; then
+            echo -e "\033[37;33m\nContinuing...\n\033[0m"
+            # Add your code here that should execute if Enter is pressed
+        else
+            clear
+            exit 1
+        fi
+
         root=$(echo $seed_phrase | ${addr} key from-recovery-phrase Shelley)
         
         # batcher
@@ -442,7 +453,7 @@ update_node_port() {
 
     # Prompt for the node port
     echo
-    read -p "What is the node port (1-65535)? " node_port
+    read -p "What is the Cardano node port (1-65535)? " node_port
 
     # Check if the input is a valid integer and within the port range
     if ! [[ "$node_port" =~ ^[0-9]+$ ]] || [ "$node_port" -lt 1 ] || [ "$node_port" -gt 65535 ]; then
@@ -654,7 +665,7 @@ echo -e "\033[1;34m\nDownloading Required Binaries\n\033[0m"
 if [ -x "bin/oura" ]; then
     echo -e "\033[1;31mOura Exists!\033[0m"
 else
-    wget -P bin https://github.com/txpipe/oura/releases/download/v1.9.1/oura-x86_64-unknown-linux-gnu.tar.gz
+    wget -P bin https://github.com/txpipe/oura/releases/download/v1.9.2/oura-x86_64-unknown-linux-gnu.tar.gz
     tar -xzf bin/oura-x86_64-unknown-linux-gnu.tar.gz -C bin --wildcards --no-anchored oura
     rm bin/oura-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mOura: $(./bin/oura --version)\033[0m"
@@ -663,9 +674,9 @@ fi
 if [ -x "bin/ogmios" ]; then
     echo -e "\033[1;31mOgmios Exists!\033[0m"
 else
-    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.6.2/ogmios-v6.6.2-x86_64-linux.zip
-    unzip -j bin/ogmios-v6.6.2-x86_64-linux.zip "bin/ogmios" -d bin
-    rm bin/ogmios-v6.6.2-x86_64-linux.zip
+    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.8.0/ogmios-v6.8.0-x86_64-linux.zip
+    unzip -j bin/ogmios-v6.8.0-x86_64-linux.zip "bin/ogmios" -d bin
+    rm bin/ogmios-v6.8.0-x86_64-linux.zip
     chmod +x bin/ogmios
     echo -e "\033[1;37mOgmios: $(./bin/ogmios --version)\033[0m"
 fi
@@ -673,7 +684,7 @@ fi
 if [ -x "bin/aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.4/aiken-x86_64-unknown-linux-gnu.tar.gz
+    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.5/aiken-x86_64-unknown-linux-gnu.tar.gz
     tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
     rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
@@ -682,11 +693,11 @@ fi
 if [ -x "bin/cardano-cli" ]; then
     echo -e "\033[1;31mCli Exists!\033[0m"
 else
-    wget -P bin https://github.com/IntersectMBO/cardano-cli/releases/download/cardano-cli-9.4.1.0/cardano-cli-9.4.1.0-x86_64-linux.tar.gz
-    tar -xzf bin/cardano-cli-9.4.1.0-x86_64-linux.tar.gz -C bin
+    wget -P bin https://github.com/IntersectMBO/cardano-cli/releases/download/cardano-cli-10.1.1.0/cardano-cli-10.1.1.0-x86_64-linux.tar.gz
+    tar -xzf bin/cardano-cli-10.1.1.0-x86_64-linux.tar.gz -C bin
     chmod +x bin/cardano-cli-x86_64-linux
     mv bin/cardano-cli-x86_64-linux ./bin/cardano-cli
-    rm bin/cardano-cli-9.4.1.0-x86_64-linux.tar.gz
+    rm bin/cardano-cli-10.1.1.0-x86_64-linux.tar.gz
     echo -e "\033[1;37mCardano CLI: $(./bin/cardano-cli --version)\033[0m"
 fi
 

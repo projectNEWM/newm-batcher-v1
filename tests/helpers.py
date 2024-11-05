@@ -16,8 +16,3 @@ def is_node_live(socket, magic=1, cli_path='cardano-cli'):
         return result.returncode == 0
     except Exception:
         return False
-
-
-if __name__ == "__main__":
-    socket_path = "/home/logic/Documents/Work/LogicalMechanism/testnets/node-preprod/db-testnet/node.socket"
-    print(is_node_live(socket_path))

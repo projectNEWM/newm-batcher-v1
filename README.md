@@ -98,6 +98,16 @@ If the batcher can successfully start syncing blocks, it works correctly.
 
 Tests can be run with `pytest`. Some tests require access to a full node.
 
+If `ModuleNotFoundError: No module named 'pkg_resources'` appears then the setuptools needs to be upgraded.
+
+```bash
+# Activate the virtual environment
+source venv/bin/activate
+
+# Update setup tools
+pip install --upgrade setuptools
+```
+
 ## Running NEWM Batcher As A Service
 
 It would be best to run the NEWM batcher as a service on your server. Below are instructions for modifying the `newm-batcher.service` file.
@@ -203,6 +213,10 @@ git commit -m "Merged main branch while keeping config.yaml unchanged"
 ```
 
 The goal of an update is to preserve the config.yaml file while updating everything else.
+
+### Updating Just The Required Binaries
+
+Inside the `bin` folder is the `update-binaries.sh` script. This will remove all of the binaries and download the versions defined in the file. This is a great way to update the required binaries after the `setup.sh` script is completed and the batcher is live.
 
 ### Resetting The NEWM Batcher DB
 
