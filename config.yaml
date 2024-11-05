@@ -9,29 +9,29 @@
 ###############################################################################
 #
 # Batcher Information
-batcher_address: ""
-profit_address: ""
+batcher_address: "addr1v9d6hwj2c5t5kamf47wd2pekdmf8870fh96n4ysxmuspt4sdw39sr"
+profit_address: "addr1v9jgh9ey3ad5aj3etxcm9llh8ej9fdfmwmz59ceml9n8t6srvn2d3"
 #
 # Collat Wallet Information
-collat_address: ""
-collat_utxo: ""
+collat_address: "addr1vxuej2tz3vlulhr0359u2z69peq9efnjszg87nfsv79mmhcsyhpvz"
+collat_utxo: "1fa57a316fb255d229fdc850fef5776841f09d9b8441f58fd03a409ed6473c89#0"
 #
 # Network Information
 network: "--mainnet"
 #
 # Bin Paths; Need To be Absolute
-aiken_path: "/bin/aiken"
-addr_path: "/bin/cardano-address"
-cli_path: "/bin/cardano-cli"
-ogmios_path: "/bin/ogmios"
-oura_path: "/bin/oura"
+aiken_path: "/home/westbam/Development/newm-batcher-v1-mainnet/bin/aiken"
+addr_path: "/home/westbam/Development/newm-batcher-v1-mainnet/bin/cardano-address"
+cli_path: "/home/westbam/Development/newm-batcher-v1-mainnet/bin/cardano-cli"
+ogmios_path: "/home/westbam/Development/newm-batcher-v1-mainnet/bin/ogmios"
+oura_path: "/home/westbam/Development/newm-batcher-v1-mainnet/bin/oura"
 #
 # Node File Paths; Needs To Be Absolute
-node_config_path: "/config.json"
-socket_path: "/node.socket"
+node_config_path: "/home/westbam/haskell/sundae/config.json"
+socket_path: "/home/westbam/haskell/sundae/db/socket"
 #
 # Node Port
-node_port: 6000
+node_port: 5003
 #
 # True Uses Ogmios For Tx Simulation; False Uses Aiken For Tx Simulation
 use_ogmios: false
