@@ -13,6 +13,8 @@
 - Removed unnecessary code
 - Added update-binaries.sh script to the bin folder for a quick update
 - Updated README with updating binary instructions
+- Trace logging level is removed as it is not used, default is debug
+- Log file increased from 1 MB to 5 MB
 
 # v1.0.0
 
