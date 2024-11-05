@@ -214,6 +214,10 @@ git commit -m "Merged main branch while keeping config.yaml unchanged"
 
 The goal of an update is to preserve the config.yaml file while updating everything else.
 
+### Updating Just The Required Binaries
+
+Inside the `bin` folder is the `update-binaries.sh` script. This will remove all of the binaries and download the versions defined in the file. This is a great way to update the required binaries after the `setup.sh` script is completed and the batcher is live.
+
 ### Resetting The NEWM Batcher DB
 
 If a complete db reset is required, use the command below. Be sure to stop the batcher with Ctrl-C or with `sudo systemctl stop newm-batcher.service` before resetting the database.
@@ -221,4 +225,15 @@ If a complete db reset is required, use the command below. Be sure to stop the b
 ```bash
 rm *.log
 rm batcher.db
+```
+
+
+### Optimal Node Suggestions
+
+It is suggested to run the node in `InitiatorOnly` mode.
+
+Add this line to the cardano node config file:
+
+```json
+"DiffusionMode": "InitiatorOnly",
 ```

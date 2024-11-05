@@ -88,13 +88,13 @@ starting_blockhash: "a12247355c1b201e39acf9cf07dce6ef81cbb93ceeff0b6699703325008
 delay_depth: 3
 #
 # Logging Parameters
-max_log_file_size: "1 MB"
+max_log_file_size: "5 MB"
 max_num_log_files: 1
 #
 # Available logging levels
 #
-# Options: TRACE, DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
-logging_level: "TRACE"
+# Options: DEBUG, INFO, SUCCESS, WARNING, ERROR, CRITICAL
+logging_level: "DEBUG"
 #
 # True is debug; False is no debug
 debug_mode: False

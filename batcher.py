@@ -15,8 +15,6 @@ from src.io_manager import IOManager
 from src.sorting import Sorting
 from src.utility import create_folder_if_not_exists, parent_directory_path
 
-# import sys
-
 ###############################################################################
 # Top level config required for the batcher to run
 ###############################################################################
