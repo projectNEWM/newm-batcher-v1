@@ -15,6 +15,7 @@
 - Updated README with updating binary instructions
 - Trace logging level is removed as it is not used, default is debug
 - Log file increased from 1 MB to 5 MB
+- Added some suggestions for the cardano node
 
 # v1.0.0
 

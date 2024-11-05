@@ -226,3 +226,14 @@ If a complete db reset is required, use the command below. Be sure to stop the b
 rm *.log
 rm batcher.db
 ```
+
+
+### Optimal Node Suggestions
+
+It is suggested to run the node in `InitiatorOnly` mode.
+
+Add this line to the cardano node config file:
+
+```json
+"DiffusionMode": "InitiatorOnly",
+```
