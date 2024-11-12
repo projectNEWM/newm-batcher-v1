@@ -1,5 +1,8 @@
 # v1.x.y
 
+- Adding checks for sed and xxd to exist
+- Adding a backup script to mint just the batcher token
+
 # v1.0.1
 
 **This version requries cardano-node 10.1.1**
