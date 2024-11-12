@@ -11,10 +11,13 @@ batcher_pkh=$(cat ../keys/batcher.hash)
 collat_pkh=$(cat ../keys/collat.hash)
 collat_utxo=$(yq '.collat_utxo' ../config.yaml)
 profit_address=$(yq '.profit_address' ../config.yaml)
+band_address=$(yq '.band_address' ../config.yaml)
 
+###############################################################################
 # place batcher and band utxo info here, you can find this from the previous tx
 batcher_utxo=""
 band_utxo=""
+###############################################################################
 
 # assumes an already complete band
 assets="1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e73746572436f6e647563746f72323739 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e73746572436f756e7472793739 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e73746572446973636f323739 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e73746572446f75626c65426173733632 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e737465724472756d6d6572353439 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e737465724b506f703533 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e7374657250657263757373696f6e323234 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e7374657250756e6b3230 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e7374657252616e63686572613837 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e73746572536f6e677772697465723435 + 1 b3e0f7538ba97893b0fea85409cecfbf300d164954da2728406bb571.4e45574d6f6e7374657253776973734c616e646c65723135 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e73746572444a313937 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e73746572466c616d656e636f3334 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e7374657248656176794d6574616c313337 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e7374657248656c6c6f333138 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e73746572486970486f70343634 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e737465724a617a7a313839 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e737465724f70657261323632 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e737465725069616e697374343730 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e73746572526567676165313939 + 1 e92f13e647afa0691006fb98833b60b61e6eb88d6180e7537bdb94a6.4e45574d6f6e73746572526f636b3731"
@@ -36,7 +39,7 @@ echo $complete_token
 echo $batcher_token
 
 min_utxo=$(${cli} conway transaction calculate-min-required-utxo \
-    --protocol-params-file tmp/protocol.json \
+    --protocol-params-file ../tmp/protocol.json \
     --tx-out-inline-datum-file ../tmp/wallet-datum.json \
     --tx-out="${band_address} + 5000000 + ${assets} + ${complete_token}" | tr -dc '0-9')
 
@@ -84,9 +87,7 @@ FEE=$(${cli} conway transaction build \
     --metadata-cbor-file ../batcher_token.cbor \
     ${network})
 
-IFS=':' read -ra VALUE <<< "${FEE}"
-IFS=' ' read -ra FEE <<< "${VALUE[1]}"
-echo -e "\033[1;32m Fee:\033[0m" $FEE
+echo -e "\033[1;32m $FEE\033[0m" 
 
 echo -e "\033[0;36m Signing \033[0m"
 ${cli} conway transaction sign \
