@@ -564,6 +564,22 @@ else
     exit 1;
 fi
 
+if command -v sed &> /dev/null; then 
+    echo -e "\033[1;35m\nsed is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31msed is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y sed \033[0m"
+    exit 1;
+fi
+
+if command -v xxd &> /dev/null; then 
+    echo -e "\033[1;35m\nxxd is installed and available on the PATH.\n\033[0m"
+else
+    echo -e "\033[1;31mxxd is not installed or not available on the PATH.\033[0m"
+    echo -e "\033[1;33m sudo apt install -y xxd \033[0m"
+    exit 1;
+fi
+
 if command -v sponge &> /dev/null; then
     echo -e "\033[1;35m\nsponge is installed and available on the PATH.\n\033[0m"
 else
