@@ -59,7 +59,7 @@ sed -i "s/policy_here000000000000000000000000000000000000000000000/$batcher_poli
 sed -i "s/affab1e000000000000000000000000000000000000000000000000000000000/$batcher_token_name/g" ../metadata.hex
 xxd -r -p ../metadata.hex > ../batcher_token.cbor
 
-exit
+# exit
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} conway transaction build \
@@ -102,3 +102,6 @@ ${cli} conway transaction submit \
     --socket-path ${socket_path} \
     ${network} \
     --tx-file ../tmp/tx.signed
+
+tx=$(${cli} conway transaction txid --tx-file ../tmp/tx.signed)
+echo "Tx Hash:" $tx
