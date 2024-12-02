@@ -1,11 +1,15 @@
 # v1.x.y
 
+**This Version Requires cardano-node >= 10.1.2 (Mainnet, Preprod, Preview)**
+
 - Adding checks for sed and xxd to exist
 - Adding a backup script to mint just the batcher token
+- Ogmios updated to 6.9.0
+- Aiken updated to 1.1.7
 
 # v1.0.1
 
-**This version requries cardano-node 10.1.1**
+**This Version Requires cardano-node >= 10.1.1 (Mainnet, Preprod, Preview)**
 
 - Adding changelog for post mainnet releases
 - Oura updated to 1.9.2
