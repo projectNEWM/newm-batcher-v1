@@ -690,9 +690,9 @@ fi
 if [ -x "bin/ogmios" ]; then
     echo -e "\033[1;31mOgmios Exists!\033[0m"
 else
-    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.8.0/ogmios-v6.8.0-x86_64-linux.zip
-    unzip -j bin/ogmios-v6.8.0-x86_64-linux.zip "bin/ogmios" -d bin
-    rm bin/ogmios-v6.8.0-x86_64-linux.zip
+    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.9.0/ogmios-v6.9.0-x86_64-linux.zip
+    unzip -j bin/ogmios-v6.9.0-x86_64-linux.zip "bin/ogmios" -d bin
+    rm bin/ogmios-v6.9.0-x86_64-linux.zip
     chmod +x bin/ogmios
     echo -e "\033[1;37mOgmios: $(./bin/ogmios --version)\033[0m"
 fi
@@ -700,7 +700,7 @@ fi
 if [ -x "bin/aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.5/aiken-x86_64-unknown-linux-gnu.tar.gz
+    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.7/aiken-x86_64-unknown-linux-gnu.tar.gz
     tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
     rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
     echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
