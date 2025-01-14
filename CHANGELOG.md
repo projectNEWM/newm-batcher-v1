@@ -4,7 +4,7 @@
 
 - Adding checks for sed and xxd to exist
 - Adding a backup script to mint just the batcher token
-- Ogmios updated to 6.10.0
+- Ogmios updated to 6.11.0
 - Aiken updated to 1.1.9
 - Cardano-cli updated to 10.2.0.0
 

@@ -690,9 +690,9 @@ fi
 if [ -x "bin/ogmios" ]; then
     echo -e "\033[1;31mOgmios Exists!\033[0m"
 else
-    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.10.0/ogmios-v6.10.0-x86_64-linux.zip
-    unzip -j bin/ogmios-v6.10.0-x86_64-linux.zip "bin/ogmios" -d bin
-    rm bin/ogmios-v6.10.0-x86_64-linux.zip
+    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.11.0/ogmios-v6.11.0-x86_64-linux.zip
+    unzip -j bin/ogmios-v6.11.0-x86_64-linux.zip "bin/ogmios" -d bin
+    rm bin/ogmios-v6.11.0-x86_64-linux.zip
     chmod +x bin/ogmios
     echo -e "\033[1;37mOgmios: $(./bin/ogmios --version)\033[0m"
 fi
