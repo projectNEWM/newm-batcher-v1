@@ -30,6 +30,13 @@ def create_toml_file(filename: str, node_socket: str, timestamp: int, block_hash
                 "include_block_end_events": True,
                 "include_transaction_details": True
             },
+            "error_policy": "Continue",
+            "retry_policy": {
+                "max_retries": 60,
+                "backoff_unit": 20000,
+                "backoff_factor": 2,
+                "max_backoff": 100000,
+            },
         },
         "sink": {
             "type": "Webhook",

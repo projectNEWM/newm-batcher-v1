@@ -2,6 +2,7 @@
 
 **This Version Requires cardano-node >= 10.1.2 (Mainnet, Preprod, Preview)**
 
+- Added source retry policy to daemonsd
 - Adding checks for sed and xxd to exist
 - Adding a backup script to mint just the batcher token
 - Ogmios updated to 6.9.0
