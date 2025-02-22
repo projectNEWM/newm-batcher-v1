@@ -16,6 +16,8 @@ from src.utxo_manager import UTxOManager
 
 config = yaml_file.read("config.yaml")
 
+def forced_update(db: DbManager, block_number: int, block_hash: str, timestamp: int):
+    db.status.update(block_number, block_hash, timestamp)
 
 def status(db: DbManager):
     latest_block_number = get_latest_block_number(config['socket_path'], 'tmp/tip.json', config['network'], config["cli_path"])
@@ -188,6 +190,7 @@ def main():
     parser.add_argument('--sorted-queue', action='store_true', help='return the sorted sale UTxOs and queue entries')
     parser.add_argument('--simulate-purchase', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
     parser.add_argument('--simulate-refund', nargs=2, metavar=('TKN', 'TAG'), type=str, help='simulate the purchase endpoint')
+    parser.add_argument('--forced-block-update', nargs=3, metavar=('NUM', 'HASH', 'TIME'), type=str, help='force the block status to update, the batcher must be stopped')
 
     args = parser.parse_args()
 
@@ -235,6 +238,10 @@ def main():
     if args.simulate_refund:
         tkn, tag = args.simulate_refund
         simulate_refund(db_manager, tkn, tag)
+    
+    if args.forced_block_update:
+        block_number, block_hash, timestamp = args.forced_block_update
+        forced_update(db_manager, int(block_number), block_hash, int(timestamp))
 
 
 if __name__ == '__main__':
