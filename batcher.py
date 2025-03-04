@@ -76,7 +76,7 @@ def webhook():
     db_number = sync_status["block_number"]
 
     # check for a change in the block number
-    if block_number != db_number:
+    if block_number != db_number and block_number is not None and block_hash is not None and block_slot is not None:
         # the block number has changed so update the db
         db.status.update(block_number, block_hash, block_slot)
         try:
