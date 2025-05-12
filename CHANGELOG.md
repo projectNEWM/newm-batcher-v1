@@ -5,10 +5,11 @@
 - Added source retry policy to daemonsd
 - Adding checks for sed and xxd to exist
 - Adding a backup script to mint just the batcher token
-- Ogmios updated to 6.11.0
-- Aiken updated to 1.1.9
-- Cardano-cli updated to 10.2.0.0
-
+- Oura updated to 1.9.3
+- Ogmios updated to 6.11.2
+- Aiken updated to 1.1.17
+- Cardano-cli updated to 10.8.0.0
+- Cardano Addresses updated to 4.0.0
 # v1.0.1
 
 **This Version Requires cardano-node >= 10.1.1 (Mainnet, Preprod, Preview)**
