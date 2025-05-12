@@ -30,9 +30,9 @@ fi
 if [ -x "./aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P . https://github.com/aiken-lang/aiken/releases/download/v1.1.17/aiken-x86_64-unknown-linux-gnu.tar.gz
-    tar -xzf ./aiken-x86_64-unknown-linux-gnu.tar.gz -C . --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
-    rm ./aiken-x86_64-unknown-linux-gnu.tar.gz
+    wget -P . https://github.com/aiken-lang/aiken/releases/download/v1.1.17/aiken-x86_64-unknown-linux-musl.tar.gz
+    tar -xzf ./aiken-x86_64-unknown-linux-musl.tar.gz -C . --strip-components=1 aiken-x86_64-unknown-linux-musl/aiken
+    rm ./aiken-x86_64-unknown-linux-musl.tar.gz
     echo -e "\033[1;37mAiken: $(./aiken --version)\033[0m"
 fi
 
@@ -50,9 +50,9 @@ fi
 if [ -x "./cardano-address" ]; then
     echo -e "\033[1;31mAddr Exists!\033[0m"
 else
-    wget -P . https://github.com/IntersectMBO/cardano-addresses/releases/download/4.0.0/cardano-addresses-4.0.0-linux64.tar.gz
-    tar -xzf ./cardano-addresses-4.0.0-linux64.tar.gz -C . --strip-components=1 bin/cardano-address
-    rm ./cardano-addresses-4.0.0-linux64.tar.gz
+    wget -P . https://github.com/IntersectMBO/cardano-addresses/releases/download/4.0.0/cardano-address-4.0.0-linux.tar.gz
+    tar -xzf ./cardano-address-4.0.0-linux.tar.gz -C .
+    rm ./cardano-address-4.0.0-linux.tar.gz
     chmod +x ./cardano-address
     echo -e "\033[1;37mCardano Address: $(./cardano-address --version)\033[0m"
 fi

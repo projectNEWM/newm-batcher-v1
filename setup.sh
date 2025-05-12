@@ -678,53 +678,54 @@ sleep 1
 clear
 echo -e "\033[1;34m\nDownloading Required Binaries\n\033[0m"
 
-if [ -x "bin/oura" ]; then
+
+if [ -x "./oura" ]; then
     echo -e "\033[1;31mOura Exists!\033[0m"
 else
-    wget -P bin https://github.com/txpipe/oura/releases/download/v1.9.3/oura-x86_64-unknown-linux-gnu.tar.gz
-    tar -xzf bin/oura-x86_64-unknown-linux-gnu.tar.gz -C bin --wildcards --no-anchored oura
-    rm bin/oura-x86_64-unknown-linux-gnu.tar.gz
-    echo -e "\033[1;37mOura: $(./bin/oura --version)\033[0m"
+    wget -P . https://github.com/txpipe/oura/releases/download/v1.9.3/oura-x86_64-unknown-linux-gnu.tar.gz
+    tar -xzf ./oura-x86_64-unknown-linux-gnu.tar.gz -C . --wildcards --no-anchored oura
+    rm ./oura-x86_64-unknown-linux-gnu.tar.gz
+    echo -e "\033[1;37mOura: $(./oura --version)\033[0m"
 fi
 
-if [ -x "bin/ogmios" ]; then
+if [ -x "./ogmios" ]; then
     echo -e "\033[1;31mOgmios Exists!\033[0m"
 else
-    wget -P bin https://github.com/CardanoSolutions/ogmios/releases/download/v6.11.2/ogmios-v6.11.2-x86_64-linux.zip
-    unzip -j bin/ogmios-v6.11.2-x86_64-linux.zip "bin/ogmios" -d bin
-    rm bin/ogmios-v6.11.2-x86_64-linux.zip
-    chmod +x bin/ogmios
-    echo -e "\033[1;37mOgmios: $(./bin/ogmios --version)\033[0m"
+    wget -P . https://github.com/CardanoSolutions/ogmios/releases/download/v6.11.2/ogmios-v6.11.2-x86_64-linux.zip
+    unzip -j ./ogmios-v6.11.2-x86_64-linux.zip "bin/ogmios" -d .
+    rm ./ogmios-v6.11.2-x86_64-linux.zip
+    chmod +x ./ogmios
+    echo -e "\033[1;37mOgmios: $(./ogmios --version)\033[0m"
 fi
 
-if [ -x "bin/aiken" ]; then
+if [ -x "./aiken" ]; then
     echo -e "\033[1;31mAiken Exists!\033[0m"
 else
-    wget -P bin https://github.com/aiken-lang/aiken/releases/download/v1.1.17/aiken-x86_64-unknown-linux-gnu.tar.gz
-    tar -xzf bin/aiken-x86_64-unknown-linux-gnu.tar.gz -C bin --strip-components=1 aiken-x86_64-unknown-linux-gnu/aiken
-    rm bin/aiken-x86_64-unknown-linux-gnu.tar.gz
-    echo -e "\033[1;37mAiken: $(./bin/aiken --version)\033[0m"
+    wget -P . https://github.com/aiken-lang/aiken/releases/download/v1.1.17/aiken-x86_64-unknown-linux-musl.tar.gz
+    tar -xzf ./aiken-x86_64-unknown-linux-musl.tar.gz -C . --strip-components=1 aiken-x86_64-unknown-linux-musl/aiken
+    rm ./aiken-x86_64-unknown-linux-musl.tar.gz
+    echo -e "\033[1;37mAiken: $(./aiken --version)\033[0m"
 fi
 
-if [ -x "bin/cardano-cli" ]; then
+if [ -x "./cardano-cli" ]; then
     echo -e "\033[1;31mCli Exists!\033[0m"
 else
-    wget -P bin https://github.com/IntersectMBO/cardano-cli/releases/download/cardano-cli-10.8.0.0/cardano-cli-10.8.0.0-x86_64-linux.tar.gz
-    tar -xzf bin/cardano-cli-10.8.0.0-x86_64-linux.tar.gz -C bin
-    chmod +x bin/cardano-cli-x86_64-linux
-    mv bin/cardano-cli-x86_64-linux ./bin/cardano-cli
-    rm bin/cardano-cli-10.8.0.0-x86_64-linux.tar.gz
-    echo -e "\033[1;37mCardano CLI: $(./bin/cardano-cli --version)\033[0m"
+    wget -P . https://github.com/IntersectMBO/cardano-cli/releases/download/cardano-cli-10.8.0.0/cardano-cli-10.8.0.0-x86_64-linux.tar.gz
+    tar -xzf ./cardano-cli-10.8.0.0-x86_64-linux.tar.gz -C .
+    chmod +x ./cardano-cli-x86_64-linux
+    mv ./cardano-cli-x86_64-linux ./cardano-cli
+    rm ./cardano-cli-10.8.0.0-x86_64-linux.tar.gz
+    echo -e "\033[1;37mCardano CLI: $(./cardano-cli --version)\033[0m"
 fi
 
-if [ -x "bin/cardano-address" ]; then
+if [ -x "./cardano-address" ]; then
     echo -e "\033[1;31mAddr Exists!\033[0m"
 else
-    wget -P bin https://github.com/IntersectMBO/cardano-addresses/releases/download/4.0.0/cardano-addresses-4.0.0-linux64.tar.gz
-    tar -xzf bin/cardano-addresses-4.0.0-linux64.tar.gz -C bin --strip-components=1 bin/cardano-address
-    rm bin/cardano-addresses-4.0.0-linux64.tar.gz
-    chmod +x bin/cardano-address
-    echo -e "\033[1;37mCardano Address: $(./bin/cardano-address --version)\033[0m"
+    wget -P . https://github.com/IntersectMBO/cardano-addresses/releases/download/4.0.0/cardano-address-4.0.0-linux.tar.gz
+    tar -xzf ./cardano-address-4.0.0-linux.tar.gz -C .
+    rm ./cardano-address-4.0.0-linux.tar.gz
+    chmod +x ./cardano-address
+    echo -e "\033[1;37mCardano Address: $(./cardano-address --version)\033[0m"
 fi
 
 ###############################################################################
