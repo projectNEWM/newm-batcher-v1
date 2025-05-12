@@ -1,5 +1,7 @@
 # v1.x.y
 
+# v1.0.3
+
 **This Version Requires cardano-node >= 10.1.4 (Mainnet, Preprod, Preview)**
 
 - Added source retry policy to daemonsd
@@ -10,6 +12,7 @@
 - Aiken updated to 1.1.17
 - Cardano-cli updated to 10.8.0.0
 - Cardano Addresses updated to 4.0.0
+
 # v1.0.1
 
 **This Version Requires cardano-node >= 10.1.1 (Mainnet, Preprod, Preview)**
